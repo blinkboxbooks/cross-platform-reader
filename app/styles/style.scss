@@ -1,0 +1,98 @@
+@import '_reset';
+@import '_normalize';
+
+// the selector text is used as an identifier in the script, be careful if you need to change it (display.js)
+
+#cpr-bookmark-ui {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #111;
+  width: 30px;
+  height: 30px;
+  box-shadow: 0 0 3px #666;
+}
+#cpr-bookmark-ui::before {
+  position: absolute;
+  content: "";
+  right: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  border: 15px solid black; // @@theme_background x
+  border-right-color: transparent;
+  border-top-color: transparent;
+}
+#cpr-footer {
+  color: black; // @@theme_title x
+  line-height: 30px; // @@footer
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#cpr-header {
+  color: white; // @@theme_title x
+  line-height: 30px; // @@header
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+.cpr-marker {
+
+}
+#wrap_id {
+  background: white; // @@theme_background x
+  position: relative;
+  overflow: hidden;
+
+  #id {
+    *, span, p, em, div, strong, a, h1, h2, h3, h4, h5, h6 {
+      padding: 0;
+      margin: 0;
+      font-weight: normal;
+      font-style: normal;
+      font-family: "Droid Serif", Georgia, Times New Roman, Times, serif;
+      text-decoration: none;
+      text-align: left; // @@textAlign x
+      color: black; // @@theme_color x
+      line-height: 1.2; // @@lineHeight x
+      font-size: 18px; // @@fontSize * 16 px  x
+      font-family: Arial; // @@fontFamily x
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: bold;
+      font-size:24px;
+    }
+    p {
+      margin-bottom: 1em
+    }
+    :link {
+      color:rgb(0, 153, 255);
+      text-decoration: none;
+      border-bottom:1px solid rgb(0, 153, 255);
+      &[data-link-type="external"]:after{
+        // TODO get image from psd
+        content: " "; // url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAVklEQVR4Xn3PgQkAMQhDUXfqTu7kTtkpd5RA8AInfArtQ2iRXFWT2QedAfttj2FsPIOE1eCOlEuoWWjgzYaB/IkeGOrxXhqB+uA9Bfcm0lAZuh+YIeAD+cAqSz4kCMUAAAAASUVORK5CYII=);
+        font-size: .83em;
+        vertical-align: super;
+      }
+      & *{
+        color:rgb(0, 153, 255);
+      }
+    }
+    img, svg, svg * {
+      max-width: 100%;
+      max-height: 100%;
+
+      &.cpr-center{
+        display:block;
+        margin-right:auto;
+        margin-left:auto;
+      }
+    }
+  }
+}
