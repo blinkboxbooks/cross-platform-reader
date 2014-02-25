@@ -264,6 +264,17 @@ module.exports = function (grunt) {
 						'**/*.html', 'components/jquery/jquery.min.js'
 					]
 				}]
+			},
+			github: {
+				files: [{
+					expand: true,
+					dot: true,
+					cwd: '<%= yeoman.app %>',
+					dest: '<%= yeoman.dist %>',
+					src: [
+						'*.html'
+					]
+				}]
 			}
 		},
 		replace: {
@@ -342,6 +353,7 @@ module.exports = function (grunt) {
 		}
 	});
 
+	// NOTE Reader must be generated and available at reader/scripts/.tmp/reader.js
 	grunt.registerTask('demo', function () {
 		grunt.task.run([
 			'jshint:demo',// js hint all JS files
@@ -374,6 +386,7 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('test', function (target) {
+		target = target || 'reader';
 		grunt.task.run([
 			'connect:' + target,
 			'karma:' + target
@@ -381,17 +394,10 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('build', [
-		'jshint',// js hint all JS files
-		'test', // test the application, also transforms sass files
-		'clean:dist', // delete dist directory and all its contents
-		'useminPrepare', // prepare configuration for concat and uglify
-		'concat', // concatenate JS files in one, move result in .tmp
-		'cssmin', // minify and copy styles
-		'replace', // repace the current version of the reader (note: must be before uglify)
-		'uglify', // uglify JS files from .tmp
-		'copy:dist', // copy html files from app to dist
-		'rev', // enables revision of reader
-		'usemin'// process html files from dist and replace build blocks
+		'clean:all', // start fresh
+		'reader', // build the reader
+		'demo', // build the demo
+		'copy:github' // copy github static pages
 	]);
 
 	grunt.registerTask('default', [
