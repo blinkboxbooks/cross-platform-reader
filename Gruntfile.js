@@ -282,11 +282,6 @@ module.exports = function (grunt) {
 				options: {
 					patterns:[
 						{
-							json: {
-								'readerVersion': pkg ? pkg.version : '0.0.1'
-							}
-						},
-						{
 							replacement: function(){
 								return grunt.file.read('app/reader/styles/.tmp/style.css');
 							},
@@ -304,9 +299,24 @@ module.exports = function (grunt) {
 						dest: '<%= yeoman.reader %>/scripts/.tmp/'
 					}
 				]
+			},
+			dist: {
+				options: {
+					variables: {
+						'readerVersion': '<%= grunt.config.get("readerVersion") %>'
+					}
+				},
+				prefix: '@@',
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: ['<%= yeoman.dist %>/**/*.{js,html}'],
+						dest: '<%= yeoman.dist %>'
+					}
+				]
 			}
 		},
-
 		// Test settings
 		karma: {
 			options:{
@@ -397,8 +407,25 @@ module.exports = function (grunt) {
 		'clean:all', // start fresh
 		'reader', // build the reader
 		'demo', // build the demo
-		'copy:github' // copy github static pages
+		'copy:github', // copy github static pages
+		'replace:dist' // add reader version
 	]);
+
+	grunt.registerTask('ci-build', [
+		'build'
+	]);
+
+	grunt.config.set('readerVersion', pkg ? pkg.version : '0.0.0');
+
+	grunt.registerTask('ci-init', function() {
+		var fullVersion = pkg.version+'-'+process.env.BUILD_NUMBER; // append Jenkins build number
+		var buildNumber = parseInt(process.env.BUILD_NUMBER, 10);   // use build number to avoid conflicting test ports when multiple jobs are running
+
+		grunt.config.set('readerVersion', fullVersion);
+		grunt.config.set('testPort', 7000+buildNumber);         // port used by Karma test framework
+		grunt.config.set('testRunnerPort', 8000+buildNumber);   // port used by Karma test runner which launches PhantomJS
+		grunt.config.set('testConnectPort', 9000+buildNumber);  // port used by the nodejs test server
+	});
 
 	grunt.registerTask('default', [
 		'build'
