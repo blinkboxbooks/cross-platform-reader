@@ -16,7 +16,7 @@
 		font-weight:300;
 	}
 
-	h1, h3, h4, h4, h5, h6 {
+	h1, h2, h3, h4, h5, h6 {
 		color:#222;
 		margin:0 0 20px;
 	}
@@ -25,7 +25,7 @@
 		margin:0 0 20px;
 	}
 
-	h1, h3, h4 {
+	h1, h2, h3 {
 		line-height:1.1;
 	}
 
@@ -33,11 +33,11 @@
 		font-size:28px;
 	}
 
-	h3 {
+	h2 {
 		color:#393939;
 	}
 
-	h4, h4, h5, h6 {
+	h3, h4, h5, h6 {
 		color:#494949;
 	}
 
@@ -47,6 +47,10 @@
 		text-decoration:none;
 	}
 
+	a:hover {
+		color:#069;
+	}
+
 	a small {
 		font-size:11px;
 		color:#777;
@@ -54,8 +58,12 @@
 		display:block;
 	}
 
+	a:hover small {
+		color:#777;
+	}
+
 	.wrapper {
-		width:860px;
+		width:980px;
 		margin:0 auto;
 	}
 
@@ -67,7 +75,7 @@
 	}
 
 	code, pre {
-		font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
+		font-family:Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal, monospace;
 		color:#333;
 		font-size:12px;
 	}
@@ -105,7 +113,7 @@
 	}
 
 	header {
-		width:270px;
+		width:330px;
 		float:left;
 		position:fixed;
 	}
@@ -127,7 +135,7 @@
 		border-radius:5px;
 		border:1px solid #d2d2d2;
 		box-shadow:inset #fff 0 1px 0, inset rgba(0,0,0,0.03) 0 -1px 0;
-		width:180px;
+		width:270px;
 	}
 
 	header li {
@@ -137,6 +145,14 @@
 		height:40px;
 	}
 
+	header li:first-child a {
+		border-radius:5px 0 0 5px;
+	}
+
+	header li:last-child a {
+		border-radius:0 5px 5px 0;
+	}
+
 	header ul a {
 		line-height:1;
 		font-size:11px;
@@ -144,7 +160,23 @@
 		display:block;
 		text-align:center;
 		padding-top:6px;
-		height:40px;
+		height:34px;
+	}
+
+	header ul a:hover {
+		color:#999;
+		background: -moz-linear-gradient(top, #fff 0%, #ddd 100%);
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fff), color-stop(100%,#ddd));
+		background: -webkit-linear-gradient(top, #fff 0%,#ddd 100%);
+		background: -o-linear-gradient(top, #fff 0%,#ddd 100%);
+		background: -ms-linear-gradient(top, #fff 0%,#ddd 100%);
+		background: linear-gradient(top, #fff 0%,#ddd 100%);
+	}
+
+	header ul a:active {
+		-webkit-box-shadow: inset 0px 2px 2px 0px #ddd;
+		-moz-box-shadow: inset 0px 2px 2px 0px #ddd;
+		box-shadow: inset 0px 2px 2px 0px #ddd;
 	}
 
 	strong {
@@ -155,6 +187,9 @@
 	header ul li + li {
 		width:88px;
 		border-left:1px solid #fff;
+	}
+
+	header ul li + li + li {
 		border-right:none;
 		width:89px;
 	}
@@ -166,7 +201,7 @@
 	}
 
 	section {
-		width:500px;
+		width:560px;
 		float:right;
 		padding-bottom:50px;
 	}
@@ -269,39 +304,75 @@
 	</div>
 </header>
 
-<div id='main' class="container">
-
-</div>
-
 <div class="wrapper">
 	<header>
 		<h1>Cross Platform Reader</h1>
+		<p>A JavaScript library that displays e-books in the browser.</p>
 		<p>v @@readerVersion</p>
 
 		<p class="view"><a href="https://git.mobcastdev.com/Website/cross-platform-reader">View the Project on GitHub <small>Website/cross-platform-reader</small></a></p>
 
 		<ul>
 			<li><a href="https://git.mobcastdev.com/Website/cross-platform-reader/zipball/master">Download<strong>Zip</strong></a></li>
-			<li><a href="/demo">View<strong>Demo</strong></a></li>
+			<li><a href="demo">View<strong>Demo</strong></a></li>
+			<li><a href="docs">View<strong>Docs</strong></a></li>
 		</ul>
 	</header>
 	<section>
-		<h3>Introduction</h3>
-		<p>TODO</p>
+		<h2>Installation</h2>
 
-		<h3>Instalation</h3>
-		<p>TODO</p>
+		<h3>Prerequisites for admin panel development</h3>
 
-		<h3>Build process</h3>
+		<ol>
+			<li>Ruby >= 2.x</li>
+			<li>Compass >= 0.12.x</li>
+			<li>Node >= 0.10.x</li>
+			<li>NPM >= 1.3.x</li>
+			<li>Bower >= 1.2.8</li>
+		</ol>
 
-		<h4>Development</h4>
-		<p>TODO</p>
+		<h3>Install Ruby</h3>
 
-		<h4>Production</h4>
-		<p>TODO</p>
+		<p>Install with <a href="https://rvm.io">Ruby Version Manager</a> - the current stable version of Ruby is 2.0.0-p195</p>
 
-		<h3>Documentation</h3>
+		<h3>Install Compass</h3>
+
+		<pre><code>gem install compass</code></pre>
+
+		<h3>Install Node and NPM</h3>
+
+		<p>The npm installer can be found <a href="http://nodejs.org/download/">here</a>.</p>
+
+		<h3>Install bower</h3>
+
+		<pre><code>npm install -g bower</code></pre>
+
+		<h2>Set up the CPR project</h2>
+
+		<pre><code>
+git clone https://git.mobcastdev.com/Website/cross-platform-reader.git
+cd cross-platform-reader
+npm install && bower install
+		</code></pre>
+
+		<h2>Build process</h2>
+
+		<h3>Development</h3>
+		<p>Run the following command to launch a development environment to test on your machine.</p>
+		<pre><code>grunt serve</code></pre>
+
+		<h3>Production</h3>
+		<p>Run the following command to generate a production version of the reader in the dist folder.</p>
+		<pre><code>grunt reader</code></pre>
+		<p>Run the following command to generate a production version of the demo project.</p>
+		<pre><code>grunt demo</code></pre>
+		<p>Run the following command to build both the reader and the demo.</p>
+		<pre><code>grunt</code></pre>
+
+		<h2>Documentation</h2>
 		<p><a href="https://tools.mobcastdev.com/confluence/display/CR/Reader+Callback+Specification">Reader Callback Specification</a></p>
+		<p><a href="docs">Technical documentation</a></p>
+
 	</section>
 	<footer>
 		<p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
