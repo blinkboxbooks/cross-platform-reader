@@ -113,7 +113,8 @@ module.exports = function (grunt) {
 					dot: true,
 					src: [
 						'<%= yeoman.demo %>/**/.tmp',
-						'<%= yeoman.dist %>/demo'
+						'<%= yeoman.dist %>/demo',
+						'.tmp'
 					]
 				}]
 			}
@@ -124,10 +125,6 @@ module.exports = function (grunt) {
 				jshintrc: '.jshintrc',
 				reporter: require('jshint-stylish')
 			},
-			all: [
-				'Gruntfile.js',
-				'<%= yeoman.app %>/**/*.js'
-			],
 			reader: [
 				'<%= yeoman.reader %>/**/*.js'
 			],
@@ -140,23 +137,12 @@ module.exports = function (grunt) {
 				},
 				files: [{
 					src: [
-						'test/spec/**/*.js'
+						'test/**/*.js'
 					]
 				}]
 			}
 		},
 		cssmin: {
-			demo: {
-				files: [{
-					expand: true,
-					dot: true,
-					cwd: '<%= yeoman.demo %>/styles/.tmp',
-					dest: '<%= yeoman.demo %>/styles/.tmp',
-					src: [
-						'**/*.css'
-					]
-				}]
-			},
 			reader: {
 				files: [{
 					expand: true,
@@ -174,7 +160,7 @@ module.exports = function (grunt) {
 			demo: {
 				options: {
 					sassDir: '<%= yeoman.demo %>/styles',
-					cssDir: '<%= yeoman.demo %>/styles/.tmp',
+					cssDir: '.tmp/styles/',
 					relativeAssets: true
 				}
 			},
@@ -218,7 +204,7 @@ module.exports = function (grunt) {
 		// additional tasks can operate on them
 		useminPrepare: {
 			options: {
-				dest: '<%= yeoman.dist %>'
+				dest: '<%= yeoman.dist %>/demo'
 			},
 			html: '<%= yeoman.demo %>/index.html'
 		},
@@ -328,14 +314,30 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('reader', function () {
 		grunt.task.run([
-			'jshint:reader',
-			'test:reader',
-			'clean:reader',
-			'concurrent:reader',
-			'cssmin:reader',
-			'replace:reader',
-			'uglify:reader',
-			'rev:reader'
+			'jshint:reader', // jshint reader files
+			'test:reader', // run unit tests for the reader library
+			'clean:reader', // clean all .tmp folders and the dist/reader folder
+			'concurrent:reader', // concatenate js files and compile sass styles
+			'cssmin:reader', // cssmin styles of the reader
+			'replace:reader', // add styles as JS variable and add version number
+			'uglify:reader', // move and minify the reader
+			'rev:reader' // cache buster
+		]);
+	});
+
+	grunt.registerTask('demo', function () {
+		grunt.task.run([
+			'jshint:demo',// js hint all JS files
+			// 'test:demo', // test the application, also transforms sass files
+			'clean:demo', // delete dist directory and all its contents
+			'concurrent:demo', // compile demo sass files
+			'useminPrepare', // prepare configuration for concat and uglify
+			'concat:generated', // concatenate JS files in one, move result in .tmp
+			'cssmin:generated', // minify and copy styles
+			'uglify:generated', // uglify JS files from .tmp
+			'copy:demo', // copy html files from app to dist
+			'rev:demo', // enables revision of reader
+			'usemin'// process html files from dist and replace build blocks
 		]);
 	});
 

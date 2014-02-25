@@ -4,8 +4,8 @@
     <title>Cross Platform Reader</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.0.3/united/bootstrap.min.css">
 
-	<!-- build:css index.min.css-->
-	<link rel="stylesheet" href="styles/.tmp/index.css">
+	<!-- build:css(.tmp) styles/index.min.css-->
+	<link rel="stylesheet" href="styles/index.css">
 	<!-- endbuild -->
 
 </head>
@@ -21,24 +21,9 @@
         <div id="reader_container"></div>
     </div>
 
-    <script src="vendor/jquery.min.js"></script>
+    <!-- build:js scripts/script.min.js-->
+    <script src="../components/jquery.min.js"></script>
+    <!-- endbuild -->
 
-    <!-- build:js reader.min.js-->
-    <script src="scripts/.tmp/reader.js"></script>
-		<!-- endbuild -->
-
-    <script>
-			/*
-			TODO Write a demo app to play with the reader
-			$(function(){
-				READER.init({
-					url: 'https://media.blinkboxbooks.com/params;v=0/9781/847/089/359/9185e57179e3a82df6ac09104da5102a.sample.epub',
-					container: '#reader_container',
-					width: 600,
-					height: 800
-				});
-			});
-			*/
-    </script>
 </body>
 </html>
