@@ -13,22 +13,12 @@ module.exports = function(config) {
 
 
     // list of files / patterns to load in the browser
-    files: [
-			// libraries
-			'app/vendor/**/*.js',
-
-			// the reader
-			'app/scripts/**/*.js',
-
-			// the tests
-			'test/spec/**/*.js'
-    ],
+		// set using grunt
+    files: [],
 
 
     // list of files to exclude
-    exclude: [
-      
-    ],
+    exclude: [],
 
 
     // test results reporter to use

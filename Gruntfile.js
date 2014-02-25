@@ -80,12 +80,12 @@ module.exports = function (grunt) {
 					]
 				}
 			},
-			test: {
+			reader: {
 				options: {
 					port: 9001,
 					base: [
 						'test',
-						'<%= yeoman.app %>'
+						'<%= yeoman.app %>/reader'
 					]
 				}
 			},
@@ -108,16 +108,15 @@ module.exports = function (grunt) {
 					]
 				}]
 			},
-			dist: {
+			demo: {
 				files: [{
 					dot: true,
 					src: [
-						'<%= yeoman.dist %>/*',
-						'!<%= yeoman.dist %>/.git*'
+						'<%= yeoman.demo %>/**/.tmp',
+						'<%= yeoman.dist %>/demo'
 					]
 				}]
-			},
-			server: '**/.tmp'
+			}
 		},
 		// Make sure code styles are up to par and there are no obvious mistakes
 		jshint: {
@@ -127,7 +126,13 @@ module.exports = function (grunt) {
 			},
 			all: [
 				'Gruntfile.js',
-				'<%= yeoman.app %>/scripts/**/*.js'
+				'<%= yeoman.app %>/**/*.js'
+			],
+			reader: [
+				'<%= yeoman.reader %>/**/*.js'
+			],
+			demo: [
+				'<%= yeoman.demo %>/**/*.js'
 			],
 			test: {
 				options: {
@@ -299,19 +304,38 @@ module.exports = function (grunt) {
 
 		// Test settings
 		karma: {
-			unit: {
+			options:{
 				configFile: 'karma.conf.js'
+			},
+			reader: {
+				options:{
+					files: [
+						// libraries
+						'<%= yeoman.app %>/components/jquery/jquery.js',
+						'<%= yeoman.app %>/lib/epubcfi.min.js',
+						'<%= yeoman.app %>/components/bugsense/bugsense.js',
+
+						// the reader
+						'<%= yeoman.app %>/reader/scripts/*.js',
+
+						// the tests
+						'test/reader/spec/**/*.js'
+					]
+				}
 			}
 		}
 	});
 
 	grunt.registerTask('reader', function () {
 		grunt.task.run([
+			'jshint:reader',
+			'test:reader',
 			'clean:reader',
 			'concurrent:reader',
 			'cssmin:reader',
 			'replace:reader',
-			'uglify:reader'
+			'uglify:reader',
+			'rev:reader'
 		]);
 	});
 
@@ -333,16 +357,9 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('test', function (target) {
-		if (target !== 'watch') {
-			grunt.task.run([
-				'clean:server',
-				'concurrent'
-			]);
-		}
-
 		grunt.task.run([
-			'connect:test',
-			'karma'
+			'connect:' + target,
+			'karma:' + target
 		]);
 	});
 
