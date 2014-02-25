@@ -24,7 +24,9 @@ module.exports = function (grunt) {
 		yeoman: {
 			// Configurable paths
 			app: 'app',
-			dist: 'dist'
+			dist: 'dist',
+			demo: 'app/demo',
+			reader: 'app/reader'
 		},
 		// Watches files for changes and runs tasks based on the changed files
 		watch: {
@@ -97,6 +99,15 @@ module.exports = function (grunt) {
 		},
 		// Empties folders to start fresh
 		clean: {
+			reader: {
+				files: [{
+					dot: true,
+					src: [
+						'<%= yeoman.reader %>/**/.tmp',
+						'<%= yeoman.dist %>/reader'
+					]
+				}]
+			},
 			dist: {
 				files: [{
 					dot: true,
@@ -130,12 +141,23 @@ module.exports = function (grunt) {
 			}
 		},
 		cssmin: {
-			dist: {
+			demo: {
 				files: [{
 					expand: true,
 					dot: true,
-					cwd: '<%= yeoman.app %>/styles/.tmp',
-					dest: '<%= yeoman.app %>/styles/.tmp',
+					cwd: '<%= yeoman.demo %>/styles/.tmp',
+					dest: '<%= yeoman.demo %>/styles/.tmp',
+					src: [
+						'**/*.css'
+					]
+				}]
+			},
+			reader: {
+				files: [{
+					expand: true,
+					dot: true,
+					cwd: '<%= yeoman.reader %>/styles/.tmp',
+					dest: '<%= yeoman.reader %>/styles/.tmp',
 					src: [
 						'**/*.css'
 					]
@@ -144,27 +166,46 @@ module.exports = function (grunt) {
 		},
 		// Compiles Sass to CSS and generates necessary files if requested
 		compass: {
-			options: {
-				sassDir: '<%= yeoman.app %>/styles',
-				cssDir: '<%= yeoman.app %>/styles/.tmp',
-				relativeAssets: true
+			demo: {
+				options: {
+					sassDir: '<%= yeoman.demo %>/styles',
+					cssDir: '<%= yeoman.demo %>/styles/.tmp',
+					relativeAssets: true
+				}
 			},
-			dist: {}
+			reader: {
+				options: {
+					sassDir: '<%= yeoman.reader %>/styles',
+					cssDir: '<%= yeoman.reader %>/styles/.tmp',
+					relativeAssets: true
+				}
+			}
 		},
 		// Renames files for browser caching purposes
 		rev: {
-			dist: {
+			reader: {
 				files: {
 					src: [
-						'<%= yeoman.dist %>/**/*.{js,css}'
+						'<%= yeoman.dist %>/reader/**/*.{js,css}'
+					]
+				}
+			},
+			demo: {
+				files: {
+					src: [
+						'<%= yeoman.dist %>/demo/**/*.{js,css}'
 					]
 				}
 			}
 		},
 		// Run some tasks in parallel to speed up build process
 		concurrent: {
-			dist: [
-				'compass'
+			reader: [
+				'compass:reader',
+				'concat:reader'
+			],
+			demo: [
+				'compass:demo'
 			]
 		},
 		// Reads HTML for usemin blocks to enable smart builds that automatically
@@ -174,53 +215,60 @@ module.exports = function (grunt) {
 			options: {
 				dest: '<%= yeoman.dist %>'
 			},
-			html: '<%= yeoman.app %>/index.html'
+			html: '<%= yeoman.demo %>/index.html'
 		},
 		// Performs rewrites based on rev and the useminPrepare configuration
 		usemin: {
 			options: {
-				assetsDirs: ['<%= yeoman.dist %>']
+				assetsDirs: ['<%= yeoman.dist %>/demo']
 			},
-			html: ['<%= yeoman.dist %>/{,*/}*.html'],
-			css: ['<%= yeoman.dist %>/styles/{,*/}*.css']
+			html: ['<%= yeoman.dist %>/demo/{,*/}*.html'],
+			css: ['<%= yeoman.dist %>/demo/styles/{,*/}*.css']
 		},
 		concat: {
 			// concatenate all the reader files into a temporary file
-			server: {
+			reader: {
 				files: {
-					'<%= yeoman.app %>/scripts/.tmp/reader.js': [
-						'<%= yeoman.app %>/vendor/epubcfi.min.js',
-						'<%= yeoman.app %>/vendor/bugsense.js',
-						'<%= yeoman.app %>/scripts/**/*.js'
+					'<%= yeoman.reader %>/scripts/.tmp/reader.js': [
+						'<%= yeoman.app %>/lib/epubcfi.min.js',
+						'<%= yeoman.app %>/components/bugsense/bugsense.js',
+						'<%= yeoman.reader %>/scripts/*.js'
 					]
 				}
 			}
 		},
 		uglify:{
-			options : {
-				// this workaround is required to make uglifyjs ignore escaped characters from epbcfi library
-				beautify : {
-					ascii_only : true,
-					beautify: false
+			reader: {
+				options : {
+					// this workaround is required to make uglifyjs ignore escaped characters from epbcfi library
+					beautify : {
+						ascii_only : true,
+						beautify: false
+					}
+				},
+				files: {
+					'<%= yeoman.dist %>/reader/reader.min.js': [
+						'<%= yeoman.reader %>/scripts/.tmp/reader.js'
+					]
 				}
 			}
 		},
 		// Copies remaining files to places other tasks can use
 		copy: {
-			dist: {
+			demo: {
 				files: [{
 					expand: true,
 					dot: true,
-					cwd: '<%= yeoman.app %>',
-					dest: '<%= yeoman.dist %>',
+					cwd: '<%= yeoman.demo %>',
+					dest: '<%= yeoman.dist %>/demo',
 					src: [
-						'**/*.html', 'vendor/jquery.min.js'
+						'**/*.html', 'components/jquery/jquery.min.js'
 					]
 				}]
 			}
 		},
 		replace: {
-			dist: {
+			reader: {
 				options: {
 					patterns:[
 						{
@@ -230,7 +278,7 @@ module.exports = function (grunt) {
 						},
 						{
 							replacement: function(){
-								return grunt.file.read('app/styles/.tmp/style.css');
+								return grunt.file.read('app/reader/styles/.tmp/style.css');
 							},
 							match: 'readerStyles',
 							expression: false
@@ -242,14 +290,8 @@ module.exports = function (grunt) {
 					{
 						expand: true,
 						flatten: true,
-						src: ['<%= yeoman.app %>/scripts/.tmp/*.js'],
-						dest: '<%= yeoman.app %>/scripts/.tmp/'
-					},
-					{
-						expand: true,
-						flatten: true,
-						src: ['.tmp/concat/**/*.js'],
-						dest: '.tmp/concat/'
+						src: ['<%= yeoman.reader %>/scripts/.tmp/*.js'],
+						dest: '<%= yeoman.reader %>/scripts/.tmp/'
 					}
 				]
 			}
@@ -261,6 +303,16 @@ module.exports = function (grunt) {
 				configFile: 'karma.conf.js'
 			}
 		}
+	});
+
+	grunt.registerTask('reader', function () {
+		grunt.task.run([
+			'clean:reader',
+			'concurrent:reader',
+			'cssmin:reader',
+			'replace:reader',
+			'uglify:reader'
+		]);
 	});
 
 	grunt.registerTask('serve', function () {
@@ -295,6 +347,8 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('build', [
+		'jshint',// js hint all JS files
+		'test', // test the application, also transforms sass files
 		'clean:dist', // delete dist directory and all its contents
 		'useminPrepare', // prepare configuration for concat and uglify
 		'concat', // concatenate JS files in one, move result in .tmp
@@ -307,8 +361,6 @@ module.exports = function (grunt) {
 	]);
 
 	grunt.registerTask('default', [
-		'jshint',// js hint all JS files
-		'test',
 		'build'
 	]);
 };

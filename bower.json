@@ -1,0 +1,16 @@
+{
+  "name": "CPR",
+  "version": "0.1.11",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "1.10.2",
+    "bugsense": "~2.0.0"
+  }
+}
