@@ -31,36 +31,34 @@ module.exports = function (grunt) {
 		// Watches files for changes and runs tasks based on the changed files
 		watch: {
 			js: {
-				files: ['<%= yeoman.app %>/scripts/*.js'],
-				tasks: ['jshint', 'concat:server', 'replace']
-			},
-			reader: {
-				files: ['<%= yeoman.app %>/scripts/.tmp/*.js'],
+				files: ['<%= yeoman.demo %>/scripts/*.js', '<%= yeoman.reader %>/scripts/.tmp/*.js'],
+				tasks: ['jshint:demo'],
 				options: {
 					livereload: true
 				}
 			},
-			jstest: {
-				files: ['test/spec/**/*.js'],
-				tasks: ['test:watch']
+			reader: {
+				files: ['<%= yeoman.reader %>/scripts/*.js', '<%= yeoman.reader %>/styles/*.scss'],
+				tasks: ['reader:watch']
 			},
 			gruntfile: {
 				files: ['Gruntfile.js']
 			},
 			compass: {
-				files: ['<%= yeoman.app %>/styles/**/*.{scss,sass}'],
-				tasks: ['compass']
+				files: ['<%= yeoman.demo %>/styles/**/*.{scss,sass}'],
+				tasks: ['compass:demo']
 			},
 			styles: {
-				files: ['<%= yeoman.app %>/styles/.tmp/**/*.css']
+				files: ['.tmp/styles/**/*.css']
 			},
 			livereload: {
 				options: {
 					livereload: '<%= connect.options.livereload %>'
 				},
 				files: [
-					'<%= yeoman.app %>/**/*.html',
-					'<%= yeoman.app %>/**/*.css'
+					'<%= yeoman.app %>/index.html',
+					'<%= yeoman.demo %>/**/*.html',
+					'.tmp/styles/*.css'
 				]
 			}
 		},
@@ -76,6 +74,7 @@ module.exports = function (grunt) {
 				options: {
 					open: true,
 					base: [
+						'.tmp',
 						'<%= yeoman.app %>'
 					]
 				}
@@ -115,6 +114,15 @@ module.exports = function (grunt) {
 						'<%= yeoman.demo %>/**/.tmp',
 						'<%= yeoman.dist %>/demo',
 						'.tmp'
+					]
+				}]
+			},
+			all: {
+				files: [{
+					dot: true,
+					src: [
+						'<%= yeoman.dist %>',
+						'**/.tmp'
 					]
 				}]
 			}
@@ -312,23 +320,32 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask('reader', function () {
+	grunt.registerTask('reader', function (target) {
+		grunt.task.run(['jshint:reader']);
+
+		if(target !== 'watch'){
+			grunt.task.run(['test:reader']);// run unit tests for the reader library
+		}
+
 		grunt.task.run([
-			'jshint:reader', // jshint reader files
-			'test:reader', // run unit tests for the reader library
 			'clean:reader', // clean all .tmp folders and the dist/reader folder
 			'concurrent:reader', // concatenate js files and compile sass styles
 			'cssmin:reader', // cssmin styles of the reader
-			'replace:reader', // add styles as JS variable and add version number
-			'uglify:reader', // move and minify the reader
-			'rev:reader' // cache buster
+			'replace:reader' // add styles as JS variable and add version number
 		]);
+
+		if(target !== 'watch'){
+			grunt.task.run([
+				'uglify:reader', // move and minify the reader
+				'rev:reader' // cache buster
+			]);
+		}
 	});
 
 	grunt.registerTask('demo', function () {
 		grunt.task.run([
 			'jshint:demo',// js hint all JS files
-			// 'test:demo', // test the application, also transforms sass files
+			// 'test:demo', // test the application
 			'clean:demo', // delete dist directory and all its contents
 			'concurrent:demo', // compile demo sass files
 			'useminPrepare', // prepare configuration for concat and uglify
@@ -343,11 +360,9 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('serve', function () {
 		grunt.task.run([
-			'clean:server',
-			'concurrent',
-			'concat:server',
-			'cssmin',
-			'replace',
+			'clean:all',
+			'reader', // necessary to generate the reader.js library
+			'concurrent:demo',
 			'connect:livereload',
 			'watch'
 		]);
