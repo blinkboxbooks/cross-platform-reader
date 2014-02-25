@@ -243,7 +243,8 @@ module.exports = function (grunt) {
 					beautify : {
 						ascii_only : true,
 						beautify: false
-					}
+					},
+					banner: '/*! Cross Platform Reader - <%= grunt.config.get("readerVersion") %> - <%= grunt.template.today("yyyy-mm-dd") %> */'
 				},
 				files: {
 					'<%= yeoman.dist %>/reader/reader.min.js': [
@@ -310,9 +311,9 @@ module.exports = function (grunt) {
 				files: [
 					{
 						expand: true,
-						flatten: true,
+						flatten: false,
 						src: ['<%= yeoman.dist %>/**/*.{js,html}'],
-						dest: '<%= yeoman.dist %>'
+						dest: ''
 					}
 				]
 			}
