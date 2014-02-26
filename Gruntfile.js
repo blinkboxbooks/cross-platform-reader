@@ -276,6 +276,14 @@ module.exports = function (grunt) {
 						'*.html'
 					]
 				}]
+			},
+			reader: {
+				files: [{
+					dest: '<%= yeoman.dist %>/reader/reader.js',
+					src: [
+						'<%= yeoman.reader %>/scripts/.tmp/reader.js'
+					]
+				}]
 			}
 		},
 		replace: {
@@ -368,6 +376,7 @@ module.exports = function (grunt) {
 
 		if(target !== 'watch'){
 			grunt.task.run([
+				'copy:reader', // copy dev version of reader to dist
 				'uglify:reader', // move and minify the reader
 				'rev:reader' // cache buster
 			]);
