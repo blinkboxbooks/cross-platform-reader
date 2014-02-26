@@ -339,6 +339,16 @@ module.exports = function (grunt) {
 					]
 				}
 			}
+		},
+		// this grunt task generates documentation for the reader and saves the files in the docs/ folder
+		// Note: Docco requires a different comment formatting style. Only single line comments ( // ) work and the text is processed using the markdown formatting. This allows for greater control over styling directly in the comments.
+		docco: {
+			reader: {
+				src: ['<%= yeoman.reader %>/scripts/*.js'],
+				options: {
+					output: '<%= yeoman.dist %>/docs/'
+				}
+			}
 		}
 	});
 
@@ -409,7 +419,8 @@ module.exports = function (grunt) {
 		'reader', // build the reader
 		'demo', // build the demo
 		'copy:github', // copy github static pages
-		'replace:dist' // add reader version
+		'replace:dist', // add reader version
+		'docco' // generates technical documentation
 	]);
 
 	grunt.registerTask('ci-build', [
