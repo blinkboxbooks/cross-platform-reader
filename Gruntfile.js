@@ -296,8 +296,8 @@ module.exports = function (grunt) {
 					{
 						expand: true,
 						flatten: true,
-						src: ['<%= yeoman.reader %>/scripts/.tmp/*.js'],
-						dest: '<%= yeoman.reader %>/scripts/.tmp/'
+						src: ['<%= yeoman.reader %>/scripts/display.js'],
+						dest: '<%= yeoman.reader %>/scripts/'
 					}
 				]
 			},
