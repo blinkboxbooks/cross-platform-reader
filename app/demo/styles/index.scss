@@ -3,7 +3,14 @@
 */
 
 #reader_container_wrap{
-  width:600px;
-  height:800px;
+  width:auto;
+  height:auto;
   border:1px solid black;
+}
+#log div {
+  width: 90%;
+  padding: 5%;
+  height: 300px;
+  border:1px solid black;
+  overflow: scroll;
 }

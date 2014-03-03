@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="app">
 <head>
     <title>Demo</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.0.3/united/bootstrap.min.css">
@@ -9,7 +9,7 @@
 	<!-- endbuild -->
 
 </head>
-<body>
+<body ng-controller="Reader_controller">
 
     <header>
         <div class="container">
@@ -18,12 +18,68 @@
     </header>
 
     <div id='main' class="container">
+        <h3>Loading...</h3>
+
+        <div id="navMenu">
+            <form name="Styles">
+                <p>
+                    ISBN
+                    <input name="Isbn" type='input' ng-model='isbn.value'>
+                </p>
+                <p>
+                    Width
+                    <input name="Width" type='input' ng-model='width.value'>
+                    Height
+                    <input name="Height" type='input' ng-model='height.value'>
+                </p>
+                <p>
+                    Line height
+                    <input name="LineHeight" type='number' ng-model='lineHeight.value' min="{{lineHeight.min}}" max="{{lineHeight.max}}" step="{{lineHeight.step}}">
+                </p>
+                <p>
+                    Font size
+                    <input name="FontSize" type='number' ng-model='fontSize.value' min="{{fontSize.min}}" max="{{fontSize.max}}" step="{{fontSize.step}}">
+                </p>
+            </form>
+            <p>
+                Margins
+                <a ng-click="setMargin('min')">Min</a>
+                <a ng-click="setMargin('medium')">Medium</a>
+                <a ng-click="setMargin('max')">Max</a>
+            </p>
+            <p>
+                Theme
+                <a ng-click="setTheme('light')">Light</a>
+                <a ng-click="setTheme('dark')">Dark</a>
+                <a ng-click="setTheme('sepia')">Sepia</a>
+                <a ng-click="setTheme('transparent')">Transparent</a>
+            </p>
+            <p>
+                Font Family
+                <select ng-model="font" ng-options="font for font in fonts"></select>
+            </p>
+            <p>
+                Text alignment
+                <select ng-model="align" ng-options="align for align in alignment"></select>
+            </p>
+            <p>
+                <a ng-click="getCFI()">Get current CFI</a>
+            </p>
+            <a ng-click="previous()">Previous</a>
+            <a ng-click="next()">Next</a>
+        </div>
         <div id="reader_container"></div>
+        <div id="log">
+            <h3>Log</h3>
+            <div></div>
+        </div>
     </div>
 
     <!-- build:js scripts/script.min.js-->
+    <script src="../components/angular/angular.min.js"></script>
     <script src="../components/jquery/jquery.min.js"></script>
     <script src="../reader/scripts/.tmp/reader.js"></script>
+    <script src="scripts/script.js"></script>
     <!-- endbuild -->
 
 </body>
