@@ -4868,10 +4868,11 @@ var Reader = (function (r) {
 		// Save a reference for each style
 		var rules = r.$stylesheet[0].sheet.cssRules;
 		var i= 0, l= rules.length, wrap_id = '#' + r.$reader.attr('id') + '_wrap', id = wrap_id + ' #' + r.$reader.attr('id');
-
+    var _checkSelectors = function(v) { if (rule.selectorText) { return rule.selectorText.indexOf(v) >= 0; }};
 		for(i=0; i< l; i++){
 			var rule = rules[i];
-			if(rule.selectorText === id +' *, '+id+' span, '+id+' p, '+id+' em, '+id+' div, '+id+' strong, '+id+' a, '+id+' h1, '+id+' h2, '+id+' h3, '+id+' h4, '+id+' h5, '+id+' h6'){
+      var selectors = [id +' *', id+' span', id+' p', id+' em', id+' div', id+' strong', id+' a', id+' h1', id+' h2', id+' h3', id+' h4', id+' h5', id+' h6'];
+      if(selectors.every(_checkSelectors)){
 				r.preferences.lineHeight.rules.push({rule: rule.style, property: 'lineHeight'});
 				r.preferences.fontSize.rules.push({rule: rule.style, property: 'fontSize'});
 				r.preferences.fontFamily.rules.push({rule: rule.style, property: 'fontFamily'});
@@ -4897,7 +4898,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.12-15'
+				appversion: '0.1.12-16'
 			});
 			// Setup error handler
 			window.onerror = function (err) {
@@ -5404,7 +5405,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.12-15'
+			'version': '0.1.12-16'
 		},
 		START_OF_BOOK : {
 			code: 8,
