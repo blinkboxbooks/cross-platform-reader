@@ -73,7 +73,7 @@ var Reader = (function (r) {
 		for(i=0; i< l; i++){
 			var rule = rules[i];
       var selectors = [id +' *', id+' span', id+' p', id+' em', id+' div', id+' strong', id+' a', id+' h1', id+' h2', id+' h3', id+' h4', id+' h5', id+' h6'];
-      if(selectors.some(_checkSelectors)){
+      if(selectors.every(_checkSelectors)){
 				r.preferences.lineHeight.rules.push({rule: rule.style, property: 'lineHeight'});
 				r.preferences.fontSize.rules.push({rule: rule.style, property: 'fontSize'});
 				r.preferences.fontFamily.rules.push({rule: rule.style, property: 'fontFamily'});
