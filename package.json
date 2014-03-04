@@ -2,6 +2,10 @@
   "name": "CPR",
   "version": "0.1.13",
   "description": "Cross Platform Reader",
+	"scripts": {
+		"pages": "sh config/pages.sh",
+		"tags": "sh config/tags.sh"
+	},
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.1",
