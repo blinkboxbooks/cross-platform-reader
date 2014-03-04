@@ -28,6 +28,8 @@ var Reader = (function (r) {
 		r.$header = $('<div id="cpr-header"></div>').insertBefore(r.$container);
 		r.$footer = $('<div id="cpr-footer"></div>').insertAfter(r.$container);
 
+    $('<span id="cpr-bookmark-ui"></span>').insertAfter(r.$container); // Add bookmark mark
+
 		// add styles and fonts
 		_addStyles();
 
@@ -276,8 +278,7 @@ var Reader = (function (r) {
 				position: 'relative',
 				top: 0,
 				left: 0
-			})
-			.append('<span id="cpr-bookmark-ui"></span>');
+			});
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
