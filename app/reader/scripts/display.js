@@ -264,15 +264,18 @@ var Reader = (function (r) {
 		r.$reader.addClass(areColumnsSupported() ? 'columns' : 'scroll');
 
 		r.$reader.css({
-			position: 'relative',
-			left: '0px',
-			top: '0px'
+			position: 'absolute',
+			left: 0,
+			top: 0
 		});
 
 		// Container parent styles.
 		r.$container
 			.css({
-				overflow: 'hidden'
+				overflow: 'hidden',
+				position: 'relative',
+				top: 0,
+				left: 0
 			})
 			.append('<span id="cpr-bookmark-ui"></span>');
 
