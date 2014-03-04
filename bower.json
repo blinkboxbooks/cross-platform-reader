@@ -12,6 +12,6 @@
   "dependencies": {
     "jquery": "1.10.2",
     "angular": "~1.2.13",
-    "bugsense": "~2.0.0"
+    "bugsense": "~1.1.1"
   }
 }
