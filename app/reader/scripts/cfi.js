@@ -252,12 +252,11 @@ var Reader = (function (r) {
 					} else {
 						r.Navigation.loadPage(0);
 					}
-
-					// Update reader position
-					if(!_fixed){
-						r.Navigation.update();
-					}
 				}
+        // Update reader position
+        if(!_fixed){
+          r.Navigation.update();
+        }
 			};
 
 			var chapter = r.CFI.getChapterFromCFI(cfi);
