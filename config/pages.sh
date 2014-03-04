@@ -2,6 +2,9 @@
 
 echo "Updating Github Pages..."
 
+READER_VERSION='v'$(grep version package.json | awk -F\" '{print $(NF-1)}')
+READER_VERSION=$READER_VERSION-$BUILD_NUMBER
+
 git fetch web-app gh-pages
 git checkout gh-pages
 rm -r latest
