@@ -3445,12 +3445,11 @@ var Reader = (function (r) {
 					} else {
 						r.Navigation.loadPage(0);
 					}
-
-					// Update reader position
-					if(!_fixed){
-						r.Navigation.update();
-					}
 				}
+        // Update reader position
+        if(!_fixed){
+          r.Navigation.update();
+        }
 			};
 
 			var chapter = r.CFI.getChapterFromCFI(cfi);
@@ -3861,6 +3860,8 @@ var Reader = (function (r) {
 		r.$header = $('<div id="cpr-header"></div>').insertBefore(r.$container);
 		r.$footer = $('<div id="cpr-footer"></div>').insertAfter(r.$container);
 
+    $('<span id="cpr-bookmark-ui"></span>').insertAfter(r.$container); // Add bookmark mark
+
 		// add styles and fonts
 		_addStyles();
 
@@ -3932,7 +3933,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.14-35'
+				appversion: '0.1.15-41'
 			});
 			// Setup error handler
 			window.onerror = function (err) {
@@ -4109,8 +4110,7 @@ var Reader = (function (r) {
 				position: 'relative',
 				top: 0,
 				left: 0
-			})
-			.append('<span id="cpr-bookmark-ui"></span>');
+			});
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
@@ -4442,7 +4442,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.14-35'
+			'version': '0.1.15-41'
 		},
 		START_OF_BOOK : {
 			code: 8,

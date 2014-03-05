@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>navigation.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>navigation.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-comment">/* jshint unused: true */</span>
+<span class="hljs-comment">/* exported Reader */</span>
+<span class="hljs-comment">/* global $ */</span>
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> {</span>
+
+	r.SPINE = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Number of chapters.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> bookChapters = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Initial chapter by default.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> chapter = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Initial page by default.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> page = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Number of pages in the actual chapter (columns number).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> pagesByChapter = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>The current location’s CFI.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _cfi = <span class="hljs-literal">null</span>;
+
+	<span class="hljs-keyword">var</span> chapterDocName = <span class="hljs-string">''</span>;
+	<span class="hljs-keyword">var</span> anchor = <span class="hljs-literal">false</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Reset method for the reader.
+<em>Note, some properties are not reset, such as preferences, listeners, styling</em>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.reset = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+		r.INF = <span class="hljs-string">'META-INF/book-info.json'</span>;
+		r.CONTENT_PATH_PREFIX = <span class="hljs-string">''</span>;
+		r.OPF = <span class="hljs-string">''</span>;
+		r.SPINE = [];
+		r.TOC = [];
+		r.opf = <span class="hljs-literal">null</span>;
+		r.DOCROOT = <span class="hljs-string">''</span>;
+		r.sample = <span class="hljs-literal">false</span>;
+		r.mobile = <span class="hljs-literal">false</span>;
+		r.bookTitle = <span class="hljs-string">''</span>;
+		r.bookAuthor = <span class="hljs-string">''</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Reset all modules.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		r.CFI.reset();
+		r.Navigation.reset();
+		r.Bookmarks.reset();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Remove book content.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span>(r.$container !== <span class="hljs-literal">null</span> &amp;&amp; r.$reader !== <span class="hljs-literal">null</span>){
+			r.$container.parent().replaceWith($(<span class="hljs-string">'&lt;div id="'</span> + r.$reader.attr(<span class="hljs-string">'id'</span>) + <span class="hljs-string">'"&gt;&lt;/div&gt;'</span>));
+			r.$container = <span class="hljs-literal">null</span>;
+			r.$reader = <span class="hljs-literal">null</span>;
+			r.$header = <span class="hljs-literal">null</span>;
+			r.$footer = <span class="hljs-literal">null</span>;
+
+			r.$stylesheet.remove();
+			r.$stylesheet = <span class="hljs-literal">null</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>reset link to CSS rules</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.preferences.lineHeight.rules = [];
+			r.preferences.fontSize.rules = [];
+			r.preferences.fontFamily.rules = [];
+			r.preferences.textAlign.rules = [];
+			r.preferences.theme.rules = {
+				background: [],
+				title: [],
+				color: []
+			};
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Return the page number in the actual chapter where it is an element.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.moveToAnchor = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(id)</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Find the obj</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> obj = document.getElementById(<span class="hljs-built_in">String</span>(id));
+		<span class="hljs-keyword">return</span> r.returnPageElement(obj);
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Returns the page number related to an element.
+[27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don’t need to calculate the relative page number, only the absolute one.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.returnPageElement = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(obj)</span> {</span>
+		<span class="hljs-keyword">var</span> offset = $(obj).offset().left - r.$reader.offset().left;
+		<span class="hljs-keyword">return</span> <span class="hljs-built_in">Math</span>.floor((offset) / <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
+	};
+
+	<span class="hljs-keyword">var</span> _getColumnsNumber = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+		<span class="hljs-keyword">var</span> el = r.$reader[<span class="hljs-number">0</span>];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">return</span> <span class="hljs-built_in">Math</span>.floor((el.scrollWidth - <span class="hljs-number">1</span>) / <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Refresh the content layout.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.refreshLayout = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Update the number of columns</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		pagesByChapter = _getColumnsNumber();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Maintain reader current position</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span>(_cfi &amp;&amp; _cfi.CFI) {
+			r.CFI.goToCFI(_cfi.CFI, <span class="hljs-literal">true</span>);
+		}
+
+		r.Bookmarks.display();
+    r.Navigation.updateProgress();
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>The current book progress.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _progress = <span class="hljs-number">0</span>;
+	<span class="hljs-keyword">var</span> _totalWordCount = -<span class="hljs-number">1</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h2 id="navigation-api">Navigation API</h2>
+<p>The Navigation object exposes methods to allow the user to navigate within the book.</p>
+<ul>
+<li><code>save</code></li>
+<li><code>setNumberOfChapters</code></li>
+<li><code>getPage</code></li>
+<li><code>setPage</code></li>
+<li><code>loadPage</code></li>
+<li><code>setNumberOfPagesInChapter</code></li>
+<li><code>setChapter</code></li>
+<li><code>getChapter</code></li>
+<li><code>getChapterDocName</code></li>
+<li><code>loadChapter</code></li>
+<li><code>next</code></li>
+<li><code>prev</code></li>
+<li><code>getCFI</code></li>
+<li><code>getCFIObject</code></li>
+<li><code>setCFI</code></li>
+<li><code>reset</code></li>
+<li><code>getProgress</code></li>
+<li><code>updateProgress</code></li>
+<li><code>getCurrentCFI</code></li>
+<li><code>updateCurrentCFI</code></li>
+<li><code>update</code></li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+	r.Navigation = {
+		save: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-comment">/* for(var k in sLoad) { oLoad[k]=sLoad[k]; } */</span>
+		},
+		setNumberOfChapters: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(numberOfChapters)</span> {</span>
+			bookChapters = numberOfChapters;
+		},
+		getNumberOfChapters: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Chapter.getTotal();
+		},
+		getPage: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">return</span> Page.get();
+		},
+		getNumberOfPages: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Page.getByChapter();
+		},
+		setNumberOfPages: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Update the number of columns</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			pagesByChapter = _getColumnsNumber();
+		},
+		setPage: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(p)</span> {</span>
+			Page.set(p);
+		},
+		loadPage: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(p)</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>handle special case when page === last</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			Page.set(page === <span class="hljs-string">'last'</span> ? pagesByChapter : p);
+			Page.load();
+		},
+		setChapter: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(c)</span>{</span>
+			chapter = c;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Update the chapter doc name.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">try</span> {
+				<span class="hljs-keyword">var</span> pathComponents = r.SPINE[chapter].href.split(<span class="hljs-string">'/'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>get the last element in the array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				chapterDocName = pathComponents.slice(-<span class="hljs-number">1</span>)[<span class="hljs-number">0</span>];
+			}
+			<span class="hljs-keyword">catch</span> (e) {
+				console.log(<span class="hljs-string">'setChapter:'</span>+e);
+			}
+		},
+		getChapter: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Chapter.get();
+		},
+		getChapterDocName: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">return</span> Chapter.getDocName();
+		},
+		loadChapter: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url)</span>{</span>
+			<span class="hljs-comment">/* TODO refactor with checkURL has they share code */</span>
+			<span class="hljs-keyword">var</span> u = url.split(<span class="hljs-string">'#'</span>)[<span class="hljs-number">0</span>];
+			<span class="hljs-keyword">var</span> a = url.split(<span class="hljs-string">'#'</span>)[<span class="hljs-number">1</span>];
+			<span class="hljs-keyword">if</span>(u.indexOf(<span class="hljs-string">'/'</span>) !== -<span class="hljs-number">1</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Take only the file name from the URL.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				u = u.substr(u.lastIndexOf(<span class="hljs-string">'/'</span>) + <span class="hljs-number">1</span>);
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Check the spine</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j=<span class="hljs-number">0</span>; j&lt;r.SPINE.length;j++) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>URL is in the Spine and it has a chapter number.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">if</span> (r.SPINE[j].href.indexOf(u) !== -<span class="hljs-number">1</span>) {
+					r.Navigation.setChapter(j);
+					<span class="hljs-keyword">return</span> r.loadAnchor(j,a);
+				}
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Chapter does not exist</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> defer = $.Deferred();
+			defer.reject($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: <span class="hljs-string">'Specified chapter does not exist.'</span>, call: <span class="hljs-string">'loadChapter'</span>}));
+			<span class="hljs-keyword">return</span> defer.promise();
+		},
+		next: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">var</span> defer = $.Deferred();
+			<span class="hljs-keyword">if</span> (page &lt; pagesByChapter) {
+				Page.next();
+				defer.resolve();
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">if</span> (chapter &lt; bookChapters - <span class="hljs-number">1</span>) {
+					defer.notify();
+					Chapter.load(Chapter.next()).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+						r.Navigation.loadPage(<span class="hljs-number">0</span>);
+						r.Navigation.update();
+						defer.resolve();
+					}, defer.reject);
+				} <span class="hljs-keyword">else</span> {
+					defer.reject(r.Event.END_OF_BOOK);
+				}
+			}
+			<span class="hljs-keyword">return</span> defer.promise();
+		},
+		prev: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">var</span> defer = $.Deferred();
+			<span class="hljs-keyword">if</span> (page &gt; <span class="hljs-number">0</span>) {
+				Page.prev();
+				defer.resolve();
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">if</span> (chapter &gt; <span class="hljs-number">0</span>) {
+					defer.notify();
+					Chapter.load(Chapter.prev()).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">chapterLoadCallback</span><span class="hljs-params">()</span>{</span>
+						r.Navigation.loadPage(pagesByChapter);
+						r.Navigation.update();
+						defer.resolve();
+					}, defer.reject);
+				} <span class="hljs-keyword">else</span> {
+					defer.reject(r.Event.START_OF_BOOK);
+				}
+			}
+			<span class="hljs-keyword">return</span> defer.promise();
+		},
+		goBack: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+		},
+		getCFI: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> r.CFI.getCFI();
+		},
+		getCFIObject: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> r.CFI.getCFIObject();
+		},
+		setCFI: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cfi)</span>{</span>
+			<span class="hljs-keyword">if</span> (!cfi) {
+				cfi = r.CFI.getCFIObject();
+			}
+			r.CFI.setCFI(cfi);
+		},
+		reset: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			bookChapters = <span class="hljs-number">0</span>;
+			chapter = <span class="hljs-number">0</span>;
+			page = <span class="hljs-number">0</span>;
+			pagesByChapter = <span class="hljs-number">0</span>;
+			_cfi = <span class="hljs-literal">null</span>;
+			_totalWordCount = -<span class="hljs-number">1</span>;
+			_progress = <span class="hljs-number">0</span>;
+		},
+		getProgress: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> _progress;
+		},
+		updateProgress: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Update total number of words in the book, if not already done.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span>(_totalWordCount === -<span class="hljs-number">1</span> &amp;&amp; r.SPINE.length){
+				_totalWordCount = <span class="hljs-number">0</span>;
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; r.SPINE.length; i++){
+					_totalWordCount += r.SPINE[i].linear ? r.SPINE[i].wordCount : <span class="hljs-number">0</span>;
+				}
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Get word count of all previous chapters.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> currentWordCount = <span class="hljs-number">0</span>;
+			<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; chapter; i++){
+				currentWordCount += r.SPINE[i].linear ? r.SPINE[i].wordCount : <span class="hljs-number">0</span>;
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Estimate red word count from current chapter. To avoid 0 based indexes and adding +1</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			currentWordCount += r.SPINE.length &amp;&amp; r.SPINE[chapter].linear ? r.SPINE[chapter].wordCount * (page+<span class="hljs-number">1</span>) / (pagesByChapter+<span class="hljs-number">1</span>) : <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Calculate progress.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> progress = <span class="hljs-built_in">Math</span>.floor(currentWordCount / _totalWordCount * <span class="hljs-number">100</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>If the progress has a valid value (is a number) AND it is different than the current one, update it and send an event notification.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span>(progress !== _progress &amp;&amp; !<span class="hljs-built_in">isNaN</span>(progress)){
+				_progress = progress;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>Send notification to all listeners that the progress has been updated
+r.execEvent(r.Event.PROGRESS_UPDATED);</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			}
+
+			<span class="hljs-keyword">if</span> (r.mobile) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Update footer and display progress.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> progressContainer = $(<span class="hljs-string">'#cpr-progress'</span>);
+				<span class="hljs-keyword">if</span>(!progressContainer.length){
+					progressContainer = $(<span class="hljs-string">'&lt;div id="cpr-progress"&gt;&lt;/div&gt;'</span>).appendTo($(<span class="hljs-string">'#cpr-footer'</span>));
+				}
+				<span class="hljs-keyword">if</span> (r.sample) {
+					progressContainer.text(_progress+<span class="hljs-string">' % of sample'</span>);
+				} <span class="hljs-keyword">else</span> {
+					progressContainer.text(_progress+<span class="hljs-string">' % read'</span>);
+				}
+			}
+		},
+		getCurrentCFI: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> _cfi;
+		},
+		updateCurrentCFI: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			_cfi = r.CFI.getCFIObject();
+		},
+		update: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			r.Navigation.updateCurrentCFI();
+			r.Navigation.updateProgress();
+			r.Bookmarks.display();
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <h2 id="page-api">Page API</h2>
+<p>Actual page is contained in the variable _pageIndex.</p>
+<ul>
+<li><code>get</code> returns the index of the actual page.</li>
+<li><code>getByChapter</code> return the total number of pages in the actual chapter.</li>
+<li><code>next</code> refreshes the page variable adding one and moves to the next page (column)</li>
+<li><code>prev</code> refreshes the page variable subtracting one and moves to the prev pave (column)</li>
+<li><code>load</code> refreshes the page variable with a value and moves the scroll to its position</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> Page = {
+		set: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(p)</span> {</span>
+			page = p;
+			<span class="hljs-keyword">return</span> page;
+		},
+		get: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">return</span> page;
+		},
+		getByChapter: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+			<span class="hljs-keyword">if</span> (callback &amp;&amp; <span class="hljs-keyword">typeof</span>(callback) === <span class="hljs-string">'function'</span>) { callback(); }
+			<span class="hljs-keyword">return</span> pagesByChapter;
+		},
+		next: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>Advance in the chapter pages</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			page = page + <span class="hljs-number">1</span>;
+			<span class="hljs-keyword">var</span> left = <span class="hljs-built_in">parseInt</span>(r.$reader.css(<span class="hljs-string">'left'</span>), <span class="hljs-number">10</span>);
+			r.$reader.css(<span class="hljs-string">'left'</span>, (left - <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) + <span class="hljs-string">'px'</span>);
+			r.Navigation.update();
+			<span class="hljs-keyword">if</span> (callback &amp;&amp; <span class="hljs-keyword">typeof</span>(callback) === <span class="hljs-string">'function'</span>) { callback(); }
+		},
+		prev: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+			page = page - <span class="hljs-number">1</span>;
+			<span class="hljs-keyword">var</span> left = <span class="hljs-built_in">parseInt</span>(r.$reader.css(<span class="hljs-string">'left'</span>), <span class="hljs-number">10</span>);
+			r.$reader.css(<span class="hljs-string">'left'</span>, (left + <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) + <span class="hljs-string">'px'</span>);
+			r.Navigation.update();
+			<span class="hljs-keyword">if</span> (callback &amp;&amp; <span class="hljs-keyword">typeof</span>(callback) === <span class="hljs-string">'function'</span>) { callback(); }
+		},
+		load: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>If we want to jump to an anchor calculate here the page.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span> (anchor) { page = r.moveToAnchor(anchor); }
+			r.$reader.css(<span class="hljs-string">'left'</span>, <span class="hljs-string">'-'</span> + ((<span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * page) + <span class="hljs-string">'px'</span>);
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <h2 id="chapter-api">Chapter API</h2>
+<p>Chapters number is contained in the variable _bookChapters.
+Chapter index is controlled with the _bookChapter variable.</p>
+<ul>
+<li><code>get</code> returns the index of the actual chapter (_bookChapter)</li>
+<li><code>getTotal</code> returns the total number of pages in the actual chapter.</li>
+<li><code>next</code> refresh the index variable adding one.</li>
+<li><code>prev</code> refresh the index variable subtracting one.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> Chapter = {
+		get: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+			<span class="hljs-keyword">if</span> (callback &amp;&amp; <span class="hljs-keyword">typeof</span>(callback) === <span class="hljs-string">'function'</span>) { callback(); }
+			<span class="hljs-keyword">return</span> chapter;
+		},
+		getDocName: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+			<span class="hljs-keyword">if</span> (callback &amp;&amp; <span class="hljs-keyword">typeof</span>(callback) === <span class="hljs-string">'function'</span>) { callback(); }
+			<span class="hljs-keyword">return</span> chapterDocName;
+		},
+		getTotal: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(callback)</span> {</span>
+			<span class="hljs-keyword">if</span> (callback &amp;&amp; <span class="hljs-keyword">typeof</span>(callback) === <span class="hljs-string">'function'</span>) { callback(); }
+			<span class="hljs-keyword">return</span> bookChapters;
+		},
+		next: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">return</span> ++chapter;
+		},
+		prev: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+			<span class="hljs-keyword">return</span> --chapter;
+		},
+		load: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(c)</span> {</span>
+			<span class="hljs-keyword">return</span> r.loadChapter(c);
+		}
+	};
+
+	<span class="hljs-keyword">return</span> r;
+
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
