@@ -163,6 +163,16 @@ module.exports = function (grunt) {
 				}]
 			}
 		},
+    ngmin: {
+      dist: {
+        files: [
+          {
+            src: ['.tmp/concat/scripts/script.min.js'],
+            dest: '.tmp/concat/scripts/script.min.js'
+          }
+        ]
+      }
+    },
 		// Compiles Sass to CSS and generates necessary files if requested
 		compass: {
 			demo: {
@@ -406,6 +416,7 @@ module.exports = function (grunt) {
 			'useminPrepare', // prepare configuration for concat and uglify
 			'concat:generated', // concatenate JS files in one, move result in .tmp
 			'cssmin:generated', // minify and copy styles
+      'ngmin',
 			'uglify:generated', // uglify JS files from .tmp
 			'copy:demo', // copy html files from app to dist
 			'rev:demo', // enables revision of reader
