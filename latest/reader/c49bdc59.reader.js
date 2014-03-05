@@ -2317,11 +2317,11 @@ EPUBcfi.CFIAssertionError = function (expectedAssertion, targetElementAssertion,
                     }
                 }
                 else {
-                  // This is a not a text node
-                  prevNodeWasTextNode = false;
+                  	// This is a not a text node
                     indexOfFirstInSequence = undefined;
-                    CFIIndex = index === 0 ? 2 : CFIIndex + 1; // *** blinkbox mod *** if the first node is an element, start CFIndex at 2, else increment
-                }
+                    CFIIndex = !prevNodeWasTextNode ? CFIIndex + 2 : CFIIndex + 1; // *** blinkbox mod *** if the first node is an element, start CFIndex at 2, else increment
+										prevNodeWasTextNode = false;
+								}
             }
         );
 
@@ -3932,7 +3932,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.13-24'
+				appversion: '0.1.13-31'
 			});
 			// Setup error handler
 			window.onerror = function (err) {
@@ -4442,7 +4442,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.13-24'
+			'version': '0.1.13-31'
 		},
 		START_OF_BOOK : {
 			code: 8,
