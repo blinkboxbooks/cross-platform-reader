@@ -38,7 +38,8 @@
     "karma-coverage": "~0.1.5",
     "grunt-replace": "~0.6.2",
     "grunt-ngmin": "~0.0.2",
-    "grunt-docco": "~0.3.3"
+    "grunt-docco": "~0.3.3",
+    "grunt-bump": "0.0.13"
   },
   "engines": {
     "node": ">=0.8.0"
