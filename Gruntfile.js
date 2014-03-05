@@ -293,6 +293,11 @@ module.exports = function (grunt) {
 					src: [
 						'<%= yeoman.reader %>/scripts/.tmp/reader.js'
 					]
+				},{
+					dest: '<%= yeoman.dist %>/reader/jquery.min.js',
+					src: [
+						'<%= yeoman.app %>/components/jquery/jquery.min.js'
+					]
 				}]
 			}
 		},
