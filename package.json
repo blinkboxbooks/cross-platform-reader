@@ -2,10 +2,11 @@
   "name": "CPR",
   "version": "0.1.13",
   "description": "Cross Platform Reader",
-	"scripts": {
-		"pages": "sh config/pages.sh",
-		"tags": "sh config/tags.sh"
-	},
+  "scripts": {
+    "pages": "sh config/pages.sh",
+    "tags": "sh config/tags.sh",
+    "push": "sh config/push.sh"
+  },
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.1",
@@ -37,7 +38,8 @@
     "karma-ng-html2js-preprocessor": "~0.1.0",
     "karma-coverage": "~0.1.5",
     "grunt-replace": "~0.6.2",
-    "grunt-docco": "~0.3.3"
+    "grunt-docco": "~0.3.3",
+    "grunt-bump": "0.0.13"
   },
   "engines": {
     "node": ">=0.8.0"
