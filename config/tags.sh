@@ -8,11 +8,8 @@ CHANGED=$(git diff $LATEST -- app/reader, app/lib)
 if [ "$CHANGED" ];
 then
 	echo 'Reader library changed. Patching version...'
-	READER_VERSION=$(npm version patch --no-git-tag-version)
-	echo 'Reader is now at '$READER_VERSION'. Pushing changes...'
-	git add package.json
-	git commit -m 'Updating reader version to '$READER_VERSION
-	git push origin master
+	grunt bump
+	READER_VERSION='v'$(grep version package.json | awk -F\" '{print $(NF-1)}')
 else
 	echo 'Nothing changed, keeping old version...'
 fi
