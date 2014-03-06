@@ -35,7 +35,8 @@ var Reader = (function (r) {
 
 		r.listener = (param.hasOwnProperty('listener')) ? param.listener : null;
 
-		r.DOCROOT = (param.hasOwnProperty('url')) ? param.url : r.DOCROOT;
+		r.DOCROOT = (param.hasOwnProperty('url')) ? param.url : '';
+		r.ISBN = (param.hasOwnProperty('isbn')) ? param.isbn : '';
 
 		// Set the mobile flag.
 		r.mobile = !!((param.hasOwnProperty('mobile')));
@@ -104,9 +105,9 @@ var Reader = (function (r) {
 				appversion: '@@readerVersion'
 			});
 			// Setup error handler
-			window.onerror = function (err) {
-				r.Notify.error(err);
-				return true;
+			window.onerror = function (message, url, line) {
+				r.Notify.error(message, url, line);
+				return false;
 			};
 		}
 	};
@@ -429,7 +430,6 @@ var Reader = (function (r) {
 			r.TOC = data.toc;
 			r.sample = data.sample;
 			r.bookTitle = data.title;
-			r.bookAuthor= data.author;
 
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
