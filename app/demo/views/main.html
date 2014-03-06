@@ -1,6 +1,14 @@
 <!-- ISBN input -->
-<form>
-	<input class="form-control" ng-model="book.isbn" ng-pattern="/\d{9}[\d|X]/" placeholder="Enter a valid ISBN...">
+<form class="form-inline" role="form">
+	<div class="input-group">
+		<input class="form-control" ng-model="book.isbn" ng-pattern="/\d{9}[\d|X]/" placeholder="Enter a valid ISBN...">
+		<div class="input-group-btn">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-init="environment.current = environment.options[0]">{{environment.current.label}} <span class="caret"></span></button>
+			<ul class="dropdown-menu pull-right">
+				<li ng-repeat="env in environment.options"><a ng-click="environment.current = env"><span class="glyphicon glyphicon-ok pull-right" ng-show="environment.current == env"></span> {{env.label}}</a></li>
+			</ul>
+		</div><!-- /btn-group -->
+	</div><!-- /input-group -->
 </form>
 
 <!-- Reader Control Panel-->

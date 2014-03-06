@@ -19,8 +19,6 @@ angular.module('app', ['ngRoute'])
 	})
 	.controller('Reader_controller', function ($scope, $routeParams, $exceptionHandler, Book) {
 
-		// Use '/books/' + isbn + '/' if you want to check the books in your localhost (you would need the books from the share drive  /Documents/ePubs/Test-Books-book-info-v1.2.zip
-		var PRODUCTION_API = 'https://api.blinkboxbooks.com/service/catalogue/books/';
 
 		// Reader event handler
 		function _log(e){
@@ -31,6 +29,25 @@ angular.module('app', ['ngRoute'])
 		$scope.book = {
 			isbn: $routeParams.isbn || '',
 			url: ''
+		};
+
+		// Use '/books/' + isbn + '/' if you want to check the books in your localhost (you would need the books from the share drive  /Documents/ePubs/Test-Books-book-info-v1.2.zip
+		$scope.environment = {
+			options: [
+				{
+					label: 'QA',
+					url: 'https://qa.mobcastdev.com/api/service/catalogue/books/'
+				},
+				{
+					label: 'Prod',
+					url: 'https://api.blinkboxbooks.com/service/catalogue/books/'
+				},
+				{
+					label: 'Local',
+					url: '/books/'
+				}
+			],
+			current: null
 		};
 
 		$scope.layout = {
@@ -83,10 +100,10 @@ angular.module('app', ['ngRoute'])
 			}
 		};
 
-		$scope.$watch('book.isbn', function(val){
-			if (val) {
+		$scope.$watch('environment.current.url + book.isbn', function(val){
+			if ($scope.book.isbn) {
 				// ng-pattern will validate the input for us, we can assume the ISBN is valid (the book may not exist though)
-				Book.get(PRODUCTION_API + val).then(function (url) {
+				Book.get(val).then(function (url) {
 					$scope.book.url = url;
 				},
 				function (error) {
@@ -121,30 +138,32 @@ angular.module('app', ['ngRoute'])
 		});
 	})
 	// Service to access to the API of Catalogue
-	.factory('Book', function($http) {
+	.factory('Book', function($http, $q) {
 		return {
 			get: function(uri){
-				var _defaults = {
+				var defer = $q.defer();
+				$http({
 					url: uri,
 					method: 'GET'
-				};
-				return $http(_defaults).then(function (response) {
-						if (response.data.links && response.data.links.length > 0) {
-							var linkIdx, l;
-							for (linkIdx = 0, l = response.data.links.length; linkIdx !== l; linkIdx += 1) {
-								var link = response.data.links[linkIdx];
-								if (link.title === 'Sample' &&  link.href!=='') {
-									// this is a slightly obscure, but simple method of extracting a path from an href
-									// ref: http://stackoverflow.com/questions/8498592/extract-root-domain-name-from-string
-									var a = document.createElement('a');
-									a.href = link.href;
-									var samplePath = a.pathname.indexOf('/') === 0 ? a.pathname : '/'+a.pathname; // add leading slash if not present in pathname (IE bug)
-									return '//'+ a.hostname+'/params;v=0'+ samplePath;     // prepend the mandatory matrix params
-								}
+				}).then(function (response) {
+					if (response.data.links && response.data.links.length > 0) {
+						var linkIdx, l;
+						for (linkIdx = 0, l = response.data.links.length; linkIdx !== l; linkIdx += 1) {
+							var link = response.data.links[linkIdx];
+							if (link.title === 'Sample' &&  link.href!=='') {
+								// this is a slightly obscure, but simple method of extracting a path from an href
+								// ref: http://stackoverflow.com/questions/8498592/extract-root-domain-name-from-string
+								var a = document.createElement('a');
+								a.href = link.href;
+								var samplePath = a.pathname.indexOf('/') === 0 ? a.pathname : '/'+a.pathname; // add leading slash if not present in pathname (IE bug)
+								defer.resolve('//'+ a.hostname+'/params;v=0'+ samplePath); // prepend the mandatory matrix params
 							}
 						}
+					} else {
+						defer.reject(response);
 					}
-				);
+				}, defer.reject);
+				return defer.promise;
 			}
 		};
 	}
