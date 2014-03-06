@@ -374,8 +374,8 @@ var Reader = (function (r) {
 		// Get SVG elements
 		$('svg', r.$reader).each(function(index,node){
 			// Calculate 95% of the width and height of the container.
-			var width = (r.Layout.Reader.width - Math.floor(r.Layout.Reader.width*5/100));
-			var height = r.Layout.Reader.height - Math.floor(r.Layout.Reader.height*5/100);
+			var width = Math.floor(0.95 * (r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2));
+			var height = Math.floor(0.95 * r.Layout.Reader.height);
 			// Modify SVG params when the dimensions are higher than the view space or they are set in % as this unit is not working in IE.
 			if ((node.getAttribute('width') && (node.getAttribute('width') > r.Layout.Reader.width || node.getAttribute('width').indexOf('%') !== -1)) || !node.getAttribute('width')) {
 				node.setAttribute('width', width);

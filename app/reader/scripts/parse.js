@@ -152,7 +152,10 @@ var Reader = (function (r) {
 	};
 
 	var addSizeConstraints = function(url){
-		return url.replace('params;', 'params;img:w='+r.Layout.Reader.width+';img:h='+r.Layout.Reader.height+';img:m=scale;');
+		// Calculate 95% of the width and height of the column.
+		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		var height = Math.floor(r.Layout.Reader.height);
+		return url.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
 	};
 
 	// Using the the document root and the spine as a reference, return the absolute path of a given document.
