@@ -1,16 +1,37 @@
 /*
   These styles only apply for the demo application that runs the reader.
 */
+form{
+  margin-bottom:20px;
+  input.ng-invalid{
+    border:1px solid red;
+  }
+}
 
+body{
+  background:#fff;
+}
+
+#main{
+  background:#eee;
+  padding-top:15px;
+  bottom:15px;
+}
 #reader_container_wrap{
   width:auto;
   height:auto;
+  margin:auto;
   border:1px solid black;
 }
-#log div {
-  width: 90%;
-  padding: 5%;
+
+#control-panel{
+  text-align: center;
+  .btn{
+    width:100px;
+  }
+}
+
+#log .panel-body {
   height: 300px;
-  border:1px solid black;
   overflow: scroll;
 }
