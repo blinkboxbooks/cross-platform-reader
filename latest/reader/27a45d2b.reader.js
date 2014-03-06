@@ -3933,7 +3933,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.15-43'
+				appversion: '0.1.16-44'
 			});
 			// Setup error handler
 			window.onerror = function (err) {
@@ -3943,11 +3943,37 @@ var Reader = (function (r) {
 		}
 	};
 
+	// helper function that strips the last path from the url
+	// Ex: a/b/c.html -> a/b
+	var _removeLastPath = function(url){
+		var pathSeparatorIndex = url.lastIndexOf('/');
+		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : url;
+	};
+
+	// Function to transform relative links
+	// ex: `../html/chapter.html` -> `chapter.html`
+	var _normalizeLink = function(url){
+		// get current chapter folder url
+		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;
+
+		// parse current url to remove `..` from path
+		var paths = url.split('/');
+		for(var i = 0, l = paths.length; i < l; i++){
+			var path = paths[i];
+			if(path === '..'){
+				result = _removeLastPath(result);
+			} else {
+				result += '/' + path;
+			}
+		}
+		return result;
+	};
+
 	// Check and load an URL if it is in the spine or the TOC.
 	var _checkURL = function (url) {
 		var findURL = false;
 		// The URL.
-		var u = url[0];
+		var u = _normalizeLink(url[0]);
 		// The anchor.
 		var a = url[1];
 		// Link is in the actual chapter.
@@ -4348,20 +4374,6 @@ var Reader = (function (r) {
 		return defer.promise();
 	};
 
-	// Method to check if an URL has an extra path so it will be used for create a complete URL with relative paths.
-	r.buildRelativeURL = function() {
-		var chapter = r.Navigation.getChapter();
-		var href = r.SPINE[chapter].href;
-		var path = href.split('/');
-		var relative = '';
-		if (path.length > 2){
-			for (var j = 1; j < (path.length-1); j++) {
-				relative += path[j] + '/';
-			}
-		}
-		return relative;
-	};
-
 	// Check if the browser supports css-columns.
 	var areColumnsSupported = function () {
 		var elemStyle = document.createElement('ch').style,
@@ -4442,7 +4454,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.15-43'
+			'version': '0.1.16-44'
 		},
 		START_OF_BOOK : {
 			code: 8,
