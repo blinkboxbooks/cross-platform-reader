@@ -68,13 +68,13 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = document.getElementById(String(id));
-    if (obj === null ) {
+		var obj = $(document.getElementById(String(id)));
+    if (obj.length === 0) {
       return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
     } else {
       // Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
-      if ($(obj).children().length > 0) {
-        obj = $(obj).children()[0];
+      if (obj.children().length > 0) {
+        return r.returnPageElement(obj.children().first());
       }
       return r.returnPageElement(obj);
     }
@@ -83,7 +83,7 @@ var Reader = (function (r) {
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-		var offset = $(obj).offset().left - r.$reader.offset().left;
+		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
 	};
 
