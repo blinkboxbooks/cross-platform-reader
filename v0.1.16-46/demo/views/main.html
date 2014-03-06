@@ -1,0 +1,113 @@
+<!-- ISBN input -->
+<form class="form-inline" role="form">
+	<div class="input-group">
+		<input class="form-control" ng-model="book.isbn" ng-pattern="/\d{9}[\d|X]/" placeholder="Enter a valid ISBN...">
+		<div class="input-group-btn">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" ng-init="environment.current = environment.options[0]">{{environment.current.label}} <span class="caret"></span></button>
+			<ul class="dropdown-menu pull-right">
+				<li ng-repeat="env in environment.options"><a ng-click="environment.current = env"><span class="glyphicon glyphicon-ok pull-right" ng-show="environment.current == env"></span> {{env.label}}</a></li>
+			</ul>
+		</div><!-- /btn-group -->
+	</div><!-- /input-group -->
+</form>
+
+<!-- Reader Control Panel-->
+<div id="control-panel" class="panel panel-default" ng-show="book.url">
+	<div class="panel-heading">
+		<h3 class="panel-title">{{book.isbn}}</h3>
+	</div>
+	<div class="panel-body">
+		<p>
+			<a class="btn btn-default" ng-click="handlers.prev()">Previous</a>
+			<a class="btn btn-default" ng-click="handlers.next()">Next</a>
+		</p>
+		<div id="reader_container"></div>
+		<div>
+			<a class="btn btn-default" ng-click="handlers.cfi()">Get CFI</a>
+		</div>
+	</div>
+</div>
+
+<!-- Preferences and Layout-->
+<div class="row">
+	<div class="col-md-6">
+		<h3>Preferences</h3>
+		<form class="form-horizontal" role="form">
+			<div class="form-group">
+				<label for="LineHeight" class="col-md-4 control-label">Line height (em)</label>
+				<div class="col-md-8">
+					<input id="LineHeight" class="form-control" ng-model="preferences.lineHeight" type="number" min="{{formSettings.lineHeight.min}}" max="{{formSettings.lineHeight.max}}" step="{{formSettings.lineHeight.step}}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="FontSize" class="col-md-4 control-label">Font-size (em)</label>
+				<div class="col-md-8">
+					<input id="FontSize" class="form-control" ng-model="preferences.fontSize" type="number" min="{{formSettings.fontSize.min}}" max="{{formSettings.fontSize.max}}" step="{{formSettings.fontSize.step}}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Theme" class="col-md-4 control-label">Theme</label>
+				<div class="col-md-8">
+					<select id="Theme" class="form-control" ng-model="preferences.theme" ng-options="theme for theme in formSettings.themes"></select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Family" class="col-md-4 control-label">Font family</label>
+				<div class="col-md-8">
+					<select id="Family" class="form-control" ng-model="preferences.fontFamily"  ng-options="font for font in formSettings.fonts"></select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Align" class="col-md-4 control-label">Text align</label>
+				<div class="col-md-8">
+					<select id="Align" class="form-control" ng-model="preferences.textAlign" ng-options="align for align in formSettings.alignment"></select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Margin" class="col-md-4 control-label">Margin</label>
+				<div class="col-md-8">
+					<select id="Margin" class="form-control" ng-model="preferences.margin" ng-options="m for m in formSettings.margins"></select>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="col-md-6">
+		<h3>Layout</h3>
+		<form class="form-horizontal" role="form">
+			<div class="form-group">
+				<label for="Width" class="col-md-4 control-label">Width (px)</label>
+				<div class="col-md-8">
+					<input id="Width" class="form-control" ng-model="layout.width" type="number" min="0">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Height" class="col-md-4 control-label">Height (px)</label>
+				<div class="col-md-8">
+					<input id="Height" class="form-control" ng-model="layout.height" type="number" min="0">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Columns" class="col-md-4 control-label">Columns (int)</label>
+				<div class="col-md-8">
+					<input id="Columns" type="number" class="form-control" ng-model="layout.columns" type="number" min="1">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="Padding" class="col-md-4 control-label">Padding (px)</label>
+				<div class="col-md-8">
+					<input id="Padding" type="number" class="form-control" ng-model="layout.padding" min="0">
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<!-- Log-->
+<div id="log" class="panel panel-default">
+	<div class="panel-heading">
+		<h3 class="panel-title">Log</h3>
+	</div>
+	<div class="panel-body">
+		<div class="content"></div>
+	</div>
+</div>
