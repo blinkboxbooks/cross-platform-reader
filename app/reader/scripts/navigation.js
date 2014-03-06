@@ -20,7 +20,6 @@ var Reader = (function (r) {
 	var _cfi = null;
 
 	var chapterDocName = '';
-	var anchor = false;
 
 	// Reset method for the reader.
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
@@ -70,7 +69,15 @@ var Reader = (function (r) {
 	r.moveToAnchor = function (id) {
 		// Find the obj
 		var obj = document.getElementById(String(id));
-		return r.returnPageElement(obj);
+    if (obj === null ) {
+      return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
+    } else {
+      // Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
+      if ($(obj).children().length > 0) {
+        obj = $(obj).children()[0];
+      }
+      return r.returnPageElement(obj);
+    }
 	};
 
 	// Returns the page number related to an element.
@@ -352,8 +359,6 @@ var Reader = (function (r) {
 			if (callback && typeof(callback) === 'function') { callback(); }
 		},
 		load: function() {
-			// If we want to jump to an anchor calculate here the page.
-			if (anchor) { page = r.moveToAnchor(anchor); }
 			r.$reader.css('left', '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * page) + 'px');
 		}
 	};
