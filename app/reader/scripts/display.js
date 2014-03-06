@@ -20,7 +20,10 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: container (id), chapters, padding, url, mobile, dimensions (width and height) etc.
 	r.init = function(param) {
 		r.reset(); // Reset the reader values.
-		if (!param) { param = []; }
+		if (!param) { param = {}; }
+		_initCFI = null;
+		_initURL = null;
+
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		r.$reader = param.hasOwnProperty('container') && $(param.container).length ? $(param.container) : $('<div id="reader_container"></div>').appendTo(document.body);
 		r.$container = r.$reader.empty().wrap($('<div></div>')).parent().wrap($('<div id="' + (r.$reader[0].id + '_wrap') + '"></div>').css('display', 'inline-block'));

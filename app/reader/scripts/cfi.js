@@ -135,13 +135,39 @@ var Reader = (function (r) {
 					};
 
 					var chapter =  r.CFI.getChapterFromCFI(result.CFI);
+					var sections = [];
 					if(chapter !== -1){
 						var href = r.SPINE[chapter].href;
 						for(i = 0; i < r.TOC.length; i++){
 							if(r.TOC[i].href.indexOf(href) !== -1){
-								result.chapter = r.TOC[i].label;
-								break;
+								sections.push(r.TOC[i]);
 							}
+						}
+					}
+					if(sections.length){
+						if(sections.length > 1){
+							var currentPage =  r.Navigation.getPage();
+							// if more than one match, compare page numbers of different elements and identify where the current page is
+							for(var j = 0, l = sections.length; j < l; j++){
+								// get the anchor the url is pointing at
+								var anchor = sections[j].href.split('#');
+								anchor = anchor.length > 1 ? '#'+anchor[1] : null;
+								if(!anchor){
+									continue;
+								} else {
+									var $anchor = $(anchor);
+									// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
+									if($anchor.length){
+										var anchorPage = r.returnPageElement($anchor);
+										if(anchorPage > currentPage){
+											break;
+										}
+										result.chapter = sections[j].label;
+									}
+								}
+							}
+						} else {
+							result.chapter = sections[0].label;
 						}
 					}
 					return result;
