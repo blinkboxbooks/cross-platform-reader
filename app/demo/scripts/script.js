@@ -1,5 +1,7 @@
 'use strict';
 
+/* globals READER, $*/
+
 // Controller for configure the Reader and init it.
 angular.module('app', ['ngRoute'])
 	.config(function($routeProvider, $locationProvider) {

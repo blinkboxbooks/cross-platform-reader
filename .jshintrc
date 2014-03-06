@@ -21,8 +21,6 @@
 	"globals": {
 		"angular": false,
 		"app": true,
-		"routes": true,
-		"$": false,
-		"READER": false
+		"routes": true
 	}
 }
