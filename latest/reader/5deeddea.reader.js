@@ -3867,7 +3867,8 @@ var Reader = (function (r) {
 
 		r.listener = (param.hasOwnProperty('listener')) ? param.listener : null;
 
-		r.DOCROOT = (param.hasOwnProperty('url')) ? param.url : r.DOCROOT;
+		r.DOCROOT = (param.hasOwnProperty('url')) ? param.url : '';
+		r.ISBN = (param.hasOwnProperty('isbn')) ? param.isbn : '';
 
 		// Set the mobile flag.
 		r.mobile = !!((param.hasOwnProperty('mobile')));
@@ -3933,12 +3934,12 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.17-48'
+				appversion: '0.1.18-49'
 			});
 			// Setup error handler
-			window.onerror = function (err) {
-				r.Notify.error(err);
-				return true;
+			window.onerror = function (message, url, line) {
+				r.Notify.error(message, url, line);
+				return false;
 			};
 		}
 	};
@@ -4261,7 +4262,6 @@ var Reader = (function (r) {
 			r.TOC = data.toc;
 			r.sample = data.sample;
 			r.bookTitle = data.title;
-			r.bookAuthor= data.author;
 
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
@@ -4454,7 +4454,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.17-48'
+			'version': '0.1.18-49'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4513,7 +4513,15 @@ var Reader = (function (r) {
 				'chapter': Reader.Navigation.getChapter(), // the current chapter
 				'chapters': Reader.Navigation.getNumberOfChapters(), // total number of chapters
 				'page': Reader.Navigation.getPage(), // the current page
-				'pages': Reader.Navigation.getNumberOfPages() // the total number of pages in the current chapter
+				'pages': Reader.Navigation.getNumberOfPages(), // the total number of pages in the current chapter
+				'preferences': {
+					lineHeight: r.preferences.lineHeight.value,
+					fontSize: r.preferences.fontSize.value,
+					textAlign: r.preferences.textAlign.value,
+					fontFamily: r.preferences.fontFamily.value,
+					margin: r.preferences.margin.value,
+					theme: r.preferences.theme.value
+				}
 			}));
 		}
 	};
@@ -4538,13 +4546,30 @@ var Reader = (function (r) {
 	};
 
 	r.Notify = {
-		error: function notifyError(err){
+		error: function notifyError(err, url, line){
 			_notify(err);
 			if(r.Bugsense){
-				var error = Object.prototype.toString.call(err) === '[object Error]' ? err : new Error(JSON.stringify(err));
-				r.Bugsense.notify(error, '', '', '', {
-					Status: JSON.stringify(r.Event.getStatus()),
-					Book: r.DOCROOT
+				var error = err;
+				if(Object.prototype.toString.call(err) !== '[object Error]'){
+					if(err && err.details && Object.prototype.toString.call(err.details) === '[object Error]'){
+						error = err.details;
+					} else {
+						error = new Error(typeof err === 'string' ? err : JSON.stringify(err));
+					}
+				}
+				var status = r.Event.getStatus();
+				r.Bugsense.notify(error, url, line, {
+					Progress: status.progress + '%',
+					Page: status.page + '/' + status.pages,
+					Chapter: status.chapter + '/' + status.chapters + ' - ' + (status.cfi ? status.cfi.chapter : 'Unknown chapter'),
+					Bookmarks: status.bookmarks,
+					Book_URL: r.DOCROOT,
+					Book_Title: r.bookTitle,
+					Book_ISBN: r.ISBN,
+					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
+					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
+					Error: typeof err === 'string' ? err : JSON.stringify(err),
+					Preferences: JSON.stringify(status.preferences)
 				});
 			}
 		},
