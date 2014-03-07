@@ -3328,13 +3328,39 @@ var Reader = (function (r) {
 					};
 
 					var chapter =  r.CFI.getChapterFromCFI(result.CFI);
+					var sections = [];
 					if(chapter !== -1){
 						var href = r.SPINE[chapter].href;
 						for(i = 0; i < r.TOC.length; i++){
 							if(r.TOC[i].href.indexOf(href) !== -1){
-								result.chapter = r.TOC[i].label;
-								break;
+								sections.push(r.TOC[i]);
 							}
+						}
+					}
+					if(sections.length){
+						if(sections.length > 1){
+							var currentPage =  r.Navigation.getPage();
+							// if more than one match, compare page numbers of different elements and identify where the current page is
+							for(var j = 0, l = sections.length; j < l; j++){
+								// get the anchor the url is pointing at
+								var anchor = sections[j].href.split('#');
+								anchor = anchor.length > 1 ? '#'+anchor[1] : null;
+								if(!anchor){
+									continue;
+								} else {
+									var $anchor = $(anchor);
+									// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
+									if($anchor.length){
+										var anchorPage = r.returnPageElement($anchor);
+										if(anchorPage > currentPage){
+											break;
+										}
+										result.chapter = sections[j].label;
+									}
+								}
+							}
+						} else {
+							result.chapter = sections[0].label;
 						}
 					}
 					return result;
@@ -3852,7 +3878,10 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: container (id), chapters, padding, url, mobile, dimensions (width and height) etc.
 	r.init = function(param) {
 		r.reset(); // Reset the reader values.
-		if (!param) { param = []; }
+		if (!param) { param = {}; }
+		_initCFI = null;
+		_initURL = null;
+
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		r.$reader = param.hasOwnProperty('container') && $(param.container).length ? $(param.container) : $('<div id="reader_container"></div>').appendTo(document.body);
 		r.$container = r.$reader.empty().wrap($('<div></div>')).parent().wrap($('<div id="' + (r.$reader[0].id + '_wrap') + '"></div>').css('display', 'inline-block'));
@@ -3934,7 +3963,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.18-50'
+				appversion: '0.1.19-51'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4204,8 +4233,8 @@ var Reader = (function (r) {
 		// Get SVG elements
 		$('svg', r.$reader).each(function(index,node){
 			// Calculate 95% of the width and height of the container.
-			var width = (r.Layout.Reader.width - Math.floor(r.Layout.Reader.width*5/100));
-			var height = r.Layout.Reader.height - Math.floor(r.Layout.Reader.height*5/100);
+			var width = Math.floor(0.95 * (r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2));
+			var height = Math.floor(0.95 * r.Layout.Reader.height);
 			// Modify SVG params when the dimensions are higher than the view space or they are set in % as this unit is not working in IE.
 			if ((node.getAttribute('width') && (node.getAttribute('width') > r.Layout.Reader.width || node.getAttribute('width').indexOf('%') !== -1)) || !node.getAttribute('width')) {
 				node.setAttribute('width', width);
@@ -4454,7 +4483,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.18-50'
+			'version': '0.1.19-51'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5297,7 +5326,10 @@ var Reader = (function (r) {
 	};
 
 	var addSizeConstraints = function(url){
-		return url.replace('params;', 'params;img:w='+r.Layout.Reader.width+';img:h='+r.Layout.Reader.height+';img:m=scale;');
+		// Calculate 95% of the width and height of the column.
+		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		var height = Math.floor(r.Layout.Reader.height);
+		return url.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
 	};
 
 	// Using the the document root and the spine as a reference, return the absolute path of a given document.
