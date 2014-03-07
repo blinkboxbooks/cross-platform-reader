@@ -136,12 +136,22 @@ var Reader = (function (r) {
 
 					var chapter =  r.CFI.getChapterFromCFI(result.CFI);
 					var sections = [];
+
+					var _parseItem = function(item){
+						if(item.href.indexOf(href) !== -1){
+							sections.push(item);
+						}
+						if(item.children){
+							for(var i = 0, l = item.children.length; i < l; i++){
+								_parseItem(item.children[i]);
+							}
+						}
+					};
+
 					if(chapter !== -1){
 						var href = r.SPINE[chapter].href;
 						for(i = 0; i < r.TOC.length; i++){
-							if(r.TOC[i].href.indexOf(href) !== -1){
-								sections.push(r.TOC[i]);
-							}
+							_parseItem(r.TOC[i]);
 						}
 					}
 					if(sections.length){
