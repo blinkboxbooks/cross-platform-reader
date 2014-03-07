@@ -3329,12 +3329,22 @@ var Reader = (function (r) {
 
 					var chapter =  r.CFI.getChapterFromCFI(result.CFI);
 					var sections = [];
+
+					var _parseItem = function(item){
+						if(item.href.indexOf(href) !== -1){
+							sections.push(item);
+						}
+						if(item.children){
+							for(var i = 0, l = item.children.length; i < l; i++){
+								_parseItem(item.children[i]);
+							}
+						}
+					};
+
 					if(chapter !== -1){
 						var href = r.SPINE[chapter].href;
 						for(i = 0; i < r.TOC.length; i++){
-							if(r.TOC[i].href.indexOf(href) !== -1){
-								sections.push(r.TOC[i]);
-							}
+							_parseItem(r.TOC[i]);
 						}
 					}
 					if(sections.length){
@@ -3970,7 +3980,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.20-54'
+				appversion: '0.1.21-55'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4490,7 +4500,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.20-54'
+			'version': '0.1.21-55'
 		},
 		START_OF_BOOK : {
 			code: 8,
