@@ -117,7 +117,15 @@ var Reader = (function (r) {
 				'chapter': Reader.Navigation.getChapter(), // the current chapter
 				'chapters': Reader.Navigation.getNumberOfChapters(), // total number of chapters
 				'page': Reader.Navigation.getPage(), // the current page
-				'pages': Reader.Navigation.getNumberOfPages() // the total number of pages in the current chapter
+				'pages': Reader.Navigation.getNumberOfPages(), // the total number of pages in the current chapter
+				'preferences': {
+					lineHeight: r.preferences.lineHeight.value,
+					fontSize: r.preferences.fontSize.value,
+					textAlign: r.preferences.textAlign.value,
+					fontFamily: r.preferences.fontFamily.value,
+					margin: r.preferences.margin.value,
+					theme: r.preferences.theme.value
+				}
 			}));
 		}
 	};
@@ -142,13 +150,30 @@ var Reader = (function (r) {
 	};
 
 	r.Notify = {
-		error: function notifyError(err){
+		error: function notifyError(err, url, line){
 			_notify(err);
 			if(r.Bugsense){
-				var error = Object.prototype.toString.call(err) === '[object Error]' ? err : new Error(JSON.stringify(err));
-				r.Bugsense.notify(error, '', '', '', {
-					Status: JSON.stringify(r.Event.getStatus()),
-					Book: r.DOCROOT
+				var error = err;
+				if(Object.prototype.toString.call(err) !== '[object Error]'){
+					if(err && err.details && Object.prototype.toString.call(err.details) === '[object Error]'){
+						error = err.details;
+					} else {
+						error = new Error(typeof err === 'string' ? err : JSON.stringify(err));
+					}
+				}
+				var status = r.Event.getStatus();
+				r.Bugsense.notify(error, url, line, {
+					Progress: status.progress + '%',
+					Page: status.page + '/' + status.pages,
+					Chapter: status.chapter + '/' + status.chapters + ' - ' + (status.cfi ? status.cfi.chapter : 'Unknown chapter'),
+					Bookmarks: status.bookmarks,
+					Book_URL: r.DOCROOT,
+					Book_Title: r.bookTitle,
+					Book_ISBN: r.ISBN,
+					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
+					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
+					Error: typeof err === 'string' ? err : JSON.stringify(err),
+					Preferences: JSON.stringify(status.preferences)
 				});
 			}
 		},
