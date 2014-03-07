@@ -3933,7 +3933,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.16-46'
+				appversion: '0.1.17-47'
 			});
 			// Setup error handler
 			window.onerror = function (err) {
@@ -4454,7 +4454,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.16-46'
+			'version': '0.1.17-47'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4738,7 +4738,6 @@ var Reader = (function (r) {
 	var _cfi = null;
 
 	var chapterDocName = '';
-	var anchor = false;
 
 	// Reset method for the reader.
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
@@ -4787,14 +4786,23 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = document.getElementById(String(id));
-		return r.returnPageElement(obj);
+		var obj = $(document.getElementById(String(id)));
+    if (obj.length === 0) {
+      return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
+    } else {
+      // Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
+      if (obj.children().length > 0) {
+        return r.returnPageElement(obj.children().first());
+      }
+      return r.returnPageElement(obj);
+    }
 	};
 
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-		var offset = $(obj).offset().left - r.$reader.offset().left;
+    obj = (obj instanceof $) ? obj : $(obj);
+		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
 	};
 
@@ -5070,8 +5078,6 @@ var Reader = (function (r) {
 			if (callback && typeof(callback) === 'function') { callback(); }
 		},
 		load: function() {
-			// If we want to jump to an anchor calculate here the page.
-			if (anchor) { page = r.moveToAnchor(anchor); }
 			r.$reader.css('left', '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * page) + 'px');
 		}
 	};
