@@ -20,7 +20,10 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: container (id), chapters, padding, url, mobile, dimensions (width and height) etc.
 	r.init = function(param) {
 		r.reset(); // Reset the reader values.
-		if (!param) { param = []; }
+		if (!param) { param = {}; }
+		_initCFI = null;
+		_initURL = null;
+
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		r.$reader = param.hasOwnProperty('container') && $(param.container).length ? $(param.container) : $('<div id="reader_container"></div>').appendTo(document.body);
 		r.$container = r.$reader.empty().wrap($('<div></div>')).parent().wrap($('<div id="' + (r.$reader[0].id + '_wrap') + '"></div>').css('display', 'inline-block'));
@@ -372,8 +375,8 @@ var Reader = (function (r) {
 		// Get SVG elements
 		$('svg', r.$reader).each(function(index,node){
 			// Calculate 95% of the width and height of the container.
-			var width = (r.Layout.Reader.width - Math.floor(r.Layout.Reader.width*5/100));
-			var height = r.Layout.Reader.height - Math.floor(r.Layout.Reader.height*5/100);
+			var width = Math.floor(0.95 * (r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2));
+			var height = Math.floor(0.95 * r.Layout.Reader.height);
 			// Modify SVG params when the dimensions are higher than the view space or they are set in % as this unit is not working in IE.
 			if ((node.getAttribute('width') && (node.getAttribute('width') > r.Layout.Reader.width || node.getAttribute('width').indexOf('%') !== -1)) || !node.getAttribute('width')) {
 				node.setAttribute('width', width);
