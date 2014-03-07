@@ -3538,17 +3538,24 @@ var Reader = (function (r) {
 		}
 
 		var findLeafNode = function (el) {
+			var $el = $(el);
 			/* Return a non-empty textNode or null */
-			if (el === null || el.childNodes.length === 0) {
+			if (el === null || !el.childNodes || el.childNodes.length === 0) {
 				return el;
 			}
 			/* Return the element if it only has one child and it is in the blacklist */
-			if (_hasClass($(el.childNodes[0]), _classBlacklist) && el.childNodes.length === 1) { // TODO: Explore more options
+			if (el.childNodes.length === 1 && _hasClass($el.contents(), _classBlacklist)) { // TODO: Explore more options
 				return el;
 			}
-			/* reset offset since textNode changed */
-			offset = 0;
-			return findLeafNode(el.childNodes[0]);
+			for(var i = 0, l = $el.contents().length; i < l; i++){
+				var $child = $($el.contents()[i]);
+				if(!_hasClass($child, _classBlacklist)){
+					/* reset offset since textNode changed */
+					offset = 0;
+					return findLeafNode($child[0]);
+				}
+			}
+			return el;
 		};
 
 		/* generate a preview from the current position */
@@ -3598,7 +3605,7 @@ var Reader = (function (r) {
 
 		// Get the top element that is the child of the reader container.
 		var $currentNode = $(textNode);
-		while ($currentNode.parent().length && $currentNode.parent() !== r.$reader) {
+		while ($currentNode.parent().length && !$currentNode.parent().is(r.$reader)) {
 			$currentNode = $currentNode.parent();
 		}
 
@@ -3963,7 +3970,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.19-52'
+				appversion: '0.1.20-53'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4483,7 +4490,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.19-52'
+			'version': '0.1.20-53'
 		},
 		START_OF_BOOK : {
 			code: 8,
