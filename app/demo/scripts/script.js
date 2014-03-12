@@ -59,7 +59,6 @@ angular.module('app', ['ngRoute'])
 			columns: !isNaN(parseInt($routeParams.columns)) ? parseInt($routeParams.columns) : 1,
 			padding: !isNaN(parseInt($routeParams.padding)) ? parseInt($routeParams.padding) : 0
 		};
-		console.log($scope.layout);
 
 		$scope.preferences = {
 			margin: $routeParams.margin || 'medium',
