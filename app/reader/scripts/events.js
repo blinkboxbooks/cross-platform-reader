@@ -180,7 +180,7 @@ var Reader = (function (r) {
 					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
 					Error: typeof err === 'string' ? err : JSON.stringify(err),
 					Preferences: JSON.stringify(status.preferences),
-					Layout: JSON.stringify(status.layout);
+					Layout: JSON.stringify(status.layout)
 				});
 			}
 		},
