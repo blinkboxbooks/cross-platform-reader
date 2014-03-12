@@ -51,21 +51,22 @@ angular.module('app', ['ngRoute'])
 			],
 			current: null
 		};
+		$scope.environment.current = !isNaN($routeParams.env) ? $scope.environment.options[$routeParams.env] : $scope.environment.options[0];
 
 		$scope.layout = {
-			width: 600,
-			height: 800,
-			columns: 1,
-			padding:0
+			width: !isNaN(parseInt($routeParams.width)) ? parseInt($routeParams.width) : 600,
+			height: !isNaN(parseInt($routeParams.height)) ? parseInt($routeParams.height) : 800,
+			columns: !isNaN(parseInt($routeParams.columns)) ? parseInt($routeParams.columns) : 1,
+			padding: !isNaN(parseInt($routeParams.padding)) ? parseInt($routeParams.padding) : 0
 		};
 
 		$scope.preferences = {
-			margin: 'medium',
-			textAlign: 'left',
-			fontFamily: 'Helvetica',
-			theme: 'light',
-			lineHeight: 1.2,
-			fontSize: 1
+			margin: $routeParams.margin || 'medium',
+			textAlign: $routeParams.textAlign || 'left',
+			fontFamily: $routeParams.fontFamily || 'Helvetica',
+			theme: $routeParams.theme || 'light',
+			lineHeight: !isNaN(parseFloat($routeParams.width)) ? parseFloat($routeParams.lineHeight) : 1.2,
+			fontSize: $routeParams.fontSize || 1
 		};
 
 		// Line height increase/decrease

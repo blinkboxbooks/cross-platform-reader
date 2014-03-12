@@ -120,7 +120,8 @@ var Reader = (function (r) {
 					var i;
 					// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
 					// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI, document, _classBlacklist));
+					// the complete CFi must not contain any \. (processed normally, but not here)
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), document, _classBlacklist));
 					if($node.length > 1 && $node[0].nodeType === 3) {
 						var offset = startTextNode.offset;
 						for(i = 0; i < $node.length - 1; i++){

@@ -323,20 +323,32 @@ var Reader = (function (r) {
 	};
 
 	r.resizeContainer = function(dimensions){
+
+		dimensions = angular.extend({
+			width: r.Layout.Container.width,
+			height: r.Layout.Container.height,
+			columns: r.Layout.Reader.columns,
+			padding: r.Layout.Reader.padding
+		}, dimensions);
+
 		// Save new values.
-		r.Layout.Container.width = dimensions && dimensions.width ? Math.floor(dimensions.width) : r.Layout.Container.width;
-		r.Layout.Container.height = dimensions && dimensions.height ? Math.floor(dimensions.height) : r.Layout.Container.height;
+		r.Layout.Container.width = Math.floor(dimensions.width);
+		r.Layout.Container.height = Math.floor(dimensions.height);
 		r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
 		r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
-		r.Layout.Reader.columns = dimensions && dimensions.columns ? dimensions.columns : r.Layout.Reader.columns;
-		r.Layout.Reader.padding = dimensions && dimensions.columns > 1 && dimensions.padding ? dimensions.padding : r.Layout.Reader.padding; // only set padding on multi-column layout
+		r.Layout.Reader.columns = dimensions.columns;
+		r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : r.Layout.Reader.padding; // only set padding on multi-column layout
+
+		// avoid rounding errors, adjust the width of the reader to contain the columns + padding
+		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 		// Apply new size
 		r.$reader.css({
 			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
 			width: r.Layout.Reader.width + 'px',
 			height: r.Layout.Reader.height + 'px',
-			'column-width': Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px',
+			'column-width': columnWidth + 'px',
 			'column-gap': r.Layout.Reader.padding + 'px',
 			'column-fill': 'auto'
 		});

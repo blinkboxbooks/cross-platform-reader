@@ -21,6 +21,7 @@
 	"globals": {
 		"angular": false,
 		"app": true,
-		"routes": true
+		"routes": true,
+		"EPUBcfi": true
 	}
 }

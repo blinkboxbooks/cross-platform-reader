@@ -125,6 +125,12 @@ var Reader = (function (r) {
 					fontFamily: r.preferences.fontFamily.value,
 					margin: r.preferences.margin.value,
 					theme: r.preferences.theme.value
+				},
+				'layout': {
+					width: r.Layout.Container.width,
+					height: r.Layout.Container.height,
+					columns: r.Layout.Reader.columns,
+					padding: r.Layout.Reader.padding
 				}
 			}));
 		}
@@ -173,7 +179,8 @@ var Reader = (function (r) {
 					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
 					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
 					Error: typeof err === 'string' ? err : JSON.stringify(err),
-					Preferences: JSON.stringify(status.preferences)
+					Preferences: JSON.stringify(status.preferences),
+					Layout: JSON.stringify(status.layout)
 				});
 			}
 		},
