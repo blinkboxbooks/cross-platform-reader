@@ -179,7 +179,8 @@ var Reader = (function (r) {
 					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
 					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
 					Error: typeof err === 'string' ? err : JSON.stringify(err),
-					Preferences: JSON.stringify(status.preferences)
+					Preferences: JSON.stringify(status.preferences),
+					Layout: JSON.stringify(status.layout);
 				});
 			}
 		},
