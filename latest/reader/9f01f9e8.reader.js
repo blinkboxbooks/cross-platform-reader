@@ -3313,7 +3313,8 @@ var Reader = (function (r) {
 					var i;
 					// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
 					// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI, document, _classBlacklist));
+					// the complete CFi must not contain any \. (processed normally, but not here)
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), document, _classBlacklist));
 					if($node.length > 1 && $node[0].nodeType === 3) {
 						var offset = startTextNode.offset;
 						for(i = 0; i < $node.length - 1; i++){
@@ -3980,7 +3981,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.21-56'
+				appversion: '0.1.22-57'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4198,20 +4199,32 @@ var Reader = (function (r) {
 	};
 
 	r.resizeContainer = function(dimensions){
+
+		dimensions = angular.extend({
+			width: r.Layout.Container.width,
+			height: r.Layout.Container.height,
+			columns: r.Layout.Reader.columns,
+			padding: r.Layout.Reader.padding
+		}, dimensions);
+
 		// Save new values.
-		r.Layout.Container.width = dimensions && dimensions.width ? Math.floor(dimensions.width) : r.Layout.Container.width;
-		r.Layout.Container.height = dimensions && dimensions.height ? Math.floor(dimensions.height) : r.Layout.Container.height;
+		r.Layout.Container.width = Math.floor(dimensions.width);
+		r.Layout.Container.height = Math.floor(dimensions.height);
 		r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
 		r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
-		r.Layout.Reader.columns = dimensions && dimensions.columns ? dimensions.columns : r.Layout.Reader.columns;
-		r.Layout.Reader.padding = dimensions && dimensions.columns > 1 && dimensions.padding ? dimensions.padding : r.Layout.Reader.padding; // only set padding on multi-column layout
+		r.Layout.Reader.columns = dimensions.columns;
+		r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : r.Layout.Reader.padding; // only set padding on multi-column layout
+
+		// avoid rounding errors, adjust the width of the reader to contain the columns + padding
+		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 		// Apply new size
 		r.$reader.css({
 			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
 			width: r.Layout.Reader.width + 'px',
 			height: r.Layout.Reader.height + 'px',
-			'column-width': Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px',
+			'column-width': columnWidth + 'px',
 			'column-gap': r.Layout.Reader.padding + 'px',
 			'column-fill': 'auto'
 		});
@@ -4500,7 +4513,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.21-56'
+			'version': '0.1.22-57'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4567,6 +4580,12 @@ var Reader = (function (r) {
 					fontFamily: r.preferences.fontFamily.value,
 					margin: r.preferences.margin.value,
 					theme: r.preferences.theme.value
+				},
+				'layout': {
+					width: r.Layout.Container.width,
+					height: r.Layout.Container.height,
+					columns: r.Layout.Reader.columns,
+					padding: r.Layout.Reader.padding
 				}
 			}));
 		}
@@ -4615,7 +4634,8 @@ var Reader = (function (r) {
 					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
 					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
 					Error: typeof err === 'string' ? err : JSON.stringify(err),
-					Preferences: JSON.stringify(status.preferences)
+					Preferences: JSON.stringify(status.preferences),
+					Layout: JSON.stringify(status.layout)
 				});
 			}
 		},
