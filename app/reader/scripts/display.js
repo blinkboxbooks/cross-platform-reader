@@ -324,7 +324,7 @@ var Reader = (function (r) {
 
 	r.resizeContainer = function(dimensions){
 
-		dimensions = angular.extend({
+		dimensions = $.extend({
 			width: r.Layout.Container.width,
 			height: r.Layout.Container.height,
 			columns: r.Layout.Reader.columns,
