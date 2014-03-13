@@ -3981,7 +3981,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.22-58'
+				appversion: '0.1.23-59'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4325,6 +4325,13 @@ var Reader = (function (r) {
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
 
+			// Validate initCFI (chapter exists)
+			var chapter = r.CFI.getChapterFromCFI(_initCFI);
+			if(chapter === -1 || chapter >= r.SPINE.length){
+				chapter = 0;
+				_initCFI = null;
+			}
+
 			// If the OPF is in a folder...
 			if (data.opfPath.indexOf('/') !== -1) {
 				var pathComponents = data.opfPath.split('/');
@@ -4355,8 +4362,7 @@ var Reader = (function (r) {
 						promise = !!_initURL ? r.Navigation.loadChapter(_initURL) : r.loadChapter(0);
 					} else {
 						// load the chapter specified by the CFI, otherwise load chapter 0
-						var chapter = r.CFI.getChapterFromCFI(_initCFI);
-						promise = r.loadChapter(chapter !== -1 ? chapter : 0);
+						promise = r.loadChapter(chapter);
 					}
 					promise.then(r.Navigation.update).then(defer.resolve, defer.reject);
 				}, defer.reject);
@@ -4513,7 +4519,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.22-58'
+			'version': '0.1.23-59'
 		},
 		START_OF_BOOK : {
 			code: 8,
