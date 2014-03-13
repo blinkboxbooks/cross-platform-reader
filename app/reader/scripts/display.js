@@ -449,6 +449,13 @@ var Reader = (function (r) {
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
 
+			// Validate initCFI (chapter exists)
+			var chapter = r.CFI.getChapterFromCFI(_initCFI);
+			if(chapter === -1 || chapter >= r.SPINE.length){
+				chapter = 0;
+				_initCFI = null;
+			}
+
 			// If the OPF is in a folder...
 			if (data.opfPath.indexOf('/') !== -1) {
 				var pathComponents = data.opfPath.split('/');
@@ -479,8 +486,7 @@ var Reader = (function (r) {
 						promise = !!_initURL ? r.Navigation.loadChapter(_initURL) : r.loadChapter(0);
 					} else {
 						// load the chapter specified by the CFI, otherwise load chapter 0
-						var chapter = r.CFI.getChapterFromCFI(_initCFI);
-						promise = r.loadChapter(chapter !== -1 ? chapter : 0);
+						promise = r.loadChapter(chapter);
 					}
 					promise.then(r.Navigation.update).then(defer.resolve, defer.reject);
 				}, defer.reject);
