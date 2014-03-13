@@ -3981,7 +3981,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.23-60'
+				appversion: '0.1.24-61'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4200,7 +4200,7 @@ var Reader = (function (r) {
 
 	r.resizeContainer = function(dimensions){
 
-		dimensions = angular.extend({
+		dimensions = $.extend({
 			width: r.Layout.Container.width,
 			height: r.Layout.Container.height,
 			columns: r.Layout.Reader.columns,
@@ -4519,7 +4519,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.23-60'
+			'version': '0.1.24-61'
 		},
 		START_OF_BOOK : {
 			code: 8,
