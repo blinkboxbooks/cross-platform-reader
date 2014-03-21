@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>events.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>events.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-comment">/* jshint unused: true */</span>
+<span class="hljs-comment">/* exported Reader */</span>
+<span class="hljs-comment">/* globals $ */</span>
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Register a listener to the reader. Any future events will notify it.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.registerListener = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(f)</span>{</span>
+		<span class="hljs-keyword">if</span> (f &amp;&amp; <span class="hljs-keyword">typeof</span>(f) === <span class="hljs-string">'function'</span>) {
+			r.listener = f;
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+		}
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Check if this is the first or last page of the book, and fire the appropriate event.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _check_page_pos = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(status)</span>{</span>
+		<span class="hljs-keyword">if</span>(status.page === <span class="hljs-number">0</span> &amp;&amp; status.chapter === <span class="hljs-number">0</span>){
+			Reader.Notify.event(Reader.Event.FIRST_PAGE);
+		}
+		<span class="hljs-keyword">if</span>(status.page === status.pages &amp;&amp; status.chapter === status.chapters - <span class="hljs-number">1</span>){
+			Reader.Notify.event(Reader.Event.LAST_PAGE);
+		}
+		<span class="hljs-keyword">return</span> status;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Events supported by the reader.</p>
+<ul>
+<li><code>LAST_PAGE</code> - raised when the reader has opened the last page</li>
+<li><code>LAYOUT_UPDATE</code> - raised when the number of pages and current page have been updated and possibly changed</li>
+<li><code>PROGRESS_UPDATED</code> - event raised when the progress of the book is updated.</li>
+<li><code>FIRST_PAGE</code> - event raised when the book displayed the first page of the book.</li>
+<li><code>END_OF_BOOK</code></li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.Event = {
+		LAST_PAGE : {
+			code: <span class="hljs-number">0</span>,
+			message: <span class="hljs-string">'Reader has displayed the last page.'</span>
+		},
+		END_OF_BOOK : {
+			code: <span class="hljs-number">2</span>,
+			message: <span class="hljs-string">'The end of the book has been reached.'</span>
+		},
+		FIRST_PAGE: {
+			code: <span class="hljs-number">4</span>,
+			message: <span class="hljs-string">'Reader has displayed the first page.'</span>
+		},
+		LOADING_STARTED: {
+			code: <span class="hljs-number">5</span>,
+			message: <span class="hljs-string">'Reader is loading.'</span>
+		},
+		LOADING_COMPLETE: {
+			code: <span class="hljs-number">6</span>,
+			message: <span class="hljs-string">'Reader has finished loading.'</span>
+		},
+		STATUS: {
+			<span class="hljs-string">'code'</span>: <span class="hljs-number">7</span>,
+			<span class="hljs-string">'message'</span>: <span class="hljs-string">'Reader has updated its status.'</span>,
+			<span class="hljs-string">'version'</span>: <span class="hljs-string">'@@readerVersion'</span>
+		},
+		START_OF_BOOK : {
+			code: <span class="hljs-number">8</span>,
+			message: <span class="hljs-string">'The start of the book has been reached.'</span>
+		},
+		ERR_MISSING_FILE:{
+			code: <span class="hljs-number">9</span>,
+			message: <span class="hljs-string">'A file required by the reader is missing from the ePub.'</span>
+		},
+		ERR_PARSING_FAILED:{
+			code: <span class="hljs-number">10</span>,
+			message: <span class="hljs-string">'Parsing of the current chapter failed.'</span>
+		},
+		ERR_CFI_GENERATION:{
+			code: <span class="hljs-number">11</span>,
+			message: <span class="hljs-string">'Could not generate a CFI for this location.'</span>
+		},
+		ERR_CFI_INSERTION:{
+			code: <span class="hljs-number">12</span>,
+			message: <span class="hljs-string">'Could not insert content at the location specified by the CFI.'</span>
+		},
+		ERR_INVALID_ARGUMENT:{
+			code: <span class="hljs-number">13</span>,
+			message: <span class="hljs-string">'An invalid argument was sent to the reader.'</span>
+		},
+		ERR_BOOKMARK_ADD:{
+			code: <span class="hljs-number">14</span>,
+			message: <span class="hljs-string">'Could not add the bookmark.'</span>
+		},
+		ERR_BOOKMARK_EXISTS:{
+			code: <span class="hljs-number">15</span>,
+			message: <span class="hljs-string">'Could not add the bookmark because one already exists in this location.'</span>
+		},
+		ERR_BOOKMARK_REMOVE:{
+			code: <span class="hljs-number">16</span>,
+			message: <span class="hljs-string">'Could not remove bookmark.'</span>
+		},
+		NOTICE_EXT_LINK:{
+			code: <span class="hljs-number">17</span>,
+			message: <span class="hljs-string">'External link will navigate away from the reader'</span>
+		},
+		CONTENT_NOT_AVAILABLE: {
+			code: <span class="hljs-number">18</span>,
+			message: <span class="hljs-string">'This is a sample, content not available'</span>
+		},
+		UNHANDLED_TOUCH_EVENT: {
+			code: <span class="hljs-number">19</span>,
+			message: <span class="hljs-string">'Unhandled touch event at given coordinates.'</span>
+		},
+		getStatus: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> _check_page_pos($.extend({}, r.Event.STATUS, {
+				<span class="hljs-string">'bookmarksInPage'</span>: Reader.Bookmarks.getVisibleBookmarks(), <span class="hljs-comment">// true if there is a bookmark on the current page</span>
+				<span class="hljs-string">'bookmarks'</span>: Reader.Bookmarks.getBookmarks(), <span class="hljs-comment">// array of bookmarks from the book</span>
+				<span class="hljs-string">'cfi'</span>: Reader.Navigation.getCurrentCFI(), <span class="hljs-comment">// the current CFI</span>
+				<span class="hljs-string">'progress'</span>: Reader.Navigation.getProgress(), <span class="hljs-comment">// the progress of the book</span>
+				<span class="hljs-string">'chapter'</span>: Reader.Navigation.getChapter(), <span class="hljs-comment">// the current chapter</span>
+				<span class="hljs-string">'chapters'</span>: Reader.Navigation.getNumberOfChapters(), <span class="hljs-comment">// total number of chapters</span>
+				<span class="hljs-string">'page'</span>: Reader.Navigation.getPage(), <span class="hljs-comment">// the current page</span>
+				<span class="hljs-string">'pages'</span>: Reader.Navigation.getNumberOfPages(), <span class="hljs-comment">// the total number of pages in the current chapter</span>
+				<span class="hljs-string">'preferences'</span>: {
+					lineHeight: r.preferences.lineHeight.value,
+					fontSize: r.preferences.fontSize.value,
+					textAlign: r.preferences.textAlign.value,
+					fontFamily: r.preferences.fontFamily.value,
+					margin: r.preferences.margin.value,
+					theme: r.preferences.theme.value
+				},
+				<span class="hljs-string">'layout'</span>: {
+					width: r.Layout.Container.width,
+					height: r.Layout.Container.height,
+					columns: r.Layout.Reader.columns,
+					padding: r.Layout.Reader.padding
+				}
+			}));
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Notify clients of reader events</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _notify = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span>{</span>
+		r.Debug.log(data);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Notify reader listener, if it exists</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (r.listener &amp;&amp; <span class="hljs-keyword">typeof</span>(r.listener) === <span class="hljs-string">'function'</span>) { r.listener(data); }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Perform callback to mobile clients</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span>(r.mobile){
+			$.ajax({
+				url: <span class="hljs-string">'BBBCALLBACK'</span>,
+				type: <span class="hljs-string">'POST'</span>,
+				data: <span class="hljs-built_in">JSON</span>.stringify(data),
+				contentType: <span class="hljs-string">'application/json; charset=utf-8'</span>,
+				dataType: <span class="hljs-string">'json'</span>
+			});
+		}
+	};
+
+	r.Notify = {
+		error: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">notifyError</span><span class="hljs-params">(err, url, line)</span>{</span>
+			_notify(err);
+			<span class="hljs-keyword">if</span>(r.Bugsense){
+				<span class="hljs-keyword">var</span> error = err;
+				<span class="hljs-keyword">if</span>(<span class="hljs-built_in">Object</span>.prototype.toString.call(err) !== <span class="hljs-string">'[object Error]'</span>){
+					<span class="hljs-keyword">if</span>(err &amp;&amp; err.details &amp;&amp; <span class="hljs-built_in">Object</span>.prototype.toString.call(err.details) === <span class="hljs-string">'[object Error]'</span>){
+						error = err.details;
+					} <span class="hljs-keyword">else</span> {
+						error = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-keyword">typeof</span> err === <span class="hljs-string">'string'</span> ? err : <span class="hljs-built_in">JSON</span>.stringify(err));
+					}
+				}
+				<span class="hljs-keyword">var</span> status = r.Event.getStatus();
+				r.Bugsense.notify(error, url, line, {
+					Progress: status.progress + <span class="hljs-string">'%'</span>,
+					Page: status.page + <span class="hljs-string">'/'</span> + status.pages,
+					Chapter: status.chapter + <span class="hljs-string">'/'</span> + status.chapters + <span class="hljs-string">' - '</span> + (status.cfi ? status.cfi.chapter : <span class="hljs-string">'Unknown chapter'</span>),
+					Bookmarks: status.bookmarks,
+					Book_URL: r.DOCROOT,
+					Book_Title: r.bookTitle,
+					Book_ISBN: r.ISBN,
+					CFI: status.cfi ? status.cfi.CFI : <span class="hljs-string">'Unknown CFI'</span>,
+					Preview: status.cfi ? status.cfi.preview : <span class="hljs-string">'Unknown preview'</span>,
+					<span class="hljs-built_in">Error</span>: <span class="hljs-keyword">typeof</span> err === <span class="hljs-string">'string'</span> ? err : <span class="hljs-built_in">JSON</span>.stringify(err),
+					Preferences: <span class="hljs-built_in">JSON</span>.stringify(status.preferences),
+					Layout: <span class="hljs-built_in">JSON</span>.stringify(status.layout)
+				});
+			}
+		},
+		event: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">notifyEvent</span><span class="hljs-params">(event)</span>{</span>
+			_notify(event);
+		}
+	};
+
+	<span class="hljs-keyword">return</span> r;
+
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
