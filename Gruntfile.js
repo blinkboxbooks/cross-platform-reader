@@ -240,7 +240,7 @@ module.exports = function (grunt) {
 				files: {
 					'<%= yeoman.reader %>/scripts/.tmp/reader.js': [
 						'<%= yeoman.app %>/lib/epubcfi.min.js',
-						'<%= yeoman.app %>/components/bugsense/bugsense.js',
+						'<%= yeoman.app %>/lib/bugsense.js',
 						'<%= yeoman.reader %>/scripts/*.js'
 					]
 				}
@@ -352,7 +352,7 @@ module.exports = function (grunt) {
 						// libraries
 						'<%= yeoman.app %>/components/jquery/jquery.js',
 						'<%= yeoman.app %>/lib/epubcfi.min.js',
-						'<%= yeoman.app %>/components/bugsense/bugsense.js',
+						'<%= yeoman.app %>/lib/bugsense.js',
 
 						// the reader
 						'<%= yeoman.app %>/reader/scripts/*.js',
