@@ -5,3 +5,4 @@ dist
 app/components
 coverage/
 .idea
+.vagrant
