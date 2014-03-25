@@ -17,14 +17,19 @@ module.exports = function(config) {
     files: [
 			// libraries
 			'app/components/jquery/jquery.js',
-			'app/lib/epubcfi.min.js',
-			'app/lib/bugsense.js',
 
 			// the reader
-			'app/reader/scripts/*.js',
+			'app/reader/scripts/.tmp/reader.js',
 
 			// the tests
-			'test/reader/**/*.js'
+			'test/reader/**/*.js',
+
+			// the books
+			{
+				pattern: 'app/books/**/*',
+				included: false,
+				served: true
+			}
 		],
 
     // list of files to exclude

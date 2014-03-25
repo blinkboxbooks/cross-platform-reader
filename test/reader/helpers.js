@@ -25,14 +25,21 @@ beforeEach(function() {
 			return !!this.actual.parents('#' + id + '_wrap').length &&
 				!!this.actual.parent().siblings('#cpr-header').length &&
 				!!this.actual.parent().siblings('#cpr-footer').length;
+		},
+		toHaveCss: function(css){
+			for (var prop in css){
+				if(css.hasOwnProperty(prop)){
+					var value = css[prop];
+					// work-around for auto property
+					if (value === 'auto' && $(this.actual).get(0).style[prop] === 'auto'){
+						continue;
+					}
+					if ($(this.actual).css(prop) !== value){
+						return false;
+					}
+				}
+			}
+			return true;
 		}
-	});
-});
-
-beforeEach(function(){
-	// mock all ajax requests and return empty promise
-	// can and should be be overwritten for each specific test
-	spyOn( $, 'ajax' ).andCallFake( function () { 
-		return $.Deferred().promise();
 	});
 });
