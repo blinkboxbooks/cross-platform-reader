@@ -14,17 +14,31 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
 		// set using grunt
-    files: [],
+    files: [
+			// libraries
+			'app/components/jquery/jquery.js',
+			'app/lib/epubcfi.min.js',
+			'app/lib/bugsense.js',
 
+			// the reader
+			'app/reader/scripts/*.js',
+
+			// the tests
+			'test/reader/**/*.js'
+		],
 
     // list of files to exclude
     exclude: [],
 
-
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-    reporters: ['progress'],
+    reporters: ['progress', 'coverage'],
 
+		// available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
+		preprocessors: {
+			// source files we want to generate coverage for
+			'app/reader/scripts/*.js': ['coverage']
+		},
 
     // web server port
     port: 9876,
