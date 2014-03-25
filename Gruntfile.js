@@ -346,22 +346,7 @@ module.exports = function (grunt) {
 			options:{
 				configFile: 'karma.conf.js'
 			},
-			reader: {
-				options:{
-					files: [
-						// libraries
-						'<%= yeoman.app %>/components/jquery/jquery.js',
-						'<%= yeoman.app %>/lib/epubcfi.min.js',
-						'<%= yeoman.app %>/lib/bugsense.js',
-
-						// the reader
-						'<%= yeoman.app %>/reader/scripts/*.js',
-
-						// the tests
-						'test/reader/spec/**/*.js'
-					]
-				}
-			}
+			reader: {}
 		},
 		// this grunt task generates documentation for the reader and saves the files in the docs/ folder
 		// Note: Docco requires a different comment formatting style. Only single line comments ( // ) work and the text is processed using the markdown formatting. This allows for greater control over styling directly in the comments.
