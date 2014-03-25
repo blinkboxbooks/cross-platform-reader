@@ -158,7 +158,8 @@ var Reader = (function (r) {
 	r.Notify = {
 		error: function notifyError(err, url, line){
 			_notify(err);
-			if(r.Bugsense){
+			// only report bugsense for production code
+			if(r.Bugsense && r.Event.STATUS.version.indexOf('readerVersion') === -1){
 				var error = err;
 				if(Object.prototype.toString.call(err) !== '[object Error]'){
 					if(err && err.details && Object.prototype.toString.call(err.details) === '[object Error]'){

@@ -43,7 +43,7 @@ var Reader = (function (r) {
 
 		// Remove book content.
 		if(r.$container !== null && r.$reader !== null){
-			r.$container.parent().replaceWith($('<div id="' + r.$reader.attr('id') + '"></div>'));
+			r.$container.parent().remove();
 			r.$container = null;
 			r.$reader = null;
 			r.$header = null;

@@ -1,12 +1,12 @@
 'use strict';
 
 describe('Initialisation', function() {
+	var readerID = 'reader';
 
 	it('should initialise library', function() {
 		expect(READER).toBeDefined();
 		expect(READER.init).toBeFunction();
 		expect(READER.enableDebug).toBeFunction();
-		READER.enableDebug();
 	});
 
 	// expect reader to be initialised
@@ -18,7 +18,6 @@ describe('Initialisation', function() {
 	});
 
 	it('should initialise reader on DOM element', function() {
-		var readerID = 'reader_test_1';
 
 		var $container = $('<div id="' + readerID + '"></div>').appendTo($('body'));
 
@@ -30,7 +29,6 @@ describe('Initialisation', function() {
 	});
 
 	it('should initialise reader with selector', function() {
-		var readerID = 'reader_test_2';
 
 		var $container = $('<div id="' + readerID + '"></div>').appendTo($('body'));
 
@@ -42,23 +40,19 @@ describe('Initialisation', function() {
 	});
 
 	it('should replace previous reader', function() {
-		var testID = 'testID';
-
 		// create a reader
 		READER.init();
 		expect($('#reader_container')).toExist();
 
-		var $container = $('<div id="'+testID+'"></div>').appendTo($('body'));
+		var $container = $('<div id="'+readerID+'"></div>').appendTo($('body'));
 
 		// replace the reader
 		READER.init({
-			container: $container[0]
+			container: '#' + readerID
 		});
 
 		expect($container).toHaveReaderStructure();
-
-		// todo CR-229 the reader does not remove the previous reader
-		// expect($('#reader_container')).toNotExist();
+		expect($('#reader_container, #reader_container_wrap')).toNotExist();
 	});
 
 });
