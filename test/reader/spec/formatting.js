@@ -96,6 +96,59 @@ describe('Formatting', function() {
 			});
 		});
 
+		it('should increase font size', function(){
+
+			var step = 0.1;
+
+			READER.init($.extend({
+				preferences: {
+					fontSize: 1
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+
+				// calling increase font size twice
+				READER.increaseFontSize();
+				READER.increaseFontSize();
+				expect($contents).toHaveCss({
+					fontSize: Math.round((defaultFontSize + 2 * step) * fontSizeUnit) + 'px'
+				});
+
+			});
+		});
+
+		it('should decrease font size', function(){
+
+			var step = 0.1;
+
+			READER.init($.extend({
+				preferences: {
+					fontSize: 1
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+
+				// calling increase font size twice
+				READER.decreaseFontSize();
+				expect($contents).toHaveCss({
+					fontSize: Math.round((defaultFontSize - step) * fontSizeUnit) + 'px'
+				});
+
+			});
+		});
+
 		it('should handle invalid arguments', function(){
 
 		});
