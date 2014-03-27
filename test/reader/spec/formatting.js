@@ -359,4 +359,179 @@ describe('Formatting', function() {
 		});
 
 	});
+
+	describe('Text align', function() {
+
+		it('should initialise the reader with the default text align', function() {
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($contents).toHaveCss({
+					textAlign: 'left'
+				});
+			});
+
+		});
+
+		it('should initialise the reader with the given text align', function() {
+			var value = 'justify';
+
+			READER.init($.extend({
+				preferences: {
+					textAlign: value
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($contents).toHaveCss({
+					textAlign: value
+				});
+			});
+		});
+
+		it('should apply text align', function(){
+			var value = 'left', value2 = 'justify';
+
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+
+				READER.setTextAlign(value);
+				expect($contents).toHaveCss({
+					textAlign: value
+				});
+
+				READER.setPreferences({
+					textAlign: value2
+				});
+				expect($contents).toHaveCss({
+					textAlign: value2
+				});
+			});
+		});
+
+	});
+
+	describe('Theme', function() {
+
+		it('should initialise the reader with the default text align', function() {
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($(readerID + '_wrap')).toHaveCss({
+					backgroundColor: 'rgb(255, 255, 255)'
+				});
+				expect($contents).toHaveCss({
+					color: 'rgb(0, 0, 0)'
+				});
+			});
+
+		});
+
+		it('should initialise the reader with a predefined theme', function() {
+			var value = 'dark';
+
+			READER.init($.extend({
+				preferences: {
+					theme: value
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($(readerID + '_wrap')).toHaveCss({
+					backgroundColor: 'rgb(0, 0, 0)'
+				});
+				expect($contents).toHaveCss({
+					color: 'rgb(221, 221, 221)'
+				});
+			});
+		});
+
+		it('should initialise the reader with the given theme', function() {
+			var value = {
+				background : 'rgb(1, 2, 3)',
+				title : '#666',
+				color : 'rgb(10, 20, 30)'
+			};
+
+			READER.init($.extend({
+				preferences: {
+					theme: value
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($(readerID + '_wrap')).toHaveCss({
+					backgroundColor: value.background
+				});
+				expect($contents).toHaveCss({
+					color: value.color
+				});
+			});
+		});
+
+		it('should apply theme', function(){
+			var value = 'sepia', value2 = 'light';
+
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+
+				READER.setTheme(value);
+				expect($(readerID + '_wrap')).toHaveCss({
+					backgroundColor: 'rgb(237, 231, 213)'
+				});
+				expect($contents).toHaveCss({
+					color: 'rgb(24, 24, 24)'
+				});
+
+				READER.setPreferences({
+					theme: value2
+				});
+				expect($(readerID + '_wrap')).toHaveCss({
+					backgroundColor: 'rgb(244, 244, 244)'
+				});
+				expect($contents).toHaveCss({
+					color: 'rgb(0, 0, 0)'
+				});
+			});
+		});
+
+	});
+
 });
