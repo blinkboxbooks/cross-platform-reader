@@ -534,4 +534,105 @@ describe('Formatting', function() {
 
 	});
 
+	describe('Margin', function() {
+
+		it('should initialise the reader with the default margins', function() {
+			READER.init($.extend({
+				width: 200,
+				height: 300
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).parent();
+				expect($contents).toHaveCss({
+					// by default the margin is 11% of the reader width
+					marginRight: Math.floor(11/100 * 200) + 'px',
+					marginLeft: Math.floor(11/100 * 200) + 'px'
+				});
+			});
+
+		});
+
+		it('should initialise the reader with a predefined margin', function() {
+			READER.init($.extend({
+				width: 200,
+				height: 300,
+				preferences: {
+					margin: 'min'
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).parent();
+
+				expect($contents).toHaveCss({
+					marginRight: Math.floor(4/100 * 200) + 'px',
+					marginLeft: Math.floor(4/100 * 200) + 'px'
+				});
+			});
+		});
+
+		it('should initialise the reader with the given margin', function() {
+			var value = [10,10,10,10];
+
+			READER.init($.extend({
+				width: 200,
+				height: 300,
+				preferences: {
+					margin: value
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).parent();
+
+				expect($contents).toHaveCss({
+					marginRight: Math.floor(10/100 * 200) + 'px',
+					marginLeft: Math.floor(10/100 * 200) + 'px'
+				});
+			});
+		});
+
+		it('should apply margin', function(){
+			var value = 'max', value2 = 'min';
+
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).parent();
+
+				READER.setMargin(value);
+				expect($contents).toHaveCss({
+					marginRight: Math.floor(17.75/100 * 200) + 'px',
+					marginLeft: Math.floor(17.75/100 * 200) + 'px'
+				});
+
+				READER.setPreferences({
+					margin: value2
+				});
+				expect($contents).toHaveCss({
+					marginRight: Math.floor(4/100 * 200) + 'px',
+					marginLeft: Math.floor(4/100 * 200) + 'px'
+				});
+			});
+		});
+
+	});
+
 });
