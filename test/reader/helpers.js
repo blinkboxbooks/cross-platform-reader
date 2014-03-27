@@ -27,14 +27,10 @@ beforeEach(function() {
 				!!this.actual.parent().siblings('#cpr-footer').length;
 		},
 		toHaveCss: function(css){
+			var $dummy = $('<span></span>').css(css);
 			for (var prop in css){
 				if(css.hasOwnProperty(prop)){
-					var value = css[prop];
-					// work-around for auto property
-					if (value === 'auto' && $(this.actual).get(0).style[prop] === 'auto'){
-						continue;
-					}
-					if ($(this.actual).css(prop) !== value){
+					if ($(this.actual).css(prop) !== $dummy.css(prop)){
 						return false;
 					}
 				}

@@ -11,6 +11,33 @@ describe('Formatting', function() {
 			unit: 16,
 			default: 1.2
 		},
+		margin = {
+			min : [9.8, 4, 6.5, 4],
+			max: [9.8, 17.75, 6.5, 17.75],
+			medium: [9.8, 11, 6.5, 11]
+		},
+		themes = {
+			transparent : {
+				background : 'transparent',
+				title : '#666',
+				color : '#000'
+			},
+			light : {
+				background : '#f4f4f4',
+				title : '#666',
+				color : '#000'
+			},
+			dark : {
+				background : '#000000',
+				title : '#666',
+				color : '#dddddd'
+			},
+			sepia : {
+				background : '#ede7d5',
+				title : '#666',
+				color : '#181818'
+			}
+		},
 		flags = {
 			isLoaded: false,
 			hasErrors: false
@@ -124,6 +151,8 @@ describe('Formatting', function() {
 				// calling increase font size twice
 				READER.increaseFontSize();
 				READER.increaseFontSize();
+				var $test = $('<span></span>');
+				$test.css('font-size', ((fontSize.default + 2 * step) * fontSize.unit) + 'px');
 				expect($contents).toHaveCss({
 					fontSize: Math.round((fontSize.default + 2 * step) * fontSize.unit) + 'px'
 				});
@@ -346,14 +375,14 @@ describe('Formatting', function() {
 				READER.setFontFamily(value);
 				expect($contents).toHaveCss({
 					// it appears some fonts are considered plain strings http://stackoverflow.com/a/11903633
-					fontFamily: '\'' + value + '\''
+					fontFamily: value
 				});
 
 				READER.setPreferences({
 					fontFamily: value2
 				});
 				expect($contents).toHaveCss({
-					fontFamily: '\'' + value2 + '\''
+					fontFamily: value2
 				});
 			});
 		});
@@ -464,10 +493,10 @@ describe('Formatting', function() {
 			runs(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($(readerID + '_wrap')).toHaveCss({
-					backgroundColor: 'rgb(0, 0, 0)'
+					backgroundColor: themes.dark.background
 				});
 				expect($contents).toHaveCss({
-					color: 'rgb(221, 221, 221)'
+					color: themes.dark.color
 				});
 			});
 		});
@@ -514,20 +543,20 @@ describe('Formatting', function() {
 
 				READER.setTheme(value);
 				expect($(readerID + '_wrap')).toHaveCss({
-					backgroundColor: 'rgb(237, 231, 213)'
+					backgroundColor: themes.sepia.background
 				});
 				expect($contents).toHaveCss({
-					color: 'rgb(24, 24, 24)'
+					color: themes.sepia.color
 				});
 
 				READER.setPreferences({
 					theme: value2
 				});
 				expect($(readerID + '_wrap')).toHaveCss({
-					backgroundColor: 'rgb(244, 244, 244)'
+					backgroundColor: themes.light.background
 				});
 				expect($contents).toHaveCss({
-					color: 'rgb(0, 0, 0)'
+					color: themes.light.color
 				});
 			});
 		});
@@ -550,8 +579,8 @@ describe('Formatting', function() {
 				var $contents = $(readerID).parent();
 				expect($contents).toHaveCss({
 					// by default the margin is 11% of the reader width
-					marginRight: Math.floor(11/100 * 200) + 'px',
-					marginLeft: Math.floor(11/100 * 200) + 'px'
+					marginRight: Math.floor(margin.medium[1]/100 * 200) + 'px',
+					marginLeft: Math.floor(margin.medium[3]/100 * 200) + 'px'
 				});
 			});
 
@@ -574,8 +603,8 @@ describe('Formatting', function() {
 				var $contents = $(readerID).parent();
 
 				expect($contents).toHaveCss({
-					marginRight: Math.floor(4/100 * 200) + 'px',
-					marginLeft: Math.floor(4/100 * 200) + 'px'
+					marginRight: Math.floor(margin.min[1]/100 * 200) + 'px',
+					marginLeft: Math.floor(margin.min[3]/100 * 200) + 'px'
 				});
 			});
 		});
@@ -599,8 +628,8 @@ describe('Formatting', function() {
 				var $contents = $(readerID).parent();
 
 				expect($contents).toHaveCss({
-					marginRight: Math.floor(10/100 * 200) + 'px',
-					marginLeft: Math.floor(10/100 * 200) + 'px'
+					marginRight: Math.floor(value[1]/100 * 200) + 'px',
+					marginLeft: Math.floor(value[3]/100 * 200) + 'px'
 				});
 			});
 		});
@@ -619,16 +648,16 @@ describe('Formatting', function() {
 
 				READER.setMargin(value);
 				expect($contents).toHaveCss({
-					marginRight: Math.floor(17.75/100 * 200) + 'px',
-					marginLeft: Math.floor(17.75/100 * 200) + 'px'
+					marginRight: Math.floor(margin.max[1]/100 * 200) + 'px',
+					marginLeft: Math.floor(margin.max[3]/100 * 200) + 'px'
 				});
 
 				READER.setPreferences({
 					margin: value2
 				});
 				expect($contents).toHaveCss({
-					marginRight: Math.floor(4/100 * 200) + 'px',
-					marginLeft: Math.floor(4/100 * 200) + 'px'
+					marginRight: Math.floor(margin.min[1]/100 * 200) + 'px',
+					marginLeft: Math.floor(margin.min[3]/100 * 200) + 'px'
 				});
 			});
 		});
