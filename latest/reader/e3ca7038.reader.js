@@ -3981,7 +3981,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.26-68'
+				appversion: '0.1.26-69'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4519,7 +4519,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.26-68'
+			'version': '0.1.26-69'
 		},
 		START_OF_BOOK : {
 			code: 8,
