@@ -145,27 +145,31 @@ angular.module('app', ['ngRoute'])
 		return {
 			get: function(uri){
 				var defer = $q.defer();
-				$http({
-					url: uri,
-					method: 'GET'
-				}).then(function (response) {
-					if (response.data.links && response.data.links.length > 0) {
-						var linkIdx, l;
-						for (linkIdx = 0, l = response.data.links.length; linkIdx !== l; linkIdx += 1) {
-							var link = response.data.links[linkIdx];
-							if (link.title === 'Sample' &&  link.href!=='') {
-								// this is a slightly obscure, but simple method of extracting a path from an href
-								// ref: http://stackoverflow.com/questions/8498592/extract-root-domain-name-from-string
-								var a = document.createElement('a');
-								a.href = link.href;
-								var samplePath = a.pathname.indexOf('/') === 0 ? a.pathname : '/'+a.pathname; // add leading slash if not present in pathname (IE bug)
-								defer.resolve('//'+ a.hostname+'/params;v=0'+ samplePath); // prepend the mandatory matrix params
+				if(uri.match(/\/books\/\d+/)){
+					defer.resolve(uri);
+				} else {
+					$http({
+						url: uri,
+						method: 'GET'
+					}).then(function (response) {
+							if (response.data.links && response.data.links.length > 0) {
+								var linkIdx, l;
+								for (linkIdx = 0, l = response.data.links.length; linkIdx !== l; linkIdx += 1) {
+									var link = response.data.links[linkIdx];
+									if (link.title === 'Sample' &&  link.href!=='') {
+										// this is a slightly obscure, but simple method of extracting a path from an href
+										// ref: http://stackoverflow.com/questions/8498592/extract-root-domain-name-from-string
+										var a = document.createElement('a');
+										a.href = link.href;
+										var samplePath = a.pathname.indexOf('/') === 0 ? a.pathname : '/'+a.pathname; // add leading slash if not present in pathname (IE bug)
+										defer.resolve('//'+ a.hostname+'/params;v=0'+ samplePath); // prepend the mandatory matrix params
+									}
+								}
+							} else {
+								defer.reject(response);
 							}
-						}
-					} else {
-						defer.reject(response);
-					}
-				}, defer.reject);
+						}, defer.reject);
+				}
 				return defer.promise;
 			}
 		};
