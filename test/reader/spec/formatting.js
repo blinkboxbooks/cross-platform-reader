@@ -291,4 +291,72 @@ describe('Formatting', function() {
 
 		});
 	});
+
+	describe('Font family', function() {
+
+		it('should initialise the reader with the default font family', function() {
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($contents).toHaveCss({
+					fontFamily: 'Arial'
+				});
+			});
+
+		});
+
+		it('should initialise the reader with the given line height', function() {
+			var value = 'Helvetica';
+
+			READER.init($.extend({
+				preferences: {
+					fontFamily: value
+				}
+			}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				expect($contents).toHaveCss({
+					fontFamily: value
+				});
+			});
+		});
+
+		it('should apply font family', function(){
+			var value = 'Times New Roman', value2 = 'Comic Sans';
+
+			READER.init($.extend({}, defaultArgs));
+
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'the reader to load the book', 10000);
+
+			runs(function(){
+				var $contents = $(readerID).find('span, p, em, div, strong, a');
+
+				READER.setFontFamily(value);
+				expect($contents).toHaveCss({
+					// it appears some fonts are considered plain strings http://stackoverflow.com/a/11903633
+					fontFamily: '\'' + value + '\''
+				});
+
+				READER.setPreferences({
+					fontFamily: value2
+				});
+				expect($contents).toHaveCss({
+					fontFamily: '\'' + value2 + '\''
+				});
+			});
+		});
+
+	});
 });
