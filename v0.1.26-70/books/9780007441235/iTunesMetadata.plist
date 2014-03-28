@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>artistName</key>
+	<string>Steven Tyler</string>
+	<key>book-info</key>
+	<dict>
+		<key>cover-image-hash</key>
+		<string>B56D977081379141D93669D6363758E7</string>
+		<key>cover-image-path</key>
+		<string>OEBPS/images/cover.jpg</string>
+		<key>package-file-hash</key>
+		<string>8FA31F983AA8500F5C0E4FE1E7C9BD60</string>
+		<key>publisher-unique-id</key>
+		<string>urn:uuid:9780061959394</string>
+		<key>unique-id</key>
+		<integer>-2278084405210048984</integer>
+	</dict>
+	<key>itemName</key>
+	<string>Does the Noise in My Head Bother You?</string>
+	<key>playlistName</key>
+	<string>Does the Noise in My Head Bother You?</string>
+	<key>releaseDate</key>
+	<string>2011-05-01</string>
+</dict>
+</plist>
