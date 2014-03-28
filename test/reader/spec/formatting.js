@@ -2,7 +2,7 @@
 
 describe('Formatting', function() {
 
-	var testBookUrl = '/base/app/books/9780007441235', readerID = '#reader_container',
+	var testBookUrl = '/base/app/books/9780007441235', readerID = '#formatting_test',
 		fontSize = {
 			unit: 18,
 			default: 1
@@ -39,17 +39,25 @@ describe('Formatting', function() {
 			}
 		},
 		flags = {
-			isLoaded: false,
+			statusUpdated: false,
 			hasErrors: false
 		},
 		defaultArgs = {
 			url: testBookUrl,
+			container: readerID,
 			listener: function(ev){
 				switch(ev.code){
 					case 6: // reader finished loading
-						flags.isLoaded = true;
+						flags.statusUpdated = true;
 						break;
 					case 9: // reader missing a file
+					case 10: // parsing failed
+					case 11: // cfi generation error
+					case 12: // cfi insertion
+					case 13: // invalid argument
+					case 14: // cannot add bookmark
+					case 15: // bookmark already exists
+					case 16: // cannot remove bookmark
 						flags.hasErrors = true;
 						break;
 				}
@@ -57,8 +65,10 @@ describe('Formatting', function() {
 		};
 
 	beforeEach(function(){
-		flags.isLoaded = false;
+		flags.statusUpdated = false;
 		flags.hasErrors = false;
+		// making sure the reader has a valid container in the body
+		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
 	});
 
 	afterEach(function(){
@@ -72,7 +82,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -94,7 +104,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -111,7 +121,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -142,7 +152,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -171,7 +181,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -197,7 +207,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -221,7 +231,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -239,7 +249,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -272,7 +282,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -300,7 +310,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -327,7 +337,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -349,7 +359,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -366,7 +376,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -395,7 +405,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -417,7 +427,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -434,7 +444,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -462,7 +472,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -487,7 +497,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -515,7 +525,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -535,7 +545,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -572,7 +582,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -596,7 +606,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -621,7 +631,7 @@ describe('Formatting', function() {
 			}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){
@@ -640,7 +650,7 @@ describe('Formatting', function() {
 			READER.init($.extend({}, defaultArgs));
 
 			waitsFor(function(){
-				return flags.isLoaded;
+				return flags.statusUpdated;
 			}, 'the reader to load the book', 10000);
 
 			runs(function(){

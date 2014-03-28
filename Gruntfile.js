@@ -446,6 +446,7 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('build', [
 		'clean:all', // start fresh
+		'jshint:test', // jshint the tests
 		'reader', // build the reader
 		'demo', // build the demo
 		'copy:github', // copy github static pages
