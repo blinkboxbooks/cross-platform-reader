@@ -385,13 +385,8 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('reader', function (target) {
-		grunt.task.run(['jshint:reader']);
-
-		if(target !== 'watch'){
-			grunt.task.run(['test:reader']);// run unit tests for the reader library
-		}
-
 		grunt.task.run([
+			'jshint:reader',
 			'clean:reader', // clean all .tmp folders and the dist/reader folder
 			'concurrent:reader', // concatenate js files and compile sass styles
 			'cssmin:reader', // cssmin styles of the reader
@@ -400,6 +395,7 @@ module.exports = function (grunt) {
 
 		if(target !== 'watch'){
 			grunt.task.run([
+				'test:reader', // run unit tests for the reader library
 				'copy:reader', // copy dev version of reader to dist
 				'uglify:reader', // move and minify the reader
 				'rev:reader' // cache buster

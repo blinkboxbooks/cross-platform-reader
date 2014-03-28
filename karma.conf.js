@@ -17,14 +17,19 @@ module.exports = function(config) {
     files: [
 			// libraries
 			'app/components/jquery/jquery.js',
-			'app/lib/epubcfi.min.js',
-			'app/lib/bugsense.js',
 
 			// the reader
-			'app/reader/scripts/*.js',
+			'app/reader/scripts/.tmp/reader.js',
 
 			// the tests
-			'test/reader/**/*.js'
+			'test/reader/**/*.js',
+
+			// the books
+			{
+				pattern: 'app/books/**/*',
+				included: false,
+				served: true
+			}
 		],
 
     // list of files to exclude
@@ -32,12 +37,13 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-    reporters: ['progress', 'coverage'],
+		reporters: ['progress'],
+		// reporters: ['progress', 'coverage'],
 
 		// available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
 		preprocessors: {
 			// source files we want to generate coverage for
-			'app/reader/scripts/*.js': ['coverage']
+			// 'app/reader/scripts/*.js': ['coverage']
 		},
 
     // web server port

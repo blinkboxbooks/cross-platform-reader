@@ -3,6 +3,14 @@
 describe('Initialisation', function() {
 	var readerID = 'reader';
 
+	beforeEach(function(){
+		// mock all ajax requests and return empty promise
+		// can and should be be overwritten for each specific test
+		spyOn( $, 'ajax' ).andCallFake( function () {
+			return $.Deferred().promise();
+		});
+	});
+
 	it('should initialise library', function() {
 		expect(READER).toBeDefined();
 		expect(READER.init).toBeFunction();
@@ -11,7 +19,6 @@ describe('Initialisation', function() {
 
 	// expect reader to be initialised
 	it('should initialise reader with default container', function() {
-		expect($('#reader_container')).toNotExist();
 		READER.init();
 		expect($('#reader_container')).toExist();
 		expect($('#reader_container')).toHaveReaderStructure();
