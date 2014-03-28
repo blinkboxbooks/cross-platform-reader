@@ -6,7 +6,8 @@ describe('Navigation', function() {
 		flags = {
 			isLoaded: false,
 			hasErrors: false,
-			hasNext: true
+			hasNext: true,
+			hasPrev: false
 		},
 		currentStatus = null,
 		previousStatus = null,
@@ -17,8 +18,11 @@ describe('Navigation', function() {
 			height: 600,
 			listener: function(ev){
 				switch(ev.code){
-					case 2: // reader reached end of book
+					case 0: // reader reached last page of book
 						flags.hasNext = false;
+						break;
+					case 4: // reader reached first page of book
+						flags.hasPrev = false;
 						break;
 					case 7: // reader returned status
 						previousStatus = currentStatus;
@@ -54,7 +58,7 @@ describe('Navigation', function() {
 
 	it('should navigate from start to the end of the book', function(){
 
-		function load(){
+		function goNext(){
 			waitsFor(function(){
 				return flags.isLoaded;
 			}, 'waiting for next page', 1000);
@@ -98,17 +102,70 @@ describe('Navigation', function() {
 					expect(currentStatus.chapter).toBe(0);
 				}
 
-				flags.isLoaded = false;
-				READER.next();
-
 				if(flags.hasNext){
-					load();
+					flags.isLoaded = false;
+					READER.next();
+					goNext();
 				} else {
 					expect(currentStatus.progress).toBe(100);
+
+					// prepare to go backwards within the book
+					flags.hasPrev = true;
+					flags.isLoaded = false;
+					READER.prev();
+					goPrev();
 				}
 			});
 		};
-		load();
+
+		function goPrev(){
+			waitsFor(function(){
+				return flags.isLoaded;
+			}, 'waiting for prev page', 1000);
+
+			runs(function(){
+
+				// expect status updates to be defined
+				expect(currentStatus.cfi).not.toBeNull();
+				expect(currentStatus.cfi.CFI).toBeDefined();
+				expect(currentStatus.cfi.preview).toBeDefined();
+				expect(currentStatus.cfi.chapter).toBeDefined();
+				expect(currentStatus.bookmarksInPage).toBeArray();
+				expect(currentStatus.bookmarks).toBeArray();
+				expect(currentStatus.page).toBeNumber();
+				expect(currentStatus.pages).toBeNumber();
+				expect(currentStatus.chapter).toBeNumber();
+				expect(currentStatus.chapters).toBeNumber();
+				expect(currentStatus.progress).toBeNumber();
+
+				// expect the chapter label and preview to not be empty strings
+				expect(currentStatus.cfi.preview).toBeTruthy();
+				expect(currentStatus.cfi.chapter).toBeTruthy();
+
+				// expect progress to be valid
+				expect(currentStatus.progress).toBeGreaterOrEqualThan(0);
+				expect(currentStatus.progress).toBeLessOrEqualThan(100);
+				expect(currentStatus.progress).toBeLessOrEqualThan(previousStatus.progress);
+
+				// if we are in the same chapter, expect the page number to be decreased
+				// else the chapter to be increased
+				if(currentStatus.chapter === previousStatus.chapter){
+					expect(currentStatus.page).toBe(previousStatus.page - 1);
+				} else {
+					expect(currentStatus.chapter).toBe(previousStatus.chapter - 1);
+				}
+
+				if(flags.hasPrev){
+					flags.isLoaded = false;
+					READER.prev();
+					goPrev();
+				} else {
+					expect(currentStatus.progress).toBe(0);
+				}
+			});
+		};
+
+		goNext();
 
 	});
 
