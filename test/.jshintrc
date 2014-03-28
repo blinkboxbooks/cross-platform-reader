@@ -22,6 +22,13 @@
 		"beforeEach": false,
 		"describe": false,
 		"it": false,
-		"expect": false
+		"expect": false,
+		"spyOn": false,
+		"$": false,
+		"READER": false,
+		"Reader": false,
+		"runs": false,
+		"waitsFor": false,
+		"afterEach": false
 	}
 }
