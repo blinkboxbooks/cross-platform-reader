@@ -14,6 +14,9 @@ beforeEach(function() {
 		toBeFunction: function(){
 			return $.isFunction(this.actual);
 		},
+		toBeNumber: function(){
+			return $.isNumeric(this.actual);
+		},
 		toExist: function(){
 			return !!this.actual.length;
 		},
@@ -36,6 +39,12 @@ beforeEach(function() {
 				}
 			}
 			return true;
+		},
+		toBeGreaterOrEqualThan: function(input){
+			return this.actual >= input;
+		},
+		toBeLessOrEqualThan: function(input){
+			return this.actual <= input;
 		}
 	});
 });
