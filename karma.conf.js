@@ -17,9 +17,11 @@ module.exports = function(config) {
     files: [
 			// libraries
 			'app/components/jquery/jquery.js',
+			'app/lib/epubcfi.min.js',
+			'app/lib/bugsense.js',
 
 			// the reader
-			'app/reader/scripts/.tmp/reader.js',
+			'app/reader/scripts/*.js',
 
 			// the tests
 			'test/reader/**/*.js',

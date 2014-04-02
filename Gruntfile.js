@@ -26,19 +26,20 @@ module.exports = function (grunt) {
 			app: 'app',
 			dist: 'dist',
 			demo: 'app/demo',
-			reader: 'app/reader'
+			reader: 'app/reader',
+			tmp: '.tmp'
 		},
 		// Watches files for changes and runs tasks based on the changed files
 		watch: {
 			js: {
-				files: ['<%= yeoman.demo %>/scripts/*.js', '<%= yeoman.reader %>/scripts/.tmp/*.js'],
+				files: ['<%= yeoman.demo %>/scripts/*.js', '<%= yeoman.reader %>/scripts/*.js'],
 				tasks: ['jshint:demo'],
 				options: {
 					livereload: true
 				}
 			},
 			reader: {
-				files: ['<%= yeoman.reader %>/scripts/*.js', '<%= yeoman.reader %>/styles/*.scss'],
+				files: ['<%= yeoman.reader %>/styles/*.scss'],
 				tasks: ['reader:watch']
 			},
 			gruntfile: {
@@ -49,7 +50,7 @@ module.exports = function (grunt) {
 				tasks: ['compass:demo']
 			},
 			styles: {
-				files: ['.tmp/styles/**/*.css']
+				files: ['<%= yeoman.tmp %>/styles/**/*.css']
 			},
 			livereload: {
 				options: {
@@ -102,8 +103,9 @@ module.exports = function (grunt) {
 				files: [{
 					dot: true,
 					src: [
-						'<%= yeoman.reader %>/**/.tmp',
-						'<%= yeoman.dist %>/reader'
+						'<%= yeoman.dist %>/reader',
+						'<%= yeoman.tmp %>/concat/reader.js',
+						'<%= yeoman.tmp %>/styles/reader.css'
 					]
 				}]
 			},
@@ -155,10 +157,10 @@ module.exports = function (grunt) {
 				files: [{
 					expand: true,
 					dot: true,
-					cwd: '<%= yeoman.reader %>/styles/.tmp',
-					dest: '<%= yeoman.reader %>/styles/.tmp',
+					cwd: '<%= yeoman.tmp %>/styles',
+					dest: '<%= yeoman.tmp %>/styles',
 					src: [
-						'**/*.css'
+						'reader.css'
 					]
 				}]
 			}
@@ -178,14 +180,14 @@ module.exports = function (grunt) {
 			demo: {
 				options: {
 					sassDir: '<%= yeoman.demo %>/styles',
-					cssDir: '.tmp/styles/',
+					cssDir: '<%= yeoman.tmp %>/styles/',
 					relativeAssets: true
 				}
 			},
 			reader: {
 				options: {
 					sassDir: '<%= yeoman.reader %>/styles',
-					cssDir: '<%= yeoman.reader %>/styles/.tmp',
+					cssDir: '<%= yeoman.tmp %>/styles',
 					relativeAssets: true
 				}
 			}
@@ -210,8 +212,7 @@ module.exports = function (grunt) {
 		// Run some tasks in parallel to speed up build process
 		concurrent: {
 			reader: [
-				'compass:reader',
-				'concat:reader'
+				'compass:reader'
 			],
 			demo: [
 				'compass:demo'
@@ -238,7 +239,7 @@ module.exports = function (grunt) {
 			// concatenate all the reader files into a temporary file
 			reader: {
 				files: {
-					'<%= yeoman.reader %>/scripts/.tmp/reader.js': [
+					'<%= yeoman.tmp %>/concat/reader.js': [
 						'<%= yeoman.app %>/lib/epubcfi.min.js',
 						'<%= yeoman.app %>/lib/bugsense.js',
 						'<%= yeoman.reader %>/scripts/*.js'
@@ -258,7 +259,7 @@ module.exports = function (grunt) {
 				},
 				files: {
 					'<%= yeoman.dist %>/reader/reader.min.js': [
-						'<%= yeoman.reader %>/scripts/.tmp/reader.js'
+						'<%= yeoman.tmp %>/concat/reader.js'
 					]
 				}
 			}
@@ -289,11 +290,6 @@ module.exports = function (grunt) {
 			},
 			reader: {
 				files: [{
-					dest: '<%= yeoman.dist %>/reader/reader.js',
-					src: [
-						'<%= yeoman.reader %>/scripts/.tmp/reader.js'
-					]
-				},{
 					dest: '<%= yeoman.dist %>/reader/jquery.min.js',
 					src: [
 						'<%= yeoman.app %>/components/jquery/jquery.min.js'
@@ -318,20 +314,18 @@ module.exports = function (grunt) {
 					patterns:[
 						{
 							replacement: function(){
-								return grunt.file.read('app/reader/styles/.tmp/style.css');
+								return 'var styles = \'' + grunt.file.read('.tmp/styles/reader.css') + '\';';
 							},
-							match: 'readerStyles',
-							expression: false
+							match: /var styles = '.*';/g
 						}
 					]
 				},
-				prefix: '@@',
 				files:  [
 					{
 						expand: true,
 						flatten: true,
-						src: ['<%= yeoman.reader %>/scripts/.tmp/*.js'],
-						dest: '<%= yeoman.reader %>/scripts/.tmp/'
+						src: ['<%= yeoman.reader %>/scripts/*.js'],
+						dest: '<%= yeoman.reader %>/scripts'
 					}
 				]
 			},
@@ -395,9 +389,10 @@ module.exports = function (grunt) {
 
 		if(target !== 'watch'){
 			grunt.task.run([
+				'concat:reader',
 				'test:reader', // run unit tests for the reader library
-				'copy:reader', // copy dev version of reader to dist
 				'uglify:reader', // move and minify the reader
+				'copy:reader', // copy jquery, necessary for reader
 				'rev:reader' // cache buster
 			]);
 		}
