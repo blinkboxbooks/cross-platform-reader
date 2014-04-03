@@ -5,13 +5,6 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 beforeEach(function() {
 
 	jasmine.addMatchers({
-		toHaveClass: function() {
-			return {
-				compare: function(actual, expected){
-					return { pass: actual.hasClass(expected) };
-				}
-			};
-		},
 		toMatch: function() {
 			return {
 				compare: function(actual, input){
@@ -21,8 +14,12 @@ beforeEach(function() {
 		},
 		toBeArray: function() {
 			return {
-				compare: function(actual){
-					return { pass: $.isArray(actual) };
+				compare: function(actual, input){
+					var result = $.isArray(actual);
+					if(result && input){
+						result = (actual.length === input);
+					}
+					return { pass: result };
 				}
 			};
 		},

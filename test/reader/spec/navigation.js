@@ -160,8 +160,7 @@ describe('Navigation', function() {
 
 	it('should load the specified chapter', function(done){
 		READER.init($.extend({}, defaultArgs)).then(function(){
-			// todo expose the spine publicly
-			var spine = Reader.SPINE;
+			var spine = JSON.parse(READER.getSPINE());
 
 			function saveChapter(chapter){
 				chapters.push(chapter.href);

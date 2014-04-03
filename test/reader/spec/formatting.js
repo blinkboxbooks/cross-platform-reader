@@ -171,7 +171,7 @@ describe('Formatting', function() {
 		});
 	});
 
-	describe('Line height', function(done) {
+	describe('Line height', function() {
 
 		it('should initialise the reader with the default line height', function(done) {
 			READER.init($.extend({}, defaultArgs)).then(function(){
