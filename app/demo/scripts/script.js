@@ -145,7 +145,8 @@ angular.module('app', ['ngRoute'])
 		return {
 			get: function(uri){
 				var defer = $q.defer();
-				if(uri.match(/\/books\/\d+/)){
+				console.log(uri, uri.match(/$\/books\/\d+/));
+				if(uri.indexOf('/books/') === 0){
 					defer.resolve(uri);
 				} else {
 					$http({
