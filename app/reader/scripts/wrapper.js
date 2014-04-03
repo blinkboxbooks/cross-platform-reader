@@ -25,7 +25,7 @@ var READER = (function() {
 
 	return {
 		init: function init(){
-			Reader.init.apply(Reader, arguments).always(function initComplete(){
+			return Reader.init.apply(Reader, arguments).always(function initComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 			}).then(function initSuccess(){
 					_send_status('init');
@@ -50,14 +50,14 @@ var READER = (function() {
 		getCFI: Reader.CFI.getCFI,
 		goToCFI: function goToCFI(){
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			Reader.CFI.goToCFI.apply(Reader.CFI, arguments).always(function goToCFIComplete(){
+			return Reader.CFI.goToCFI.apply(Reader.CFI, arguments).always(function goToCFIComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				_send_status('goToCFI');
 			});
 		},
 		next: function next(){
 			var _loading_required = false;
-			Reader.Navigation.next().always(function nextComplete(){
+			return Reader.Navigation.next().always(function nextComplete(){
 				if(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				}
@@ -79,7 +79,7 @@ var READER = (function() {
 		},
 		prev: function next(){
 			var _loading_required = false;
-			Reader.Navigation.prev().always(function prevComplete(){
+			return Reader.Navigation.prev().always(function prevComplete(){
 				if(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				}
@@ -101,7 +101,7 @@ var READER = (function() {
 		},
 		loadChapter: function loadChapter(){
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			Reader.Navigation.loadChapter.apply(Reader.Navigation, arguments).always(function loadChapterComplete(){
+			return Reader.Navigation.loadChapter.apply(Reader.Navigation, arguments).always(function loadChapterComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 			}).then(
 				function loadChapterSuccess(){
@@ -113,12 +113,13 @@ var READER = (function() {
 		},
 		getProgress: Reader.Navigation.getProgress,
 		getTOC: Reader.getTOC,
+		getSPINE: Reader.getSPINE,
 		getBookmarks: Reader.Bookmarks.getBookmarks,
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, 'setBookmarks'),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
 		goToBookmark: function goToBookmark(){
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, arguments).always(function goToCFIComplete(){
+			return Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, arguments).always(function goToCFIComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 			}).then(
 				function goToBookmarkSuccess(){
@@ -131,12 +132,8 @@ var READER = (function() {
 		removeBookmark: _status_wrap(Reader.Bookmarks.removeBookmark, 'removeBookmark'),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
-		resizeContainer: function(){
-			Reader.resizeContainer.apply(Reader, arguments);
-			_send_status('resizeContainer');
-		},
+		resizeContainer: _status_wrap(Reader.resizeContainer, 'resizeContainer'),
 		Event: Reader.Event,
-		Error: Reader.Error,
 		refreshLayout: _status_wrap(Reader.refreshLayout, 'refreshLayout'),
 		enableDebug: Reader.Debug.enable,
 		disableDebug: Reader.Debug.disable

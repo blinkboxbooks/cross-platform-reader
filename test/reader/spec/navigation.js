@@ -189,8 +189,7 @@ describe('Navigation', function() {
 		}, 'the reader to load the book', 1000);
 
 		runs(function(){
-			// todo expose the spine publicly
-			var spine = Reader.SPINE;
+			var spine = JSON.parse(READER.getSPINE());
 
 			function saveChapter(chapter){
 				chapters.push(chapter.href);

@@ -143,6 +143,10 @@ var Reader = (function (r) {
 		return JSON.stringify(r.TOC);
 	};
 
+	r.getSPINE = function(){
+		return JSON.stringify(r.SPINE);
+	};
+
 
 	// Initialize the table of contents.
 	r.TOC = [];

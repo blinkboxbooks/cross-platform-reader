@@ -14,7 +14,37 @@ describe('Initialisation', function() {
 	it('should initialise library', function() {
 		expect(READER).toBeDefined();
 		expect(READER.init).toBeFunction();
+		expect(READER.setLineHeight).toBeFunction();
+		expect(READER.increaseLineHeight).toBeFunction();
+		expect(READER.decreaseLineHeight).toBeFunction();
+		expect(READER.increaseFontSize).toBeFunction();
+		expect(READER.decreaseFontSize).toBeFunction();
+		expect(READER.setFontSize).toBeFunction();
+		expect(READER.setTextAlign).toBeFunction();
+		expect(READER.setMargin).toBeFunction();
+		expect(READER.setTheme).toBeFunction();
+		expect(READER.setFontFamily).toBeFunction();
+		expect(READER.setPreferences).toBeFunction();
+		expect(READER.getCFI).toBeFunction();
+		expect(READER.goToCFI).toBeFunction();
+		expect(READER.next).toBeFunction();
+		expect(READER.prev).toBeFunction();
+		expect(READER.loadChapter).toBeFunction();
+		expect(READER.getProgress).toBeFunction();
+		expect(READER.getTOC).toBeFunction();
+		expect(READER.getSPINE).toBeFunction();
+		expect(READER.getBookmarks).toBeFunction();
+		expect(READER.setBookmarks).toBeFunction();
+		expect(READER.setBookmark).toBeFunction();
+		expect(READER.goToBookmark).toBeFunction();
+		expect(READER.removeBookmark).toBeFunction();
+		expect(READER.showHeaderAndFooter).toBeFunction();
+		expect(READER.hideHeaderAndFooter).toBeFunction();
+		expect(READER.resizeContainer).toBeFunction();
+		expect(READER.Event).toBeDefined();
+		expect(READER.refreshLayout).toBeFunction();
 		expect(READER.enableDebug).toBeFunction();
+		expect(READER.disableDebug).toBeFunction();
 	});
 
 	// expect reader to be initialised
