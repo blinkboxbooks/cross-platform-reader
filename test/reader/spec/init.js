@@ -6,7 +6,7 @@ describe('Initialisation', function() {
 	beforeEach(function(){
 		// mock all ajax requests and return empty promise
 		// can and should be be overwritten for each specific test
-		spyOn( $, 'ajax' ).andCallFake( function () {
+		spyOn( $, 'ajax' ).and.callFake( function () {
 			return $.Deferred().promise();
 		});
 	});
@@ -89,7 +89,7 @@ describe('Initialisation', function() {
 		});
 
 		expect($container).toHaveReaderStructure();
-		expect($('#reader_container, #reader_container_wrap')).toNotExist();
+		expect($('#reader_container, #reader_container_wrap')).not.toExist();
 	});
 
 });

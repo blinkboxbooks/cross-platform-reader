@@ -39,7 +39,6 @@ describe('Formatting', function() {
 			}
 		},
 		flags = {
-			statusUpdated: false,
 			hasErrors: false
 		},
 		defaultArgs = {
@@ -48,7 +47,6 @@ describe('Formatting', function() {
 			listener: function(ev){
 				switch(ev.code){
 					case 6: // reader finished loading
-						flags.statusUpdated = true;
 						break;
 					case 9: // reader missing a file
 					case 10: // parsing failed
@@ -65,7 +63,6 @@ describe('Formatting', function() {
 		};
 
 	beforeEach(function(){
-		flags.statusUpdated = false;
 		flags.hasErrors = false;
 		// making sure the reader has a valid container in the body
 		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
@@ -78,53 +75,36 @@ describe('Formatting', function() {
 
 	describe('Font size', function() {
 
-		it('should initialise the reader with the default font size', function() {
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+		it('should initialise the reader with the default font size', function(done) {
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontSize: (fontSize.default * fontSize.unit) + 'px'
 				});
+				done();
 			});
-
 		});
 
-		it('should initialise the reader with the given font size', function() {
+		it('should initialise the reader with the given font size', function(done) {
 			var value = 2;
 
 			READER.init($.extend({
 				preferences: {
 					fontSize: value
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontSize: (fontSize.unit * value) + 'px'
 				});
+				done();
 			});
 		});
 
-		it('should apply font-size', function(){
+		it('should apply font-size', function(done){
 			var value = 1.5, value2 = 2.5;
 
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				READER.setFontSize(value);
@@ -138,10 +118,12 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					fontSize: (fontSize.unit * value2) + 'px'
 				});
+
+				done();
 			});
 		});
 
-		it('should increase font size', function(){
+		it('should increase font size', function(done){
 
 			var step = 0.1;
 
@@ -149,13 +131,7 @@ describe('Formatting', function() {
 				preferences: {
 					fontSize: 1
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				// calling increase font size twice
@@ -166,11 +142,11 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					fontSize: Math.round((fontSize.default + 2 * step) * fontSize.unit) + 'px'
 				});
-
+				done();
 			});
 		});
 
-		it('should decrease font size', function(){
+		it('should decrease font size', function(done){
 
 			var step = 0.1;
 
@@ -178,13 +154,7 @@ describe('Formatting', function() {
 				preferences: {
 					fontSize: 1
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				// calling increase font size twice
@@ -192,7 +162,7 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					fontSize: Math.round((fontSize.default - step) * fontSize.unit) + 'px'
 				});
-
+				done();
 			});
 		});
 
@@ -201,58 +171,41 @@ describe('Formatting', function() {
 		});
 	});
 
-	describe('Line height', function() {
+	describe('Line height', function(done) {
 
-		it('should initialise the reader with the default line height', function() {
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+		it('should initialise the reader with the default line height', function(done) {
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				var fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
 					// line height appears to be computed as the floor value of the actual value
 					lineHeight: Math.floor(lineHeight.default * fontSize) + 'px'
 				});
+				done();
 			});
-
 		});
 
-		it('should initialise the reader with the given line height', function() {
+		it('should initialise the reader with the given line height', function(done) {
 			var value = 2;
 
 			READER.init($.extend({
 				preferences: {
 					lineHeight: value
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				var fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
 					lineHeight: (fontSize * value) + 'px'
 				});
+				done();
 			});
 		});
 
-		it('should apply line height', function(){
+		it('should apply line height', function(done){
 			var value = 1.5, value2 = 2.5;
 
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				READER.setLineHeight(value);
@@ -268,10 +221,11 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					lineHeight: (fontSize * value2) + 'px'
 				});
+				done();
 			});
 		});
 
-		it('should increase line height', function(){
+		it('should increase line height', function(done){
 
 			var step = 0.1;
 
@@ -279,13 +233,7 @@ describe('Formatting', function() {
 				preferences: {
 					lineHeight: 2
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				fontSize = parseInt($contents.css('fontSize'));
 
@@ -295,11 +243,11 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					lineHeight: Math.round((2 + 2 * step) * fontSize) + 'px'
 				});
-
+				done();
 			});
 		});
 
-		it('should decrease line height', function(){
+		it('should decrease line height', function(done){
 
 			var step = 0.1;
 
@@ -307,13 +255,7 @@ describe('Formatting', function() {
 				preferences: {
 					lineHeight: 2
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				fontSize = parseInt($contents.css('fontSize'));
 
@@ -322,7 +264,7 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					lineHeight: Math.round((2 - step) * fontSize) + 'px'
 				});
-
+				done();
 			});
 		});
 
@@ -333,53 +275,36 @@ describe('Formatting', function() {
 
 	describe('Font family', function() {
 
-		it('should initialise the reader with the default font family', function() {
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+		it('should initialise the reader with the default font family', function(done) {
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontFamily: 'Arial'
 				});
+				done();
 			});
-
 		});
 
-		it('should initialise the reader with the given line height', function() {
+		it('should initialise the reader with the given line height', function(done) {
 			var value = 'Helvetica';
 
 			READER.init($.extend({
 				preferences: {
 					fontFamily: value
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontFamily: value
 				});
+				done();
 			});
 		});
 
-		it('should apply font family', function(){
+		it('should apply font family', function(done){
 			var value = 'Times New Roman', value2 = 'Comic Sans';
 
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				READER.setFontFamily(value);
@@ -394,6 +319,7 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					fontFamily: value2
 				});
+				done();
 			});
 		});
 
@@ -401,53 +327,36 @@ describe('Formatting', function() {
 
 	describe('Text align', function() {
 
-		it('should initialise the reader with the default text align', function() {
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+		it('should initialise the reader with the default text align', function(done) {
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					textAlign: 'left'
 				});
+				done();
 			});
-
 		});
 
-		it('should initialise the reader with the given text align', function() {
+		it('should initialise the reader with the given text align', function(done) {
 			var value = 'justify';
 
 			READER.init($.extend({
 				preferences: {
 					textAlign: value
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
-				expect($contents).toHaveCss({
-					textAlign: value
+			}, defaultArgs)).then(function(){
+					var $contents = $(readerID).find('span, p, em, div, strong, a');
+					expect($contents).toHaveCss({
+						textAlign: value
+					});
+					done();
 				});
-			});
 		});
 
-		it('should apply text align', function(){
+		it('should apply text align', function(done){
 			var value = 'left', value2 = 'justify';
 
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				READER.setTextAlign(value);
@@ -461,6 +370,7 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					textAlign: value2
 				});
+				done();
 			});
 		});
 
@@ -468,14 +378,8 @@ describe('Formatting', function() {
 
 	describe('Theme', function() {
 
-		it('should initialise the reader with the default text align', function() {
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+		it('should initialise the reader with the default text align', function(done) {
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 				expect($(readerID + '_wrap')).toHaveCss({
 					backgroundColor: 'rgb(255, 255, 255)'
@@ -483,35 +387,30 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					color: 'rgb(0, 0, 0)'
 				});
+				done();
 			});
-
 		});
 
-		it('should initialise the reader with a predefined theme', function() {
+		it('should initialise the reader with a predefined theme', function(done) {
 			var value = 'dark';
 
 			READER.init($.extend({
 				preferences: {
 					theme: value
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
-				expect($(readerID + '_wrap')).toHaveCss({
-					backgroundColor: themes.dark.background
+			}, defaultArgs)).then(function(){
+					var $contents = $(readerID).find('span, p, em, div, strong, a');
+					expect($(readerID + '_wrap')).toHaveCss({
+						backgroundColor: themes.dark.background
+					});
+					expect($contents).toHaveCss({
+						color: themes.dark.color
+					});
+					done();
 				});
-				expect($contents).toHaveCss({
-					color: themes.dark.color
-				});
-			});
 		});
 
-		it('should initialise the reader with the given theme', function() {
+		it('should initialise the reader with the given theme', function(done) {
 			var value = {
 				background : 'rgb(1, 2, 3)',
 				title : '#666',
@@ -522,33 +421,22 @@ describe('Formatting', function() {
 				preferences: {
 					theme: value
 				}
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
-				expect($(readerID + '_wrap')).toHaveCss({
-					backgroundColor: value.background
+			}, defaultArgs)).then(function(){
+					var $contents = $(readerID).find('span, p, em, div, strong, a');
+					expect($(readerID + '_wrap')).toHaveCss({
+						backgroundColor: value.background
+					});
+					expect($contents).toHaveCss({
+						color: value.color
+					});
+					done();
 				});
-				expect($contents).toHaveCss({
-					color: value.color
-				});
-			});
 		});
 
-		it('should apply theme', function(){
+		it('should apply theme', function(done){
 			var value = 'sepia', value2 = 'light';
 
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).find('span, p, em, div, strong, a');
 
 				READER.setTheme(value);
@@ -568,6 +456,7 @@ describe('Formatting', function() {
 				expect($contents).toHaveCss({
 					color: themes.light.color
 				});
+				done();
 			});
 		});
 
@@ -575,51 +464,40 @@ describe('Formatting', function() {
 
 	describe('Margin', function() {
 
-		it('should initialise the reader with the default margins', function() {
+		it('should initialise the reader with the default margins', function(done) {
 			READER.init($.extend({
 				width: 200,
 				height: 300
-			}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
-				var $contents = $(readerID).parent();
-				expect($contents).toHaveCss({
-					// by default the margin is 11% of the reader width
-					marginRight: Math.floor(margin.medium[1]/100 * 200) + 'px',
-					marginLeft: Math.floor(margin.medium[3]/100 * 200) + 'px'
+			}, defaultArgs)).then(function(){
+					var $contents = $(readerID).parent();
+					expect($contents).toHaveCss({
+						// by default the margin is 11% of the reader width
+						marginRight: Math.floor(margin.medium[1]/100 * 200) + 'px',
+						marginLeft: Math.floor(margin.medium[3]/100 * 200) + 'px'
+					});
+					done();
 				});
-			});
-
 		});
 
-		it('should initialise the reader with a predefined margin', function() {
+		it('should initialise the reader with a predefined margin', function(done) {
 			READER.init($.extend({
 				width: 200,
 				height: 300,
 				preferences: {
 					margin: 'min'
 				}
-			}, defaultArgs));
+			}, defaultArgs)).then(function(){
+					var $contents = $(readerID).parent();
 
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
-				var $contents = $(readerID).parent();
-
-				expect($contents).toHaveCss({
-					marginRight: Math.floor(margin.min[1]/100 * 200) + 'px',
-					marginLeft: Math.floor(margin.min[3]/100 * 200) + 'px'
+					expect($contents).toHaveCss({
+						marginRight: Math.floor(margin.min[1]/100 * 200) + 'px',
+						marginLeft: Math.floor(margin.min[3]/100 * 200) + 'px'
+					});
+					done();
 				});
-			});
 		});
 
-		it('should initialise the reader with the given margin', function() {
+		it('should initialise the reader with the given margin', function(done) {
 			var value = [10,10,10,10];
 
 			READER.init($.extend({
@@ -628,32 +506,21 @@ describe('Formatting', function() {
 				preferences: {
 					margin: value
 				}
-			}, defaultArgs));
+			}, defaultArgs)).then(function(){
+					var $contents = $(readerID).parent();
 
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
-				var $contents = $(readerID).parent();
-
-				expect($contents).toHaveCss({
-					marginRight: Math.floor(value[1]/100 * 200) + 'px',
-					marginLeft: Math.floor(value[3]/100 * 200) + 'px'
+					expect($contents).toHaveCss({
+						marginRight: Math.floor(value[1]/100 * 200) + 'px',
+						marginLeft: Math.floor(value[3]/100 * 200) + 'px'
+					});
+					done();
 				});
-			});
 		});
 
-		it('should apply margin', function(){
+		it('should apply margin', function(done){
 			var value = 'max', value2 = 'min';
 
-			READER.init($.extend({}, defaultArgs));
-
-			waitsFor(function(){
-				return flags.statusUpdated;
-			}, 'the reader to load the book', 10000);
-
-			runs(function(){
+			READER.init($.extend({}, defaultArgs)).then(function(){
 				var $contents = $(readerID).parent();
 
 				READER.setMargin(value);
@@ -669,6 +536,7 @@ describe('Formatting', function() {
 					marginRight: Math.floor(margin.min[1]/100 * 200) + 'px',
 					marginLeft: Math.floor(margin.min[3]/100 * 200) + 'px'
 				});
+				done();
 			});
 		});
 
