@@ -235,7 +235,7 @@ var Reader = (function (r) {
 					catch (err) { }
 				} else if ($nextNode[0].nodeType === 1) {
 					$nextNode.before($(marker));
-					return;
+					return true;
 				}
 				try {
 					// Ignore errors and jump to the next node if something wrong happens when we inject the element into the CFI address
