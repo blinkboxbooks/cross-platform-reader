@@ -56,7 +56,7 @@ var Reader = (function (r) {
 		setBookmark: function(cfi, noMarker){
 			var cfiObj = null;
 			if(typeof(cfi) === 'undefined'){
-				cfiObj = r.CFI.getCFIObject();
+				cfiObj = r.Navigation.getCurrentCFI();
 				if($.type(cfiObj) === 'object'){
 					cfi = cfiObj.CFI;
 				} else {

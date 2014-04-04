@@ -47,7 +47,7 @@ var READER = (function() {
 		setTheme: _status_wrap(Reader.setTheme, 'setTheme'),
 		setFontFamily: _status_wrap(Reader.setFontFamily, 'setFontFamily'),
 		setPreferences: _status_wrap(Reader.setPreferences, 'setPreferences'),
-		getCFI: Reader.Navigation.getCFI,
+		getCFI: Reader.CFI.getCFI,
 		goToCFI: function goToCFI(){
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
 			Reader.CFI.goToCFI.apply(Reader.CFI, arguments).always(function goToCFIComplete(){
