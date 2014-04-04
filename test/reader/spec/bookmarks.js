@@ -63,6 +63,11 @@ describe('Bookmarks', function() {
 
 	it('should successfully bookmark every page of the book', function(done){
 		var _nextLoop = function(){
+			if(flags.hasErrors){
+				// terminate test if we have errors
+				done();
+			}
+
 			READER.setBookmark();
 
 			// expect no errors
@@ -70,7 +75,7 @@ describe('Bookmarks', function() {
 
 			// expect bookmarks to be defined
 			expect(currentStatus.bookmarksInPage).toBeArray(1);
-			expect(currentStatus.bookmarks).toBeArray(currentStatus.page);
+			expect(currentStatus.bookmarks).toBeArray();
 			expect(currentStatus.cfi).toBeDefined();
 			expect(currentStatus.cfi.CFI).toBeDefined();
 			expect(currentStatus.bookmarksInPage[0]).toEqual(currentStatus.cfi.CFI);
