@@ -92,8 +92,8 @@ var Reader = (function (r) {
 				r.preferences.theme.rules.background.push({rule: rule.style, property: 'background'});
 			} else if(rule.selectorText === '#cpr-header' || rule.selectorText === '#cpr-footer'){
 				r.preferences.theme.rules.title.push({rule: rule.style, property: 'color'});
-			} else if(rule.selectorText === '#cpr-bookmark-ui::before'){
-				r.preferences.theme.rules.background.push({rule: rule.style, property: 'borderBackground'});
+			} else if(rule.selectorText === '#cpr-bookmark-ui'){
+				r.preferences.theme.rules.background.push({rule: rule.style, property: 'background'});
 			}
 		}
 
