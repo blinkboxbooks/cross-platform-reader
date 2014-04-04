@@ -205,18 +205,16 @@ var Reader = (function (r) {
 					 */
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist)),
-						$nodeClone = $node.clone();
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist));
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
 						}
 						if ($node[0].nodeType === 3) { // inject into the text node
-							$nodeClone = $node.parent().clone();
 							r.CFI.addOneWordToCFI(cfi, $node, marker);
 						}
 					}
-					return $nodeClone;
+					return $node;
 				}
 				catch (err) {
 					// cannot insert CFI
@@ -246,7 +244,9 @@ var Reader = (function (r) {
 				catch (e) {
 					r.CFI.addOneNodeToCFI(cfi, $nextNode, marker);
 				}
+				return true;
 			}
+			return false;
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
 		addOneWordToCFI : function (cfi, el, marker) {
@@ -258,7 +258,13 @@ var Reader = (function (r) {
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
 				EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
 			} else {
-				r.CFI.addOneNodeToCFI(cfi, el, marker);
+				// We must check if there are more nodes in the chapter.
+				// If not, we add the marker one character after the cfi position, if possible.
+				if(!r.CFI.addOneNodeToCFI(cfi, el, marker)){
+					pos = pos + 1 < el.text().length ? pos + 1 : pos;
+					cfi = cfi.split(':')[0] + ':' + pos + ')';
+					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+				}
 			}
 		},
 		findCFIElement : function (value) {
