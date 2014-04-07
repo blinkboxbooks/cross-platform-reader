@@ -178,13 +178,13 @@ describe('Bookmarks', function() {
 		READER.init($.extend({
 				bookmarks: [bookmark]
 			}, defaultArgs)).then(function(){
-			expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
+				expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
 
-			READER.removeBookmark(bookmark);
-			expect(_flattenBookmarks(currentStatus.bookmarks)).not.toContain(bookmark);
+				READER.removeBookmark(bookmark);
+				expect(_flattenBookmarks(currentStatus.bookmarks)).not.toContain(bookmark);
 
-			done();
-		});
+				done();
+			});
 	});
 
 	it('should set bookmark in its chapter location', function(done){
