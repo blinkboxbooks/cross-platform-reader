@@ -445,7 +445,9 @@ var Reader = (function (r) {
 	var getNextNode = function ($el) {
 		if ($el.length) {
 			$el = $el.last();
-			var nodes = $el.parent().contents().filter(':not(.'+_classBlacklist.join(',.')+')');
+			var nodes = $el.parent().contents().filter(function(i, e){
+				return !$(e).hasClass(_classBlacklist.join(',.'));
+			});
 			var index = $.inArray($el[0], nodes);
 			if (nodes[index + 1]) {
 				var $next = $(nodes[index + 1]);
