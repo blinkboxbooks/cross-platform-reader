@@ -30,6 +30,13 @@ beforeEach(function() {
 				}
 			};
 		},
+		toBeObject: function(util){
+			return {
+				compare: function(actual){
+					return { pass: util.equals(actual, jasmine.any(Object)) };
+				}
+			};
+		},
 		toBeNumber: function() {
 			return {
 				compare: function(actual){
