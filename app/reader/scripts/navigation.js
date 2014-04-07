@@ -243,15 +243,6 @@ var Reader = (function (r) {
 			}
 			return defer.promise();
 		},
-		goBack: function() {
-
-		},
-		getCFI: function(){
-			return r.CFI.getCFI();
-		},
-		getCFIObject: function(){
-			return r.CFI.getCFIObject();
-		},
 		setCFI: function(cfi){
 			if (!cfi) {
 				cfi = r.CFI.getCFIObject();
