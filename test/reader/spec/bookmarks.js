@@ -8,6 +8,12 @@ describe('Bookmarks', function() {
 			hasNext: true,
 			hasPrev: false,
 		},
+		bookmarks = [
+			'epubcfi(/6/4!/4/2[title-page]/2/2/2/2)',
+			'epubcfi(/6/8!/4/2[contents]/66/2/2/1:0)',
+			'epubcfi(/6/10!/4/2[semiprologue]/2/10/3:618)'
+		],
+		bookmark = 'epubcfi(/6/10!/4/2[semiprologue]/2/14/1:0)',
 		currentStatus = null,
 		defaultArgs = {
 			url: testBookUrl,
@@ -76,6 +82,11 @@ describe('Bookmarks', function() {
 			// expect bookmarks to be defined
 			expect(currentStatus.bookmarksInPage).toBeArray(1);
 			expect(currentStatus.bookmarks).toBeArray();
+
+			// should set bookmark in its chapter location
+			expect(currentStatus.bookmarks[currentStatus.chapter]).toBeArray();
+			expect(currentStatus.bookmarks[currentStatus.chapter]).toContain(currentStatus.cfi.CFI);
+
 			expect(currentStatus.cfi).toBeDefined();
 			expect(currentStatus.cfi.CFI).toBeDefined();
 			expect(currentStatus.bookmarksInPage[0]).toEqual(currentStatus.cfi.CFI);
@@ -101,4 +112,91 @@ describe('Bookmarks', function() {
 		});
 
 	});
+
+	var _flattenBookmarks = function(bookmarks){
+		var temp = [];
+		for(var i = 0, l = bookmarks.length; i < l; i++){
+			if(bookmarks[i]){
+				temp = temp.concat(bookmarks[i]);
+			}
+		}
+		return temp;
+	};
+
+	it('should set all bookmarks', function(done){
+
+		READER.init($.extend({}, defaultArgs)).then(function(){
+
+			expect(currentStatus.bookmarksInPage).toBeArray(0);
+			expect(currentStatus.bookmarks).toBeArray(0);
+
+			READER.setBookmarks(bookmarks);
+			expect(_flattenBookmarks(currentStatus.bookmarks)).toEqual(bookmarks);
+
+			done();
+		});
+
+	});
+
+	it('should disregard previous bookmarks after set', function(done){
+		READER.init($.extend({
+				bookmarks: [bookmark]
+			}, defaultArgs)).then(function(){
+				expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
+
+				READER.setBookmarks(bookmarks);
+				var test = _flattenBookmarks(currentStatus.bookmarks);
+				expect(test).not.toContain(bookmark);
+				expect(test).toEqual(bookmarks);
+
+				done();
+			});
+	});
+
+	it('should initialise with specified bookmarks', function(done){
+		READER.init($.extend({
+				bookmarks: bookmarks
+			}, defaultArgs)).then(function(){
+
+				expect(_flattenBookmarks(currentStatus.bookmarks)).toEqual(bookmarks);
+				done();
+			});
+	});
+
+	it('should set a bookmark', function(done){
+		READER.init($.extend({}, defaultArgs)).then(function(){
+				expect(_flattenBookmarks(currentStatus.bookmarks)).not.toContain(bookmark);
+
+				READER.setBookmark(bookmark);
+				expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
+
+				done();
+			});
+	});
+
+	it('should remove a bookmark', function(done){
+		READER.init($.extend({
+				bookmarks: [bookmark]
+			}, defaultArgs)).then(function(){
+			expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
+
+			READER.removeBookmark(bookmark);
+			expect(_flattenBookmarks(currentStatus.bookmarks)).not.toContain(bookmark);
+
+			done();
+		});
+	});
+
+	it('should set bookmark in its chapter location', function(done){
+		READER.init($.extend({
+				bookmarks: [bookmark]
+			}, defaultArgs)).then(function(){
+				expect(currentStatus.bookmarks).toBeArray(5); // bookmark is in chapter 4
+				expect(currentStatus.bookmarks[4]).toBeArray(1);
+				expect(currentStatus.bookmarks[4]).toContain(bookmark);
+
+				done();
+			});
+	});
+
 });
