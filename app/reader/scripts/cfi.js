@@ -197,12 +197,6 @@ var Reader = (function (r) {
 		setCFI: function (cfi, markerClass) { // Add an element to a CFI point
 			if($('.'+(markerClass ? markerClass : 'bookmark')+'[data-cfi="' + cfi + '"]').length === 0){
 				try {
-					/* TODO: *** REFACTORING CANDIDATE ***
-					 ideally, we should not end up with bookmark markers in a span element within an image element
-					 the mainl problem is that it's not possible locate the offset of this span
-					 instead, we should be adding the marker to the img attributes
-					 also, it would be better to gert the markerClass to be passed in in all circumstances
-					 */
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
 					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist));
@@ -268,17 +262,8 @@ var Reader = (function (r) {
 			}
 		},
 		findCFIElement : function (value) {
-			var elem = $('*[data-cfi="' + value + '"]');
-			if (elem.length) {
-				var tagName = elem[0].parentElement.tagName;
-				/* TODO: *** REFACTORING CANDIDATE ***
-				 ideally, we should not end up with bookmark markers in a span element within an image element
-				 the main problem is that it's not possible locate the offset of this span
-				 instead, we should be adding the marker to the img element attributes
-				 */
-				return tagName === 'IMG' ? r.returnPageElement(elem[0].parentElement) : r.returnPageElement(elem[0]);
-			}
-			return -1;
+			var $elem = $('*[data-cfi="' + value + '"]');
+			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
 		goToCFI : function (cfi, fixed) {
@@ -460,7 +445,9 @@ var Reader = (function (r) {
 	var getNextNode = function ($el) {
 		if ($el.length) {
 			$el = $el.last();
-			var nodes = $el.parent().contents().filter(':not(.'+_classBlacklist.join(',.')+')');
+			var nodes = $el.parent().contents().filter(function(i, e){
+				return !$(e).hasClass(_classBlacklist.join(',.'));
+			});
 			var index = $.inArray($el[0], nodes);
 			if (nodes[index + 1]) {
 				var $next = $(nodes[index + 1]);

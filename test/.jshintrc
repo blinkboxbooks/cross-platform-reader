@@ -26,9 +26,7 @@
 		"spyOn": false,
 		"$": false,
 		"READER": false,
-		"Reader": false,
-		"runs": false,
-		"waitsFor": false,
-		"afterEach": false
+		"afterEach": false,
+		"jasmine": false
 	}
 }

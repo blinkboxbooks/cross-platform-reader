@@ -17,9 +17,11 @@ module.exports = function(config) {
     files: [
 			// libraries
 			'app/components/jquery/jquery.js',
+			'app/lib/epubcfi.min.js',
+			'app/lib/bugsense.js',
 
 			// the reader
-			'app/reader/scripts/.tmp/reader.js',
+			'app/reader/scripts/*.js',
 
 			// the tests
 			'test/reader/**/*.js',
@@ -37,13 +39,12 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-		reporters: ['progress'],
-		// reporters: ['progress', 'coverage'],
+		reporters: ['progress', 'coverage'],
 
 		// available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
 		preprocessors: {
 			// source files we want to generate coverage for
-			// 'app/reader/scripts/*.js': ['coverage']
+			'app/reader/scripts/*.js': ['coverage']
 		},
 
     // web server port

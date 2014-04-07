@@ -54,8 +54,8 @@ angular.module('app', ['ngRoute'])
 		$scope.environment.current = !isNaN($routeParams.env) ? $scope.environment.options[$routeParams.env] : $scope.environment.options[0];
 
 		$scope.layout = {
-			width: !isNaN(parseInt($routeParams.width)) ? parseInt($routeParams.width) : 600,
-			height: !isNaN(parseInt($routeParams.height)) ? parseInt($routeParams.height) : 800,
+			width: !isNaN(parseInt($routeParams.width)) ? parseInt($routeParams.width) : 400,
+			height: !isNaN(parseInt($routeParams.height)) ? parseInt($routeParams.height) : 600,
 			columns: !isNaN(parseInt($routeParams.columns)) ? parseInt($routeParams.columns) : 1,
 			padding: !isNaN(parseInt($routeParams.padding)) ? parseInt($routeParams.padding) : 0
 		};
@@ -100,6 +100,9 @@ angular.module('app', ['ngRoute'])
 				} catch(e){
 					_log(e);
 				}
+			},
+			bookmark: function(){
+				READER.setBookmark();
 			}
 		};
 
@@ -145,7 +148,7 @@ angular.module('app', ['ngRoute'])
 		return {
 			get: function(uri){
 				var defer = $q.defer();
-				if(uri.match(/\/books\/\d+/)){
+				if(uri.indexOf('/books/') === 0){
 					defer.resolve(uri);
 				} else {
 					$http({
