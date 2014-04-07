@@ -199,4 +199,13 @@ describe('Bookmarks', function() {
 			});
 	});
 
+	it('should return the spine and toc', function(done){
+		READER.init($.extend({}, defaultArgs)).then(function(){
+				expect(JSON.parse(READER.getSPINE())).toBeArray();
+				expect(JSON.parse(READER.getTOC())).toBeArray();
+
+				done();
+			});
+	});
+
 });
