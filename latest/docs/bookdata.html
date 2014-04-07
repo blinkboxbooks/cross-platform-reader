@@ -214,7 +214,7 @@ Ex: <code>_bookmarks[1]</code> contains an array of bookmarks from the first cha
             <div class="content"><div class='highlight'><pre>		setBookmark: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cfi, noMarker)</span>{</span>
 			<span class="hljs-keyword">var</span> cfiObj = <span class="hljs-literal">null</span>;
 			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span>(cfi) === <span class="hljs-string">'undefined'</span>){
-				cfiObj = r.CFI.getCFIObject();
+				cfiObj = r.Navigation.getCurrentCFI();
 				<span class="hljs-keyword">if</span>($.type(cfiObj) === <span class="hljs-string">'object'</span>){
 					cfi = cfiObj.CFI;
 				} <span class="hljs-keyword">else</span> {

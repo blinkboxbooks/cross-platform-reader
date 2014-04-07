@@ -634,18 +634,16 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
 					 */</span>
 					<span class="hljs-keyword">var</span> marker = <span class="hljs-string">'&lt;span class="'</span>+ (markerClass ? markerClass : <span class="hljs-string">'bookmark'</span>) +<span class="hljs-string">'" data-cfi="'</span> + cfi + <span class="hljs-string">'"&gt;&lt;/span&gt;'</span>;
 					cfi = r.CFI.addContext(cfi);
-					<span class="hljs-keyword">var</span> $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist)),
-						$nodeClone = $node.clone();
+					<span class="hljs-keyword">var</span> $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist));
 					<span class="hljs-keyword">if</span> ($node.length) {
 						<span class="hljs-keyword">if</span> ($node[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">1</span>) { <span class="hljs-comment">// append to element</span>
 							$node.before($(marker));
 						}
 						<span class="hljs-keyword">if</span> ($node[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">3</span>) { <span class="hljs-comment">// inject into the text node</span>
-							$nodeClone = $node.parent().clone();
 							r.CFI.addOneWordToCFI(cfi, $node, marker);
 						}
 					}
-					<span class="hljs-keyword">return</span> $nodeClone;
+					<span class="hljs-keyword">return</span> $node;
 				}
 				<span class="hljs-keyword">catch</span> (err) {</pre></div></div>
             
@@ -692,7 +690,7 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
 					<span class="hljs-keyword">catch</span> (err) { }
 				} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ($nextNode[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">1</span>) {
 					$nextNode.before($(marker));
-					<span class="hljs-keyword">return</span>;
+					<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
 				}
 				<span class="hljs-keyword">try</span> {</pre></div></div>
             
@@ -714,7 +712,9 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
 				<span class="hljs-keyword">catch</span> (e) {
 					r.CFI.addOneNodeToCFI(cfi, $nextNode, marker);
 				}
+				<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
 			}
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
 		},</pre></div></div>
             
         </li>
@@ -751,8 +751,27 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
 				pos = pos + words[<span class="hljs-number">0</span>].length;
 				cfi = cfi.split(<span class="hljs-string">':'</span>)[<span class="hljs-number">0</span>] + <span class="hljs-string">':'</span> + pos + <span class="hljs-string">')'</span>;
 				EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
-			} <span class="hljs-keyword">else</span> {
-				r.CFI.addOneNodeToCFI(cfi, el, marker);
+			} <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>We must check if there are more nodes in the chapter.
+If not, we add the marker one character after the cfi position, if possible.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">if</span>(!r.CFI.addOneNodeToCFI(cfi, el, marker)){
+					pos = pos + <span class="hljs-number">1</span> &lt; el.text().length ? pos + <span class="hljs-number">1</span> : pos;
+					cfi = cfi.split(<span class="hljs-string">':'</span>)[<span class="hljs-number">0</span>] + <span class="hljs-string">':'</span> + pos + <span class="hljs-string">')'</span>;
+					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+				}
 			}
 		},
 		findCFIElement : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> {</span>
@@ -772,11 +791,11 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
         </li>
         
         
-        <li id="section-33">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p><a name="goToCFI"></a>Find and load the page that contains the CFI’s marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.</p>
 
@@ -801,11 +820,11 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
         </li>
         
         
-        <li id="section-34">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>Update reader position</p>
 
@@ -834,11 +853,11 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
         </li>
         
         
-        <li id="section-35">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p><a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).</p>
 
@@ -862,11 +881,11 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
         </li>
         
         
-        <li id="section-36">
+        <li id="section-37">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-37">&#182;</a>
               </div>
               <p><a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.</p>
 
@@ -928,11 +947,11 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
         </li>
         
         
-        <li id="section-37">
+        <li id="section-38">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <p>Calculates the length of a string and returns true if the length has the minimum number of words.
 Returns true if text is a string and its length is &gt; than the desired number of words, false otherwise.</p>
@@ -947,11 +966,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-38">
+        <li id="section-39">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-38">&#182;</a>
+                <a class="pilcrow" href="#section-39">&#182;</a>
               </div>
               <p>Check number of words so far.</p>
 
@@ -970,11 +989,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-39">
+        <li id="section-40">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-39">&#182;</a>
+                <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
               <p>Loops through all adjacent nodes to generate the preview, starting with the first text node.</p>
 
@@ -996,11 +1015,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-40">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>No more content go get text from, break operation.</p>
 
@@ -1013,11 +1032,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-41">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-41">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <p>Trim preview to 100 words.</p>
 
@@ -1030,11 +1049,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-42">
+        <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-42">&#182;</a>
+                <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
               <p>Get the top element that is the child of the reader container.</p>
 
@@ -1048,11 +1067,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-43">
+        <li id="section-44">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-43">&#182;</a>
+                <a class="pilcrow" href="#section-44">&#182;</a>
               </div>
               <p>Check that the first tag has text, if not, add any image/table we can find.</p>
 
@@ -1092,11 +1111,11 @@ Returns true if text is a string and its length is &gt; than the desired number 
         </li>
         
         
-        <li id="section-44">
+        <li id="section-45">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-44">&#182;</a>
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <p>ignore empty textnodes</p>
 

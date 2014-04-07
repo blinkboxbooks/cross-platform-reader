@@ -176,7 +176,7 @@ The goal is to make the reader as client-ignorant as possible.</p>
 		setTheme: _status_wrap(Reader.setTheme, <span class="hljs-string">'setTheme'</span>),
 		setFontFamily: _status_wrap(Reader.setFontFamily, <span class="hljs-string">'setFontFamily'</span>),
 		setPreferences: _status_wrap(Reader.setPreferences, <span class="hljs-string">'setPreferences'</span>),
-		getCFI: Reader.Navigation.getCFI,
+		getCFI: Reader.CFI.getCFI,
 		goToCFI: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFI</span><span class="hljs-params">()</span>{</span>
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
 			Reader.CFI.goToCFI.apply(Reader.CFI, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFIComplete</span><span class="hljs-params">()</span>{</span>
