@@ -9,11 +9,6 @@ describe('CFI', function() {
 			hasPrev: false
 		},
 		currentStatus = null,
-		cfi = {
-			CFI: 'epubcfi(/6/2!/4/2[cover]/1:0)',
-			preview: 'Image: No description',
-			chapter: 'Cover'
-		},
 		cfis = [],
 		defaultArgs = {
 			url: testBookUrl,
