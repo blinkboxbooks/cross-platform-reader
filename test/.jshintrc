@@ -27,6 +27,7 @@
 		"$": false,
 		"READER": false,
 		"afterEach": false,
-		"jasmine": false
+		"jasmine": false,
+		"Reader": false
 	}
 }
