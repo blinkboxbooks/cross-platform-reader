@@ -154,7 +154,7 @@ The goal is to make the reader as client-ignorant as possible.</p>
 
 	<span class="hljs-keyword">return</span> {
 		init: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span><span class="hljs-params">()</span>{</span>
-			Reader.init.apply(Reader, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initComplete</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Reader.init.apply(Reader, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initComplete</span><span class="hljs-params">()</span>{</span>
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 			}).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initSuccess</span><span class="hljs-params">()</span>{</span>
 					_send_status(<span class="hljs-string">'init'</span>);
@@ -179,14 +179,14 @@ The goal is to make the reader as client-ignorant as possible.</p>
 		getCFI: Reader.CFI.getCFI,
 		goToCFI: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFI</span><span class="hljs-params">()</span>{</span>
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			Reader.CFI.goToCFI.apply(Reader.CFI, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFIComplete</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Reader.CFI.goToCFI.apply(Reader.CFI, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFIComplete</span><span class="hljs-params">()</span>{</span>
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				_send_status(<span class="hljs-string">'goToCFI'</span>);
 			});
 		},
 		next: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">next</span><span class="hljs-params">()</span>{</span>
 			<span class="hljs-keyword">var</span> _loading_required = <span class="hljs-literal">false</span>;
-			Reader.Navigation.next().always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">nextComplete</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Reader.Navigation.next().always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">nextComplete</span><span class="hljs-params">()</span>{</span>
 				<span class="hljs-keyword">if</span>(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				}
@@ -221,7 +221,7 @@ The goal is to make the reader as client-ignorant as possible.</p>
 		},
 		prev: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">next</span><span class="hljs-params">()</span>{</span>
 			<span class="hljs-keyword">var</span> _loading_required = <span class="hljs-literal">false</span>;
-			Reader.Navigation.prev().always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">prevComplete</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Reader.Navigation.prev().always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">prevComplete</span><span class="hljs-params">()</span>{</span>
 				<span class="hljs-keyword">if</span>(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				}
@@ -256,7 +256,7 @@ The goal is to make the reader as client-ignorant as possible.</p>
 		},
 		loadChapter: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadChapter</span><span class="hljs-params">()</span>{</span>
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			Reader.Navigation.loadChapter.apply(Reader.Navigation, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadChapterComplete</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Reader.Navigation.loadChapter.apply(Reader.Navigation, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadChapterComplete</span><span class="hljs-params">()</span>{</span>
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 			}).then(
 				<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">loadChapterSuccess</span><span class="hljs-params">()</span>{</span>
@@ -268,12 +268,13 @@ The goal is to make the reader as client-ignorant as possible.</p>
 		},
 		getProgress: Reader.Navigation.getProgress,
 		getTOC: Reader.getTOC,
+		getSPINE: Reader.getSPINE,
 		getBookmarks: Reader.Bookmarks.getBookmarks,
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, <span class="hljs-string">'setBookmarks'</span>),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, <span class="hljs-string">'setBookmark'</span>),
 		goToBookmark: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToBookmark</span><span class="hljs-params">()</span>{</span>
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFIComplete</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, <span class="hljs-built_in">arguments</span>).always(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToCFIComplete</span><span class="hljs-params">()</span>{</span>
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 			}).then(
 				<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">goToBookmarkSuccess</span><span class="hljs-params">()</span>{</span>
@@ -286,12 +287,8 @@ The goal is to make the reader as client-ignorant as possible.</p>
 		removeBookmark: _status_wrap(Reader.Bookmarks.removeBookmark, <span class="hljs-string">'removeBookmark'</span>),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
-		resizeContainer: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
-			Reader.resizeContainer.apply(Reader, <span class="hljs-built_in">arguments</span>);
-			_send_status(<span class="hljs-string">'resizeContainer'</span>);
-		},
+		resizeContainer: _status_wrap(Reader.resizeContainer, <span class="hljs-string">'resizeContainer'</span>),
 		Event: Reader.Event,
-		<span class="hljs-built_in">Error</span>: Reader.Error,
 		refreshLayout: _status_wrap(Reader.refreshLayout, <span class="hljs-string">'refreshLayout'</span>),
 		enableDebug: Reader.Debug.enable,
 		disableDebug: Reader.Debug.disable

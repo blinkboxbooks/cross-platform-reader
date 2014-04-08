@@ -626,12 +626,6 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
             <div class="content"><div class='highlight'><pre>		setCFI: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi, markerClass)</span> {</span> <span class="hljs-comment">// Add an element to a CFI point</span>
 			<span class="hljs-keyword">if</span>($(<span class="hljs-string">'.'</span>+(markerClass ? markerClass : <span class="hljs-string">'bookmark'</span>)+<span class="hljs-string">'[data-cfi="'</span> + cfi + <span class="hljs-string">'"]'</span>).length === <span class="hljs-number">0</span>){
 				<span class="hljs-keyword">try</span> {
-					<span class="hljs-comment">/* TODO: *** REFACTORING CANDIDATE ***
-					 ideally, we should not end up with bookmark markers in a span element within an image element
-					 the mainl problem is that it's not possible locate the offset of this span
-					 instead, we should be adding the marker to the img attributes
-					 also, it would be better to gert the markerClass to be passed in in all circumstances
-					 */</span>
 					<span class="hljs-keyword">var</span> marker = <span class="hljs-string">'&lt;span class="'</span>+ (markerClass ? markerClass : <span class="hljs-string">'bookmark'</span>) +<span class="hljs-string">'" data-cfi="'</span> + cfi + <span class="hljs-string">'"&gt;&lt;/span&gt;'</span>;
 					cfi = r.CFI.addContext(cfi);
 					<span class="hljs-keyword">var</span> $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist));
@@ -775,17 +769,8 @@ If not, we add the marker one character after the cfi position, if possible.</p>
 			}
 		},
 		findCFIElement : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> {</span>
-			<span class="hljs-keyword">var</span> elem = $(<span class="hljs-string">'*[data-cfi="'</span> + value + <span class="hljs-string">'"]'</span>);
-			<span class="hljs-keyword">if</span> (elem.length) {
-				<span class="hljs-keyword">var</span> tagName = elem[<span class="hljs-number">0</span>].parentElement.tagName;
-				<span class="hljs-comment">/* TODO: *** REFACTORING CANDIDATE ***
-				 ideally, we should not end up with bookmark markers in a span element within an image element
-				 the main problem is that it's not possible locate the offset of this span
-				 instead, we should be adding the marker to the img element attributes
-				 */</span>
-				<span class="hljs-keyword">return</span> tagName === <span class="hljs-string">'IMG'</span> ? r.returnPageElement(elem[<span class="hljs-number">0</span>].parentElement) : r.returnPageElement(elem[<span class="hljs-number">0</span>]);
-			}
-			<span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+			<span class="hljs-keyword">var</span> $elem = $(<span class="hljs-string">'*[data-cfi="'</span> + value + <span class="hljs-string">'"]'</span>);
+			<span class="hljs-keyword">return</span> $elem.length ? r.returnPageElement($elem) : -<span class="hljs-number">1</span>;
 		},</pre></div></div>
             
         </li>
@@ -1103,7 +1088,9 @@ Returns true if text is a string and its length is &gt; than the desired number 
 	<span class="hljs-keyword">var</span> getNextNode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">($el)</span> {</span>
 		<span class="hljs-keyword">if</span> ($el.length) {
 			$el = $el.last();
-			<span class="hljs-keyword">var</span> nodes = $el.parent().contents().filter(<span class="hljs-string">':not(.'</span>+_classBlacklist.join(<span class="hljs-string">',.'</span>)+<span class="hljs-string">')'</span>);
+			<span class="hljs-keyword">var</span> nodes = $el.parent().contents().filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, e)</span>{</span>
+				<span class="hljs-keyword">return</span> !$(e).hasClass(_classBlacklist.join(<span class="hljs-string">',.'</span>));
+			});
 			<span class="hljs-keyword">var</span> index = $.inArray($el[<span class="hljs-number">0</span>], nodes);
 			<span class="hljs-keyword">if</span> (nodes[index + <span class="hljs-number">1</span>]) {
 				<span class="hljs-keyword">var</span> $next = $(nodes[index + <span class="hljs-number">1</span>]);</pre></div></div>
