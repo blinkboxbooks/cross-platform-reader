@@ -231,9 +231,9 @@ var Reader = (function (r) {
 			var cfi = c;
 			if ($nextNode) {
 				if ($nextNode[0].nodeType === 3 && $nextNode[0].length > 1) {
-					cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 2, _classBlacklist);
+					cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
 					cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
-					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+					r.CFI.addOneWordToCFI(cfi, $nextNode, marker);
 				} else {
 					$nextNode.before($(marker));
 				}
