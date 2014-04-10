@@ -481,7 +481,7 @@ if(r.CFI.context === null){</p>
               </div>
               <p>getFirstNode does not have a blacklist and the injected markers break the CFI generation.
 To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
-the complete CFi must not contain any . (processed normally, but not here)</p>
+the complete CFi must not contain any ‘.’ (processed normally, but not here)</p>
 
             </div>
             
@@ -489,6 +489,9 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
 					<span class="hljs-keyword">if</span>($node.length &gt; <span class="hljs-number">1</span> &amp;&amp; $node[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">3</span>) {
 						<span class="hljs-keyword">var</span> offset = startTextNode.offset;
 						<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i &lt; $node.length - <span class="hljs-number">1</span>; i++){
+							<span class="hljs-keyword">if</span>($($node[i]).is(startTextNode.textNode)){
+								<span class="hljs-keyword">break</span>;
+							}
 							offset += $node[i].length;
 						}
 						completeCFI = completeCFI.replace(<span class="hljs-regexp">/:\d+/</span>, <span class="hljs-string">':'</span> + offset);
@@ -673,20 +676,7 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>		addOneNodeToCFI : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(c, el, marker)</span> {</span>
-			<span class="hljs-keyword">var</span> $nextNode = getNextNode(el);
-			<span class="hljs-keyword">var</span> cfi = c;
-			<span class="hljs-keyword">if</span> ($nextNode) {
-				<span class="hljs-keyword">if</span> ($nextNode[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">3</span> &amp;&amp; $nextNode[<span class="hljs-number">0</span>].length &gt; <span class="hljs-number">1</span>) {
-					<span class="hljs-keyword">try</span> {
-						cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[<span class="hljs-number">0</span>], <span class="hljs-number">2</span>, _classBlacklist);
-						cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
-					}
-					<span class="hljs-keyword">catch</span> (err) { }
-				} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ($nextNode[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">1</span>) {
-					$nextNode.before($(marker));
-					<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
-				}
-				<span class="hljs-keyword">try</span> {</pre></div></div>
+			<span class="hljs-keyword">var</span> $nextNode = getNextNode(el);</pre></div></div>
             
         </li>
         
@@ -697,14 +687,22 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
-              <p>Ignore errors and jump to the next node if something wrong happens when we inject the element into the CFI address</p>
+              <p>get the leaf of next node to inject in the appropriate location</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
-				}
-				<span class="hljs-keyword">catch</span> (e) {
-					r.CFI.addOneNodeToCFI(cfi, $nextNode, marker);
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">while</span> ($nextNode &amp;&amp; $nextNode.contents().length){
+				$nextNode = $nextNode.contents().first();
+			}
+
+			<span class="hljs-keyword">var</span> cfi = c;
+			<span class="hljs-keyword">if</span> ($nextNode) {
+				<span class="hljs-keyword">if</span> ($nextNode[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">3</span> &amp;&amp; $nextNode[<span class="hljs-number">0</span>].length &gt; <span class="hljs-number">1</span>) {
+					cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[<span class="hljs-number">0</span>], <span class="hljs-number">0</span>, _classBlacklist);
+					cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
+					r.CFI.addOneWordToCFI(cfi, $nextNode, marker);
+				} <span class="hljs-keyword">else</span> {
+					$nextNode.before($(marker));
 				}
 				<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
 			}
@@ -726,7 +724,9 @@ the complete CFi must not contain any . (processed normally, but not here)</p>
             
             <div class="content"><div class='highlight'><pre>		addOneWordToCFI : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi, el, marker)</span> {</span>
 			<span class="hljs-keyword">var</span> pos = <span class="hljs-built_in">parseInt</span>(cfi.split(<span class="hljs-string">':'</span>)[<span class="hljs-number">1</span>].split(<span class="hljs-string">')'</span>)[<span class="hljs-number">0</span>], <span class="hljs-number">10</span>);
-			<span class="hljs-keyword">var</span> words = el.text().substring(pos).split(<span class="hljs-regexp">/\s+/</span>);</pre></div></div>
+			<span class="hljs-keyword">var</span> words = el.text().substring(pos).split(<span class="hljs-regexp">/\s+/</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(word)</span>{</span>
+				<span class="hljs-keyword">return</span> word.length;
+			});</pre></div></div>
             
         </li>
         
