@@ -225,21 +225,11 @@ var Reader = (function (r) {
 			var cfi = c;
 			if ($nextNode) {
 				if ($nextNode[0].nodeType === 3 && $nextNode[0].length > 1) {
-					try {
-						cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 2, _classBlacklist);
-						cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
-					}
-					catch (err) { }
-				} else if ($nextNode[0].nodeType === 1) {
-					$nextNode.before($(marker));
-					return true;
-				}
-				try {
-					// Ignore errors and jump to the next node if something wrong happens when we inject the element into the CFI address
+					cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 2, _classBlacklist);
+					cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
 					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
-				}
-				catch (e) {
-					r.CFI.addOneNodeToCFI(cfi, $nextNode, marker);
+				} else {
+					$nextNode.before($(marker));
 				}
 				return true;
 			}
@@ -248,7 +238,9 @@ var Reader = (function (r) {
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
 		addOneWordToCFI : function (cfi, el, marker) {
 			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
-			var words = el.text().substring(pos).split(/\s+/);
+			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
+				return word.length;
+			});
 			// find next word position
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
