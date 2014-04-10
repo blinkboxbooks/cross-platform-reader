@@ -17,6 +17,7 @@ module.exports = function(config) {
     files: [
 			// libraries
 			'app/components/jquery/jquery.js',
+			'app/components/FilterJS/FilterJS.js',
 			'app/lib/epubcfi.min.js',
 			'app/lib/bugsense.js',
 
@@ -24,7 +25,8 @@ module.exports = function(config) {
 			'app/reader/scripts/*.js',
 
 			// the tests
-			'test/reader/**/*.js',
+			'test/reader/spec/filters.js',
+			'test/reader/helpers.js',
 
 			// the books
 			{
