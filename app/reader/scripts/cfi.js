@@ -222,6 +222,12 @@ var Reader = (function (r) {
 		// <a name="addOneNodeToCFI"></a> Helper function that moves the CFI to the next node. This is required to avoid a bug in some browsers that displays the current CFI on the previous page.
 		addOneNodeToCFI : function (c, el, marker) {
 			var $nextNode = getNextNode(el);
+
+			// get the leaf of next node to inject in the appropriate location
+			while ($nextNode && $nextNode.contents().length){
+				$nextNode = $nextNode.contents().first();
+			}
+
 			var cfi = c;
 			if ($nextNode) {
 				if ($nextNode[0].nodeType === 3 && $nextNode[0].length > 1) {
