@@ -245,8 +245,10 @@ var Reader = (function (r) {
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
 
 		r.$header.text(r.bookTitle); // TODO Do not polute the reader object.
-		// Parse the content according its mime-type
-		content = r.parse(content, mimetype);
+
+		// Parse the content according its mime-type and apply all filters attached to display content
+		content = r.Filters.applyFilters('beforeChapterDisplay', r.parse(content, mimetype));
+
 		r.$reader.html(content);
 
 		// Wait for the images and build the container

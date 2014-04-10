@@ -67,14 +67,19 @@ describe('Filters', function() {
 
 	it('should define filter manager', function(){
 		expect(Filters).toBeObject();
+		expect(Filters.hooks).toBeObject();
 		expect(Filters.addFilter).toBeFunction();
 		expect(Filters.removeFilter).toBeFunction();
 		expect(Filters.removeAllFilters).toBeFunction();
 		expect(Filters.applyFilters).toBeFunction();
 	});
 
-	it('should filter chapter content', function(){
-
+	it('should initialise all filters', function(){
+		expect(Filters.hooks.beforeChapterDisplay).toBeArray();
+		expect(Filters.hooks.afterChapterDisplay).toBeArray();
+		expect(Filters.hooks.init).toBeArray();
+		expect(Filters.hooks.headerContent).toBeArray();
+		expect(Filters.hooks.footerContent).toBeArray();
 	});
 
 	it('should handle anchor clicks', function(){
