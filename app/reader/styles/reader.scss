@@ -69,7 +69,7 @@
     p {
       margin-bottom: 1em
     }
-    p:last-child{ // to avoid empty pages
+    *:last-child{ // to avoid empty pages
       margin-bottom: 0;
     }
     :link {
