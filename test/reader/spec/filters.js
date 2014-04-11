@@ -117,29 +117,24 @@ describe('Filters', function() {
 		expect(Filters.hooks.footerContent).toBeArray();
 	});
 
-	it('should handle anchor clicks', function(done){
+	it('should handle anchor click', function(){
+
+	});
+
+	it('should add anchor link types', function(done){
 		_loopChapters(function(){
 			$('a[href]').each(function(i, link){
 
 				var $link = $(link);
-				expect($link).toHaveAttribute('data-link-type');
 
 				if(/^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'))){
-					expect($link.attr('data-link-type')).toEqual('external');
+					expect($link).toHaveAttributes({'data-link-type': 'external'});
 				} else {
-					expect($link.attr('data-link-type')).toEqual('internal');
+					expect($link).toHaveAttributes({'data-link-type': 'internal'});
 				}
 
 			});
 		}, done);
-	});
-
-	it('should resize images', function(){
-
-	});
-
-	it('should add anchor link types', function(){
-
 	});
 
 	it('should attach touch events', function(){

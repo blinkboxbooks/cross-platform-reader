@@ -91,10 +91,18 @@ beforeEach(function() {
 				}
 			};
 		},
-		toHaveAttribute: function(){
+		toHaveAttributes: function(){
 			return {
-				compare: function(actual, input){
-					return { pass: !!actual.attr(input) };
+				compare: function(actual, attrs){
+					var result = true;
+					for (var prop in attrs){
+						if(attrs.hasOwnProperty(prop)){
+							if ($(actual).attr(prop) !== attrs[prop]){
+								result = false;
+							}
+						}
+					}
+					return { pass: result };
 				}
 			};
 		}

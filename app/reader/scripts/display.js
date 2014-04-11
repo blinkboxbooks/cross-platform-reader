@@ -252,7 +252,7 @@ var Reader = (function (r) {
 		r.$reader.html(content);
 
 		// Wait for the images and build the container
-		var $images = $('#' + r.$reader[0].id + ' img');
+		var $images = $('img', r.$reader);
 		var counter = 0, i = 0;
 		var timer = setInterval(function () {
 
