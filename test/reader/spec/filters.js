@@ -82,8 +82,48 @@ describe('Filters', function() {
 		expect(Filters.hooks.footerContent).toBeArray();
 	});
 
-	it('should handle anchor clicks', function(){
+	it('should handle anchor clicks', function(done){
+		var chapters = [], spine = JSON.parse(READER.getSPINE());
 
+		var _testChapter = function(index){
+			READER.loadChapter(chapters[index]).then(function(){
+				console.log('loadChapter done', chapters[index]);
+
+				$('a[href]').each(function(i, link){
+
+					var $link = $(link);
+					expect($link).toHaveAttribute('data-link-type');
+
+					if(/^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'))){
+						expect($link.attr('data-link-type')).toEqual('external');
+					} else {
+						expect($link.attr('data-link-type')).toEqual('internal');
+					}
+
+				});
+
+				if(index < chapters.length - 1){
+					_testChapter(index+1);
+				} else {
+					done();
+				}
+			});
+		};
+
+		function saveChapter(chapter){
+			chapters.push(chapter.href);
+			if(chapter.children){
+				for(var i = 0, l = chapter.children.length; i < l; i++){
+					saveChapter(chapter.children[i]);
+				}
+			}
+		}
+
+		for(var i = 0, l = spine.length; i < l; i++){
+			saveChapter(spine[i]);
+		}
+
+		_testChapter(0);
 	});
 
 	it('should resize images', function(){

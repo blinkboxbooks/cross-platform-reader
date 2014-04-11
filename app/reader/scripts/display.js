@@ -247,7 +247,7 @@ var Reader = (function (r) {
 		r.$header.text(r.bookTitle); // TODO Do not polute the reader object.
 
 		// Parse the content according its mime-type and apply all filters attached to display content
-		content = r.Filters.applyFilters('beforeChapterDisplay', r.parse(content, mimetype));
+		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
 
 		r.$reader.html(content);
 

@@ -29,7 +29,7 @@ var Reader = (function (r) {
 			break;
 		}
 		// Extract the contents of the body only thus ignoring any styles declared in head
-		return typeof content === 'string' ? content.split(/<body[^>]*>/)[1].split('</body>')[0] : null;
+		return typeof content === 'string' ? $(content.split(/<body[^>]*>/)[1].split('</body>')[0]) : null;
 	};
 
 	// Parses the content in application/xhtml+xml. Returns the parsed content.
@@ -52,21 +52,6 @@ var Reader = (function (r) {
 		var prefixes = [];
 		// Get all elements in any namespace.
 		var elements = object.getElementsByTagNameNS('*', '*');
-		// Get all a elements from the content.
-		var $links = $('a[href]', object);
-		for (var idx = 0; idx < $links.length; idx++) {
-			var $link = $($links[idx]);
-			var valid = /^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'));
-			if (!valid) {
-				// ### Internal link.
-				$link.attr('data-link-type', 'internal');
-				/* elements[idx].attributes[0].nodeValue = 'http://localhost:8888/books/9780718159467/OPS/xhtml/' + elements[idx].attributes[0].nodeValue;*/
-			} else {
-				// ### External link.
-				// External links attribute 'target' set to '_blank' for open the new link in another window / tab of the browser.
-				$link.attr('data-link-type', 'external').attr('target', '_blank');
-			}
-		}
 
 		// ### Build URL for parsing.
 

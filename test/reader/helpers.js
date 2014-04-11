@@ -90,6 +90,13 @@ beforeEach(function() {
 					return { pass: actual <= input };
 				}
 			};
+		},
+		toHaveAttribute: function(){
+			return {
+				compare: function(actual, input){
+					return { pass: !!actual.attr(input) };
+				}
+			};
 		}
 	});
 });
