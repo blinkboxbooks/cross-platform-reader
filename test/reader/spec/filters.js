@@ -44,6 +44,33 @@ describe('Filters', function() {
 			}
 		};
 
+	var chapters = [];
+
+	function _saveChapter(chapter){
+		chapters.push(chapter.href);
+		if(chapter.children){
+			for(var i = 0, l = chapter.children.length; i < l; i++){
+				saveChapter(chapter.children[i]);
+			}
+		}
+	}
+
+	var _loopChapters = function(cb, done){
+		var _testChapter = function(index){
+			READER.loadChapter(chapters[index]).then(function(){
+				cb(chapters[index]);
+
+				if(index < chapters.length - 1){
+					_testChapter(index+1);
+				} else {
+					done();
+				}
+			});
+		};
+
+		_testChapter(0);
+	};
+
 	beforeEach(function(done){
 		// making sure the reader has a valid container in the body
 		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
@@ -56,6 +83,14 @@ describe('Filters', function() {
 		currentStatus = null;
 
 		READER.init($.extend({}, defaultArgs)).then(function(){
+
+			// Save all the chapter href-s on load
+			chapters = [];
+			var spine = JSON.parse(READER.getSPINE());
+			for(var i = 0, l = spine.length; i < l; i++){
+				_saveChapter(spine[i]);
+			}
+
 			done();
 		});
 	});
@@ -83,47 +118,20 @@ describe('Filters', function() {
 	});
 
 	it('should handle anchor clicks', function(done){
-		var chapters = [], spine = JSON.parse(READER.getSPINE());
+		_loopChapters(function(){
+			$('a[href]').each(function(i, link){
 
-		var _testChapter = function(index){
-			READER.loadChapter(chapters[index]).then(function(){
-				console.log('loadChapter done', chapters[index]);
+				var $link = $(link);
+				expect($link).toHaveAttribute('data-link-type');
 
-				$('a[href]').each(function(i, link){
-
-					var $link = $(link);
-					expect($link).toHaveAttribute('data-link-type');
-
-					if(/^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'))){
-						expect($link.attr('data-link-type')).toEqual('external');
-					} else {
-						expect($link.attr('data-link-type')).toEqual('internal');
-					}
-
-				});
-
-				if(index < chapters.length - 1){
-					_testChapter(index+1);
+				if(/^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'))){
+					expect($link.attr('data-link-type')).toEqual('external');
 				} else {
-					done();
+					expect($link.attr('data-link-type')).toEqual('internal');
 				}
+
 			});
-		};
-
-		function saveChapter(chapter){
-			chapters.push(chapter.href);
-			if(chapter.children){
-				for(var i = 0, l = chapter.children.length; i < l; i++){
-					saveChapter(chapter.children[i]);
-				}
-			}
-		}
-
-		for(var i = 0, l = spine.length; i < l; i++){
-			saveChapter(spine[i]);
-		}
-
-		_testChapter(0);
+		}, done);
 	});
 
 	it('should resize images', function(){
