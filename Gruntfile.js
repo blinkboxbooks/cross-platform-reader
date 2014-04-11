@@ -295,17 +295,6 @@ module.exports = function (grunt) {
 						'<%= yeoman.app %>/components/jquery/jquery.min.js'
 					]
 				}]
-			},
-			books: {
-				files: [{
-					expand: true,
-					dot: true,
-					cwd: '<%= yeoman.app %>/books',
-					dest: '<%= yeoman.dist %>/books',
-					src: [
-						'**/*'
-					]
-				}]
 			}
 		},
 		replace: {
