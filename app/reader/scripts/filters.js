@@ -177,9 +177,49 @@ var Reader = (function (r) {
 		return content;
 	};
 
+
+	// helper function that strips the last path from the url
+	// Ex: a/b/c.html -> a/b
+	var _removeLastPath = function(url){
+		var pathSeparatorIndex = url.lastIndexOf('/');
+		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : url;
+	};
+
+	// Function to transform relative links
+	// ex: `../html/chapter.html` -> `chapter.html`
+	var _normalizeLink = function(url){
+		// get current chapter folder url
+		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;
+
+		// parse current url to remove `..` from path
+		var paths = url.split('/');
+		for(var i = 0, l = paths.length; i < l; i++){
+			var path = paths[i];
+			if(path === '..'){
+				result = _removeLastPath(result);
+			} else {
+				result += '/' + path;
+			}
+		}
+		return result;
+	};
+
+	var _parseAnchors = function(content){
+		var anchors = content.getElementsByTagName('a');
+		for (var y = 0; y < anchors.length; y++) {
+			var href = anchors[y].getAttribute('href');
+			if(href){
+				href = _normalizeLink(href);
+				anchors[y].setAttribute('href', href);
+			}
+		}
+		return content;
+	}
+
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseAnchors);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
 

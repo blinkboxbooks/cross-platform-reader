@@ -137,11 +137,17 @@ describe('Filters', function() {
 		}, done);
 	});
 
-	it('should recalculate relative links and resources', function(done){
+	it('should transform relative links and resources', function(done){
 		_loopChapters(function(){
 			$('img, video').each(function(i, el){
 				var $el = $(el);
 				expect($el.attr('src')).not.toContain('..');
+			});
+			$('a').each(function(i, el){
+				var href = $(el).attr('href');
+				if(href){
+					expect(href).not.toContain('..');
+				}
 			});
 		}, done);
 	});
