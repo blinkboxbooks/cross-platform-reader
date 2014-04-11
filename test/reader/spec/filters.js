@@ -111,7 +111,7 @@ describe('Filters', function() {
 
 	it('should initialise all filters', function(){
 		expect(Filters.hooks.beforeChapterDisplay).toBeArray();
-		expect(Filters.hooks.afterChapterDisplay).toBeArray();
+		expect(Filters.hooks.beforeChapterParse).toBeArray();
 		expect(Filters.hooks.init).toBeArray();
 		expect(Filters.hooks.headerContent).toBeArray();
 		expect(Filters.hooks.footerContent).toBeArray();
@@ -136,6 +136,16 @@ describe('Filters', function() {
 			});
 		}, done);
 	});
+
+	it('should recalculate relative links and resources', function(done){
+		_loopChapters(function(){
+			$('img, video').each(function(i, el){
+				var $el = $(el);
+				expect($el.attr('src')).not.toContain('..');
+			});
+		}, done);
+	});
+
 
 	it('should attach touch events', function(){
 
