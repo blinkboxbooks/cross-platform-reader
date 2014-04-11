@@ -445,7 +445,6 @@ module.exports = function (grunt) {
 		'reader', // build the reader
 		'demo', // build the demo
 		'copy:github', // copy github static pages
-		'copy:books', // copy books to dist folder
 		'replace:dist', // add reader version
 		'docco' // generates technical documentation
 	]);
