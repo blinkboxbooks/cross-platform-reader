@@ -295,17 +295,6 @@ module.exports = function (grunt) {
 						'<%= yeoman.app %>/components/jquery/jquery.min.js'
 					]
 				}]
-			},
-			books: {
-				files: [{
-					expand: true,
-					dot: true,
-					cwd: '<%= yeoman.app %>/books',
-					dest: '<%= yeoman.dist %>/books',
-					src: [
-						'**/*'
-					]
-				}]
 			}
 		},
 		replace: {
@@ -445,7 +434,6 @@ module.exports = function (grunt) {
 		'reader', // build the reader
 		'demo', // build the demo
 		'copy:github', // copy github static pages
-		'copy:books', // copy books to dist folder
 		'replace:dist', // add reader version
 		'docco' // generates technical documentation
 	]);
