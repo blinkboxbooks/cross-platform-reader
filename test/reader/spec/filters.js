@@ -117,10 +117,6 @@ describe('Filters', function() {
 		expect(Filters.hooks.footerContent).toBeArray();
 	});
 
-	it('should handle anchor click', function(){
-
-	});
-
 	it('should add anchor link types', function(done){
 		_loopChapters(function(){
 			$('a[href]').each(function(i, link){
@@ -150,11 +146,6 @@ describe('Filters', function() {
 				}
 			});
 		}, done);
-	});
-
-
-	it('should attach touch events', function(){
-
 	});
 
 	it('should update the header text', function(){
