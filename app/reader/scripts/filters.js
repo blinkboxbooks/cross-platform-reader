@@ -4,10 +4,7 @@ var Reader = (function (r) {
 
 	var filters = new FilterJS(), HOOKS = {
 		BEFORE_CHAPTER_PARSE: 'beforeChapterParse',
-		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay',
-		INIT: 'init',
-		HEADER_CONTENT: 'headerContent',
-		FOOTER_CONTENT: 'footerContent'
+		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay'
 	};
 
 	// Build an absolute path from the relative path of a resource
@@ -222,18 +219,6 @@ var Reader = (function (r) {
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseAnchors);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
-
-	filters.addFilter(HOOKS.INIT, function(){
-
-	});
-
-	filters.addFilter(HOOKS.HEADER_CONTENT, function(content){
-		return content;
-	});
-
-	filters.addFilter(HOOKS.FOOTER_CONTENT, function(content){
-		return content;
-	});
 
 	r.Filters = $.extend({HOOKS: HOOKS}, filters);
 

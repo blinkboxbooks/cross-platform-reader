@@ -112,9 +112,6 @@ describe('Filters', function() {
 	it('should initialise all filters', function(){
 		expect(Filters.hooks.beforeChapterDisplay).toBeArray();
 		expect(Filters.hooks.beforeChapterParse).toBeArray();
-		expect(Filters.hooks.init).toBeArray();
-		expect(Filters.hooks.headerContent).toBeArray();
-		expect(Filters.hooks.footerContent).toBeArray();
 	});
 
 	it('should add anchor link types', function(done){
@@ -147,13 +144,4 @@ describe('Filters', function() {
 			});
 		}, done);
 	});
-
-	it('should update the header text', function(){
-
-	});
-
-	it('should update the footer text', function(){
-
-	});
-
 });
