@@ -348,13 +348,13 @@ var Reader = (function (r) {
 
 		// Apply new size
 		r.$reader.css({
-			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
 			width: r.Layout.Reader.width + 'px',
 			height: r.Layout.Reader.height + 'px',
 			'column-width': columnWidth + 'px',
 			'column-gap': r.Layout.Reader.padding + 'px',
 			'column-fill': 'auto'
 		});
+		r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * r.Navigation.getPage());
 
 		r.$container.css({
 			width: r.Layout.Reader.width + 'px',
