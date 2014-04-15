@@ -242,6 +242,7 @@ module.exports = function (grunt) {
 					'<%= yeoman.tmp %>/concat/reader.js': [
 						'<%= yeoman.app %>/lib/epubcfi.min.js',
 						'<%= yeoman.app %>/lib/bugsense.js',
+						'<%= yeoman.app %>/components/FilterJS/FilterJS.js',
 						'<%= yeoman.reader %>/scripts/*.js'
 					]
 				}
