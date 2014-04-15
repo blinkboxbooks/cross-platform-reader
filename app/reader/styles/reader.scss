@@ -1,6 +1,14 @@
 @import '_reset';
 @import '_normalize';
 
+#reader_container {
+  // Force GPU hardware acceleration:
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
 // the selector text is used as an identifier in the script, be careful if you need to change it (display.js)
 #cpr-bookmark-ui {
   display: none;
