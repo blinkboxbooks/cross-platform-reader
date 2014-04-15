@@ -50,7 +50,7 @@ describe('Filters', function() {
 		chapters.push(chapter.href);
 		if(chapter.children){
 			for(var i = 0, l = chapter.children.length; i < l; i++){
-				saveChapter(chapter.children[i]);
+				_saveChapter(chapter.children[i]);
 			}
 		}
 	}

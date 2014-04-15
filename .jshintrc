@@ -23,6 +23,7 @@
 		"app": true,
 		"routes": true,
 		"EPUBcfi": true,
-		"FilterJS": true
+		"FilterJS": true,
+		"$": true
 	}
 }

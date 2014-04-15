@@ -211,7 +211,7 @@ var Reader = (function (r) {
 			}
 		}
 		return content;
-	}
+	};
 
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);

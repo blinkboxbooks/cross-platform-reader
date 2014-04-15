@@ -119,33 +119,33 @@ describe('Layout', function() {
 				}
 			}, defaultArgs)).then(function(){
 
-			var $reader_wrap = $(readerID + '_wrap'), $reader = $(readerID);
+				var $reader_wrap = $(readerID + '_wrap'), $reader = $(readerID);
 
-			for(var i = 0, l = dimensions.length; i < l; i++){
-				var dimension = dimensions[i];
+				for(var i = 0, l = dimensions.length; i < l; i++){
+					var dimension = dimensions[i];
 
-				READER.resizeContainer(dimension);
+					READER.resizeContainer(dimension);
 
-				var expectedWidth = dimension.width - Math.floor(margin[1]*dimension.width/100) - Math.floor(margin[3]*dimension.width/100);
-				var expectedColumn = Math.floor(expectedWidth / dimension.columns - dimension.padding / 2);
-				expectedWidth = expectedColumn * dimension.columns + (dimension.columns - 1) * dimension.padding;
+					var expectedWidth = dimension.width - Math.floor(margin[1]*dimension.width/100) - Math.floor(margin[3]*dimension.width/100);
+					var expectedColumn = Math.floor(expectedWidth / dimension.columns - dimension.padding / 2);
+					expectedWidth = expectedColumn * dimension.columns + (dimension.columns - 1) * dimension.padding;
 
-				expect($reader_wrap).toHaveCss({
-					'height': dimension.height + 'px',
-					'width': (expectedWidth + Math.floor(margin[1]*dimension.width/100) + Math.floor(margin[3]*dimension.width/100) )+ 'px'
-				});
+					expect($reader_wrap).toHaveCss({
+						'height': dimension.height + 'px',
+						'width': (expectedWidth + Math.floor(margin[1]*dimension.width/100) + Math.floor(margin[3]*dimension.width/100) )+ 'px'
+					});
 
-				expect($reader).toHaveCss({
-					'width': expectedWidth + 'px',
-					'column-width': expectedColumn + 'px',
-					'column-gap': dimension.padding + 'px'
-				});
-			}
+					expect($reader).toHaveCss({
+						'width': expectedWidth + 'px',
+						'column-width': expectedColumn + 'px',
+						'column-gap': dimension.padding + 'px'
+					});
+				}
 
-			expect($(readerID)).toHaveReaderStructure();
+				expect($(readerID)).toHaveReaderStructure();
 
-			done();
-		});
+				done();
+			});
 	});
 
 });
