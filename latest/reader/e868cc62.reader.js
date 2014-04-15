@@ -3022,6 +3022,99 @@ var bugsense;
 
 }));
 
+(function(root, factory){
+	'use strict';
+
+	// CommonJS
+	if (typeof exports === 'object' && module){
+		module.exports = factory();
+		// AMD
+	} else if (typeof define === 'function' && define.amd){
+		define(factory);
+	}
+
+	// Browser
+	root.FilterJS = factory();
+
+})( (typeof window === 'object' && window ) || this, function(){
+	'use strict';
+
+	var FilterJS = function(){
+		this.hooks = {};
+		this.version = '0.0.1';
+	};
+
+	FilterJS.prototype = {
+		/**
+		 * Returns the callbacks assigned to a specific name.
+		 * */
+		getHooks: function(name){
+			if(!this.hooks.hasOwnProperty(name) || !(this.hooks[name] instanceof Array)){
+				this.hooks[name] = [];
+			}
+			return this.hooks[name];
+		},
+		/**
+		 * Adds a callback for a specific filter. It can accept an array of callbacks.
+		 * */
+		addFilter: function(name, cb){
+			var hooks = this.getHooks(name);
+
+			if(cb instanceof Array){
+				for(var i = 0, l = cb.length; i < l; i++){
+					hooks.push(cb[i]);
+				}
+			} else {
+				hooks.push(cb);
+			}
+		},
+		/**
+		 * Removes the specified callback from the specified filter. Can remove an array of callbacks.
+		 * */
+		removeFilter: function(name, cb){
+			var listeners = this.getHooks(name), index = -1;
+
+			if(cb instanceof Array){
+				for(var i = 0, l = cb.length; i < l; i++){
+					index = listeners.indexOf(cb[i]);
+					if(index !== -1){
+						listeners.splice(index, 1);
+					}
+				}
+			} else {
+				index = listeners.indexOf(cb);
+				if(index !== -1){
+					listeners.splice(index, 1);
+				}
+			}
+		},
+		/**
+		 * Removes all hooks attached to a filter.
+		 * */
+		removeAllFilters: function(name){
+			var hooks = this.getHooks(name);
+			for(var i = 0, l = hooks.length; i < l; i++){
+				this.removeFilter(name, hooks[i]);
+			}
+		},
+		/**
+		 * Applies the hooks of a given filter.
+		 * */
+		applyFilters: function(name, data){
+			var result = data;
+			var hooks = this.getHooks(name);
+			for(var i = 0, l = hooks.length; i < l; i++){
+				var hook = hooks[i];
+				if(typeof hook === 'function'){
+					result = hook(result);
+				}
+			}
+			return result;
+		}
+	};
+
+	return FilterJS;
+});
 'use strict';
 
 /* jshint unused: true */
@@ -3981,7 +4074,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.29-96'
+				appversion: '0.1.30-97'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -3991,37 +4084,11 @@ var Reader = (function (r) {
 		}
 	};
 
-	// helper function that strips the last path from the url
-	// Ex: a/b/c.html -> a/b
-	var _removeLastPath = function(url){
-		var pathSeparatorIndex = url.lastIndexOf('/');
-		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : url;
-	};
-
-	// Function to transform relative links
-	// ex: `../html/chapter.html` -> `chapter.html`
-	var _normalizeLink = function(url){
-		// get current chapter folder url
-		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;
-
-		// parse current url to remove `..` from path
-		var paths = url.split('/');
-		for(var i = 0, l = paths.length; i < l; i++){
-			var path = paths[i];
-			if(path === '..'){
-				result = _removeLastPath(result);
-			} else {
-				result += '/' + path;
-			}
-		}
-		return result;
-	};
-
 	// Check and load an URL if it is in the spine or the TOC.
 	var _checkURL = function (url) {
 		var findURL = false;
 		// The URL.
-		var u = _normalizeLink(url[0]);
+		var u = url[0];
 		// The anchor.
 		var a = url[1];
 		// Link is in the actual chapter.
@@ -4118,12 +4185,14 @@ var Reader = (function (r) {
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
 
 		r.$header.text(r.bookTitle); // TODO Do not polute the reader object.
-		// Parse the content according its mime-type
-		content = r.parse(content, mimetype);
+
+		// Parse the content according its mime-type and apply all filters attached to display content
+		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
+
 		r.$reader.html(content);
 
 		// Wait for the images and build the container
-		var $images = $('#' + r.$reader[0].id + ' img');
+		var $images = $('img', r.$reader);
 		var counter = 0, i = 0;
 		var timer = setInterval(function () {
 
@@ -4137,8 +4206,6 @@ var Reader = (function (r) {
 						$image.addClass('cpr-center');
 					}
 				}
-
-				_resizeImages();
 
 				defer.resolve();
 				return;
@@ -4196,119 +4263,6 @@ var Reader = (function (r) {
 			document.removeEventListener('touchend', _touchEndHandler);
 			document.addEventListener('touchend', _touchEndHandler);
 		}
-	};
-
-	r.resizeContainer = function(dimensions){
-
-		dimensions = $.extend({
-			width: r.Layout.Container.width,
-			height: r.Layout.Container.height,
-			columns: r.Layout.Reader.columns,
-			padding: r.Layout.Reader.padding
-		}, dimensions);
-
-		// Save new values.
-		r.Layout.Container.width = Math.floor(dimensions.width);
-		r.Layout.Container.height = Math.floor(dimensions.height);
-		r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
-		r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
-		r.Layout.Reader.columns = dimensions.columns;
-		r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : r.Layout.Reader.padding; // only set padding on multi-column layout
-
-		// avoid rounding errors, adjust the width of the reader to contain the columns + padding
-		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
-
-		// Apply new size
-		r.$reader.css({
-			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
-			width: r.Layout.Reader.width + 'px',
-			height: r.Layout.Reader.height + 'px',
-			'column-width': columnWidth + 'px',
-			'column-gap': r.Layout.Reader.padding + 'px',
-			'column-fill': 'auto'
-		});
-
-		r.$container.css({
-			width: r.Layout.Reader.width + 'px',
-			height: r.Layout.Reader.height + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
-		});
-
-		r.$header.css({
-			width: r.Layout.Reader.width + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-			'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-			'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
-		});
-
-		r.$footer.css({
-			width: r.Layout.Reader.width + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-			'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-			'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
-		});
-
-		_resizeImages();
-		// Update navigation variables
-		r.refreshLayout();
-	};
-
-	// Modifies some parameter related to the dimensions of the images and svg elements.
-	// TODO Resize images based on column width, not just reader width
-	var _resizeImages = function(){
-		// Get SVG elements
-		$('svg', r.$reader).each(function(index,node){
-			// Calculate 95% of the width and height of the container.
-			var width = Math.floor(0.95 * (r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2));
-			var height = Math.floor(0.95 * r.Layout.Reader.height);
-			// Modify SVG params when the dimensions are higher than the view space or they are set in % as this unit is not working in IE.
-			if ((node.getAttribute('width') && (node.getAttribute('width') > r.Layout.Reader.width || node.getAttribute('width').indexOf('%') !== -1)) || !node.getAttribute('width')) {
-				node.setAttribute('width', width);
-			}
-			if ((node.getAttribute('height') && (node.getAttribute('height') > r.Layout.Reader.height || node.getAttribute('height').indexOf('%') !== -1)) || !node.getAttribute('height')) {
-				node.setAttribute('height', height);
-			}
-			// Modify the viewBox attribute if their dimensions are higher than the container.
-			node.viewBox.baseVal.width = (node.viewBox.baseVal.width > r.Layout.Reader.width) ? width : node.viewBox.baseVal.width;
-			node.viewBox.baseVal.height = (node.viewBox.baseVal.height > r.Layout.Reader.height) ? height : node.viewBox.baseVal.height;
-			node.setAttribute('transform', 'scale(1)');
-			// Modify children elements (images, rectangles, circles..) dimensions if they are higher than the container.
-			$(this).children().map(function(){
-				if ($(this).attr('width') > r.Layout.Reader.width) {
-					$(this).attr('width', width);
-				}
-				if ($(this).attr('height') > r.Layout.Reader.height) {
-					$(this).attr('height', height);
-				}
-			});
-			if ($(this).find('path')) {
-				// Fix path elements dimensions.
-				var pathMaxWidth = 0;
-				var pathMaxHeight = 0;
-				// Take the highest width and height.
-				$(this).find('path').each(function(){
-					var pathWidth = $(this)[0].getBoundingClientRect().width;
-					var pathHeight = $(this)[0].getBoundingClientRect().height;
-					pathMaxWidth = (pathWidth > pathMaxWidth) ? pathWidth : pathMaxWidth;
-					pathMaxHeight = (pathHeight > pathMaxHeight) ? pathHeight : pathMaxHeight;
-				});
-				if (pathMaxWidth > width || pathMaxHeight > height) {
-					// Scale the elements to the correct proportion.
-					var scale = Math.min(Math.floor((width/pathMaxWidth)*10)/10,Math.floor((height/pathMaxHeight)*10)/10);
-					$(this).find('path').each(function(){
-						$(this)[0].setAttribute('transform', 'scale(' + scale + ')');
-					});
-				}
-			}
-			// Remove SVG empty elements in some Webkit browsers is showing the content outside the SVG (Chrome).
-			if ($(this).children().length === 0) {
-				$(this).remove();
-			}
-		});
 	};
 
 	// Load the JSON file with all the information related to this book
@@ -4519,7 +4473,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.29-96'
+			'version': '0.1.30-97'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4654,6 +4608,233 @@ var Reader = (function (r) {
 	return r;
 
 }(Reader || {}));
+'use strict';
+
+var Reader = (function (r) {
+
+	var filters = new FilterJS(), HOOKS = {
+		BEFORE_CHAPTER_PARSE: 'beforeChapterParse',
+		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay'
+	};
+
+	// Build an absolute path from the relative path of a resource
+	//
+	// * `resourcePath` - relative path to the resource
+	//
+	// N.B. any relative path of a resource is relative to the containing document's place in the hierachary
+	// Notes: relative path permutations (all of which must be handled)
+	//
+	// 1. Higher up the hierarchy e.g. `../../image.png"`
+	// 2. Lower down int the hierarchy e.g. `/images/image.png`
+	// 3. In the same hierarchy e.g. `image.png"`
+	//
+	// `CONTENT_PATH_PREFIX` represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
+	var _parseURL = function(resourcePath){
+		var absoluteUrl = '',
+			docName = r.Navigation.getChapterDocName(),
+			docAbsPath = r.DOCROOT;
+
+		// Absolute path of the document containing the image
+		// TODO Move this to Chapter object? Maybe separate file?
+		for (var i = 0; i < r.SPINE.length; i++) {
+			var href = r.SPINE[i].href;
+			if (href.indexOf(docName) !== -1) {
+				// The document name was found.
+				var pathComponents = href.split('/');
+				if (href.indexOf(r.CONTENT_PATH_PREFIX) === -1) {
+					// The href didn't contain the content path prefix (i.e. any path attached to the OPF file), so add it.
+					docAbsPath += '/'+r.CONTENT_PATH_PREFIX.split('/')[0];
+				}
+				// Append the path components of the document to the absolute path (ignoring the path component which is the document name).
+				if (pathComponents.length > 1) {
+					for (var j = 0; j < pathComponents.length-1; j++) {
+						docAbsPath += '/'+pathComponents[j];
+					}
+				}
+			}
+		}
+
+		if (resourcePath.indexOf('../') === 0) {
+			// Case 1 - resource is higher up the hierarchy e.g. `resourcePath = "../../image.png"` - You can find an example in *9780141918921 (Thinking, Fast and Slow)*
+			try {
+				var docPathComponents = docAbsPath.split('/');
+				// Start at the second to the rightmost element document path component (we already know there's at least one '../' present
+				var pathComponentIdx = docPathComponents.length-2;
+				// Start at the index past the `../`
+				var pos = 3;
+				do {
+					// Search resource path from left to right
+					pos = resourcePath.indexOf('../', pos);
+					if (pos !== -1) {
+						pathComponentIdx--;
+						// Skip past the `../`
+						pos += 3;
+					}
+				} while (pos !== -1 );
+				// Create the absolute path by using the absDocPath up to the target path component and then appending the resource path
+				//
+				// Locate the start of the target path component
+				var startPos = docAbsPath.indexOf(docPathComponents[pathComponentIdx]);
+				var length = docPathComponents[pathComponentIdx].length;
+				absoluteUrl += docAbsPath.substring(0, startPos+length);
+				// Add the resource path removing any leading `../`
+				absoluteUrl += '/'+resourcePath.replace(/\.\.\//g, '');
+			}
+			catch (e) {
+				console.log(e);
+			}
+		}
+		else {
+			// Case 2 - resource is lower down int the hierarchy e.g. `resourcePath = images/image.png` - You can find an example in *9781447213291 - The Prince who Walked with Lions*.
+			//
+			// Case 3 - resource is in the same hierarchy e.g. `resourcePath = "image.png"` - real example: *9781488508493 - Special Greats*.
+			//
+			// NOTE: docRoot has a trailing slash
+			absoluteUrl = docAbsPath.charAt(docAbsPath.length-1) === '/' ? docAbsPath+resourcePath : docAbsPath+'/'+resourcePath;
+		}
+
+		// Calculate 95% of the width and height of the column.
+		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		var height = Math.floor(r.Layout.Reader.height);
+		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
+	};
+
+	// add data attributes to anchors
+	var _anchorData = function($content){
+
+		$('a[href]', $content).each(function(i, link){
+			var $link = $(link);
+			var valid = /^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'));
+			if (!valid) {
+				// ### Internal link.
+				$link.attr('data-link-type', 'internal');
+				/* elements[idx].attributes[0].nodeValue = 'http://localhost:8888/books/9780718159467/OPS/xhtml/' + elements[idx].attributes[0].nodeValue;*/
+			} else {
+				// ### External link.
+				// External links attribute 'target' set to '_blank' for open the new link in another window / tab of the browser.
+				$link.attr('data-link-type', 'external').attr('target', '_blank');
+			}
+		});
+
+		return $content;
+	};
+
+	// Rebuild image src
+	var _parseImages = function(content){
+		// Transform relative image resource paths to absolute
+		var images = content.getElementsByTagName('img');
+		if (images.length === 0) {
+			images = content.getElementsByTagName('IMG');
+		}
+		// Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.
+		for (var i = 0; i < images.length; i++) {
+			if (images[i].hasAttribute('src')) {
+				var imgSrc = images[i].getAttribute('src');
+				imgSrc = _parseURL(imgSrc);
+				images[i].setAttribute('src', imgSrc);
+			}
+		}
+		return content;
+	};
+
+	// Modify SVG images URL and put it in a new IMG element.
+	var _parseSVG = function(content){
+		var svg = content.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'svg');
+		if (svg.length === 0) { // Just in case the tags are not in the NS format
+			svg = content.getElementsByTagName('svg');
+		}
+		if (svg) {
+			for (var j = 0; j < svg.length; j++) {
+				var img = svg[j].getElementsByTagNameNS('http://www.w3.org/2000/svg', 'image')[0];
+				if (img === undefined) {
+					// Check if the tag is IMG
+					img = svg[j].getElementsByTagName('img')[0];
+				}
+				if (img === undefined) {
+					// Check if the tag is IMAGE but it does not have Namespace
+					img = svg[j].getElementsByTagName('image')[0];
+				}
+				if (img) {
+					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
+						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+						url = _parseURL(url);
+						// Replace the svg tag if it is an image and show it in a normal IMG tag (compatible with SVG image format)
+						var newImg = document.createElement('img');
+						newImg.setAttribute('src', url);
+						// TODO Firefox max-width fix
+						// newImg.style.maxWidth = 95 / 100 * Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px';
+						var parentNode = svg[j].parentNode;
+						parentNode.insertBefore(newImg,svg[j]);
+						parentNode.removeChild(svg[j]);
+					}
+				}
+			}
+		}
+		return content;
+	};
+
+	// Modify video URL.
+	var _parseVideos = function(content){
+		var videos = content.getElementsByTagName('video');
+		for (var y = 0; y < videos.length; y++) {
+			var vidSrc = videos[y].getAttribute('src');
+			vidSrc = _parseURL(vidSrc);
+			videos[y].setAttribute('src', vidSrc);
+		}
+		return content;
+	};
+
+
+	// helper function that strips the last path from the url
+	// Ex: a/b/c.html -> a/b
+	var _removeLastPath = function(url){
+		var pathSeparatorIndex = url.lastIndexOf('/');
+		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : url;
+	};
+
+	// Function to transform relative links
+	// ex: `../html/chapter.html` -> `chapter.html`
+	var _normalizeLink = function(url){
+		// get current chapter folder url
+		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;
+
+		// parse current url to remove `..` from path
+		var paths = url.split('/');
+		for(var i = 0, l = paths.length; i < l; i++){
+			var path = paths[i];
+			if(path === '..'){
+				result = _removeLastPath(result);
+			} else {
+				result += '/' + path;
+			}
+		}
+		return result;
+	};
+
+	var _parseAnchors = function(content){
+		var anchors = content.getElementsByTagName('a');
+		for (var y = 0; y < anchors.length; y++) {
+			var href = anchors[y].getAttribute('href');
+			if(href){
+				href = _normalizeLink(href);
+				anchors[y].setAttribute('href', href);
+			}
+		}
+		return content;
+	};
+
+	// Register all the anchors.
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseAnchors);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
+
+	r.Filters = $.extend({HOOKS: HOOKS}, filters);
+
+	return r;
+}(Reader || {}));
+
 'use strict';
 
 /* jshint unused: true */
@@ -4811,6 +4992,123 @@ var Reader = (function (r) {
 		}
 		return r.preferences;
 	};
+	return r;
+}(Reader || {}));
+
+'use strict';
+
+var Reader = (function (r) {
+
+	r.resizeContainer = function(dimensions){
+		dimensions = $.extend({
+			width: r.Layout.Container.width,
+			height: r.Layout.Container.height,
+			columns: r.Layout.Reader.columns,
+			padding: r.Layout.Reader.padding
+		}, dimensions);
+		// Save new values.
+		r.Layout.Container.width = Math.floor(dimensions.width);
+		r.Layout.Container.height = Math.floor(dimensions.height);
+		r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
+		r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
+		r.Layout.Reader.columns = dimensions.columns;
+		r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
+
+		// avoid rounding errors, adjust the width of the reader to contain the columns + padding
+		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
+
+		// Apply new size
+		r.$reader.css({
+			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
+			width: r.Layout.Reader.width + 'px',
+			height: r.Layout.Reader.height + 'px',
+			'column-width': columnWidth + 'px',
+			'column-gap': r.Layout.Reader.padding + 'px',
+			'column-fill': 'auto'
+		});
+
+		r.$container.css({
+			width: r.Layout.Reader.width + 'px',
+			height: r.Layout.Reader.height + 'px',
+			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
+		});
+
+		r.$header.css({
+			width: r.Layout.Reader.width + 'px',
+			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+			'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
+			'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
+		});
+
+		r.$footer.css({
+			width: r.Layout.Reader.width + 'px',
+			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+			'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
+			'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
+		});
+
+		_resizeImages();
+		// Update navigation variables
+		r.refreshLayout();
+	};
+
+	// Modifies some parameter related to the dimensions of the images and svg elements.
+	var _resizeImages = function(){
+		// Get SVG elements
+		$('svg', r.$reader).each(function(index,node){
+			// Calculate 95% of the width and height of the container.
+			var width = Math.floor(0.95 * (r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2));
+			var height = Math.floor(0.95 * r.Layout.Reader.height);
+			// Modify SVG params when the dimensions are higher than the view space or they are set in % as this unit is not working in IE.
+			if ((node.getAttribute('width') && (node.getAttribute('width') > r.Layout.Reader.width || node.getAttribute('width').indexOf('%') !== -1)) || !node.getAttribute('width')) {
+				node.setAttribute('width', width);
+			}
+			if ((node.getAttribute('height') && (node.getAttribute('height') > r.Layout.Reader.height || node.getAttribute('height').indexOf('%') !== -1)) || !node.getAttribute('height')) {
+				node.setAttribute('height', height);
+			}
+			// Modify the viewBox attribute if their dimensions are higher than the container.
+			node.viewBox.baseVal.width = (node.viewBox.baseVal.width > r.Layout.Reader.width) ? width : node.viewBox.baseVal.width;
+			node.viewBox.baseVal.height = (node.viewBox.baseVal.height > r.Layout.Reader.height) ? height : node.viewBox.baseVal.height;
+			node.setAttribute('transform', 'scale(1)');
+			// Modify children elements (images, rectangles, circles..) dimensions if they are higher than the container.
+			$(this).children().map(function(){
+				if ($(this).attr('width') > r.Layout.Reader.width) {
+					$(this).attr('width', width);
+				}
+				if ($(this).attr('height') > r.Layout.Reader.height) {
+					$(this).attr('height', height);
+				}
+			});
+			if ($(this).find('path')) {
+				// Fix path elements dimensions.
+				var pathMaxWidth = 0;
+				var pathMaxHeight = 0;
+				// Take the highest width and height.
+				$(this).find('path').each(function(){
+					var pathWidth = $(this)[0].getBoundingClientRect().width;
+					var pathHeight = $(this)[0].getBoundingClientRect().height;
+					pathMaxWidth = (pathWidth > pathMaxWidth) ? pathWidth : pathMaxWidth;
+					pathMaxHeight = (pathHeight > pathMaxHeight) ? pathHeight : pathMaxHeight;
+				});
+				if (pathMaxWidth > width || pathMaxHeight > height) {
+					// Scale the elements to the correct proportion.
+					var scale = Math.min(Math.floor((width/pathMaxWidth)*10)/10,Math.floor((height/pathMaxHeight)*10)/10);
+					$(this).find('path').each(function(){
+						$(this)[0].setAttribute('transform', 'scale(' + scale + ')');
+					});
+				}
+			}
+			// Remove SVG empty elements in some Webkit browsers is showing the content outside the SVG (Chrome).
+			if ($(this).children().length === 0) {
+				$(this).remove();
+			}
+		});
+	};
+
 	return r;
 }(Reader || {}));
 
@@ -5213,23 +5511,17 @@ var Reader = (function (r) {
  * parse.js: methods to parse and clean the content
  */
 
-
 'use strict';
 
-/* jshint unused: true */
-/* exported Reader */
-/* globals $ */
-
 var Reader = (function (r) {
+
 	// Parses the content according its mimetype. Returns the parsed content
 	//
 	// * `content` The content of the document
 	// * `mimetype` The MIME type of the given document
 	r.parse = function (content, mimetype) {
 		// Replace images and styles URLs.
-		if (r.DOCROOT !== '') {
 
-		}
 		switch (mimetype) {
 		case 'application/xhtml+xml':
 			content = parseXHTML(content);
@@ -5238,7 +5530,7 @@ var Reader = (function (r) {
 			break;
 		}
 		// Extract the contents of the body only thus ignoring any styles declared in head
-		return typeof content === 'string' ? content.split(/<body[^>]*>/)[1].split('</body>')[0] : null;
+		return typeof content === 'string' ? $(content.split(/<body[^>]*>/)[1].split('</body>')[0]) : null;
 	};
 
 	// Parses the content in application/xhtml+xml. Returns the parsed content.
@@ -5258,83 +5550,11 @@ var Reader = (function (r) {
 			r.Notify.error(r.Event.ERR_PARSING_FAILED);
 		}
 
+		object = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_PARSE, object);
+
 		var prefixes = [];
 		// Get all elements in any namespace.
 		var elements = object.getElementsByTagNameNS('*', '*');
-		// Get all a elements from the content.
-		var $links = $('a[href]', object);
-		for (var idx = 0; idx < $links.length; idx++) {
-			var $link = $($links[idx]);
-			var valid = /^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'));
-			if (!valid) {
-				// ### Internal link.
-				$link.attr('data-link-type', 'internal');
-				/* elements[idx].attributes[0].nodeValue = 'http://localhost:8888/books/9780718159467/OPS/xhtml/' + elements[idx].attributes[0].nodeValue;*/
-			} else {
-				// ### External link.
-				// External links attribute 'target' set to '_blank' for open the new link in another window / tab of the browser.
-				$link.attr('data-link-type', 'external').attr('target', '_blank');
-			}
-		}
-
-		// ### Build URL for parsing.
-
-		// Transform relative image resource paths to absolute
-		var images = object.getElementsByTagName('img');
-		if (images.length === 0) {
-			images = object.getElementsByTagName('IMG');
-		}
-		// Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.
-		for (var i = 0; i < images.length; i++) {
-			if (images[i].hasAttribute('src')) {
-				var imgSrc = images[i].getAttribute('src');
-				imgSrc = buildURL(imgSrc);
-				images[i].setAttribute('src', imgSrc);
-				// TODO Firefox fix for max-width within columns
-				// images[i].style.maxWidth = 95 / 100 * Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px';
-			}
-		}
-
-		// Modify SVG images URL and put it in a new IMG element.
-		var svg = object.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'svg');
-		if (svg.length === 0) { // Just in case the tags are not in the NS format
-			svg = object.getElementsByTagName('svg');
-		}
-		if (svg) {
-			for (var j = 0; j < svg.length; j++) {
-				var img = svg[j].getElementsByTagNameNS('http://www.w3.org/2000/svg', 'image')[0];
-				if (img === undefined) {
-					// Check if the tag is IMG
-					img = svg[j].getElementsByTagName('img')[0];
-				}
-				if (img === undefined) {
-					// Check if the tag is IMAGE but it does not have Namespace
-					img = svg[j].getElementsByTagName('image')[0];
-				}
-				if (img) {
-					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
-						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-						url = buildURL(url);
-						// Replace the svg tag if it is an image and show it in a normal IMG tag (compatible with SVG image format)
-						var newImg = document.createElement('img');
-						newImg.setAttribute('src', url);
-						// TODO Firefox max-width fix
-						// newImg.style.maxWidth = 95 / 100 * Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px';
-						var parentNode = svg[j].parentNode;
-						parentNode.insertBefore(newImg,svg[j]);
-						parentNode.removeChild(svg[j]);
-					}
-				}
-			}
-		}
-
-		// Modify video URL.
-		var videos = object.getElementsByTagName('video');
-		for (var y = 0; y < videos.length; y++) {
-			var vidSrc = videos[y].getAttribute('src');
-			vidSrc = buildURL(vidSrc);
-			videos[y].setAttribute('src', vidSrc);
-		}
 
 		var html = '<!DOCTYPE html>\n<html>' + object.documentElement.innerHTML + '</html>';
 		// Remove the prefix in those that have.
@@ -5360,101 +5580,6 @@ var Reader = (function (r) {
 		return html;
 	};
 
-	var addSizeConstraints = function(url){
-		// Calculate 95% of the width and height of the column.
-		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-		var height = Math.floor(r.Layout.Reader.height);
-		return url.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
-	};
-
-	// Using the the document root and the spine as a reference, return the absolute path of a given document.
-	var getDocAbsPath = function(docName) {
-
-		var docAbsPath = r.DOCROOT;
-		try {
-			for (var i = 0; i < r.SPINE.length; i++) {
-				var href = r.SPINE[i].href;
-				if (href.indexOf(docName) !== -1) {
-					// The document name was found.
-					var pathComponents = href.split('/');
-					if (href.indexOf(r.CONTENT_PATH_PREFIX) === -1) {
-						// The href didn't contain the content path prefix (i.e. any path attached to the OPF file), so add it.
-						docAbsPath += '/'+r.CONTENT_PATH_PREFIX.split('/')[0];
-					}
-					// Append the path components of the document to the absolute path (ignoring the path component which is the document name).
-					if (pathComponents.length > 1) {
-						for (var j = 0; j < pathComponents.length-1; j++) {
-							docAbsPath += '/'+pathComponents[j];
-						}
-					}
-					return docAbsPath;
-				}
-			}
-		}
-		catch (e) {
-			console.log('getDocAbsPath: '+e);
-		}
-		// If we arrived here, it means that the we didn't find the document in the spine (which in theory should not happen) or there was an exception so just return the document root and any prefix.
-		return docAbsPath+r.CONTENT_PATH_PREFIX;
-	};
-
-	// Build an absolute path from the relative path of a resource
-	//
-	// * `resourcePath` - relative path to the resource
-	//
-	// N.B. any relative path of a resource is relative to the containing document's place in the hierachary
-	// Notes: relative path permutations (all of which must be handled)
-	//
-	// 1. Higher up the hierarchy e.g. `../../image.png"`
-	// 2. Lower down int the hierarchy e.g. `/images/image.png`
-	// 3. In the same hierarchy e.g. `image.png"`
-	//
-	// `CONTENT_PATH_PREFIX` represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
-	var buildURL = function(resourcePath){
-		var absoluteUrl = '';
-		// Absolute path of the document containing the image
-		var docAbsPath = getDocAbsPath(r.Navigation.getChapterDocName());
-
-		if (resourcePath.indexOf('../') === 0) {
-			// Case 1 - resource is higher up the hierarchy e.g. `resourcePath = "../../image.png"` - You can find an example in *9780141918921 (Thinking, Fast and Slow)*
-			try {
-				var docPathComponents = docAbsPath.split('/');
-				// Start at the second to the rightmost element document path component (we already know there's at least one '../' present
-				var pathComponentIdx = docPathComponents.length-2;
-				// Start at the index past the `../`
-				var pos = 3;
-				do {
-					// Search resource path from left to right
-					pos = resourcePath.indexOf('../', pos);
-					if (pos !== -1) {
-						pathComponentIdx--;
-						// Skip past the `../`
-						pos += 3;
-					}
-				} while (pos !== -1 );
-				// Create the absolute path by using the absDocPath up to the target path component and then appending the resource path
-				//
-				// Locate the start of the target path component
-				var startPos = docAbsPath.indexOf(docPathComponents[pathComponentIdx]);
-				var length = docPathComponents[pathComponentIdx].length;
-				absoluteUrl += docAbsPath.substring(0, startPos+length);
-				// Add the resource path removing any leading `../`
-				absoluteUrl += '/'+resourcePath.replace(/\.\.\//g, '');
-			}
-			catch (e) {
-				console.log(e);
-			}
-		}
-		else {
-			// Case 2 - resource is lower down int the hierarchy e.g. `resourcePath = images/image.png` - You can find an example in *9781447213291 - The Prince who Walked with Lions*.
-			//
-			// Case 3 - resource is in the same hierarchy e.g. `resourcePath = "image.png"` - real example: *9781488508493 - Special Greats*.
-			//
-			// NOTE: docRoot has a trailing slash
-			absoluteUrl = docAbsPath.charAt(docAbsPath.length-1) === '/' ? docAbsPath+resourcePath : docAbsPath+'/'+resourcePath;
-		}
-		return addSizeConstraints(absoluteUrl);
-	};
 	return r;
 
 }(Reader || {}));
