@@ -298,19 +298,10 @@ var Reader = (function (r) {
 	var _createContainer = function() {
 		r.$reader.addClass(areColumnsSupported() ? 'columns' : 'scroll');
 
-		r.$reader.css({
-			position: 'absolute',
-			left: 0,
-			top: 0
-		});
-
 		// Container parent styles.
 		r.$container
 			.css({
-				overflow: 'hidden',
-				position: 'relative',
-				top: 0,
-				left: 0
+				overflow: 'hidden'
 			});
 
 		// Capture the anchor links into the content
