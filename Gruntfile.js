@@ -242,6 +242,7 @@ module.exports = function (grunt) {
 					'<%= yeoman.tmp %>/concat/reader.js': [
 						'<%= yeoman.app %>/lib/epubcfi.min.js',
 						'<%= yeoman.app %>/lib/bugsense.js',
+						'<%= yeoman.app %>/components/FilterJS/FilterJS.js',
 						'<%= yeoman.reader %>/scripts/*.js'
 					]
 				}
@@ -290,20 +291,14 @@ module.exports = function (grunt) {
 			},
 			reader: {
 				files: [{
+					dest: '<%= yeoman.dist %>/reader/reader.js',
+					src: [
+						'<%= yeoman.tmp %>/concat/reader.js'
+					]
+				},{
 					dest: '<%= yeoman.dist %>/reader/jquery.min.js',
 					src: [
 						'<%= yeoman.app %>/components/jquery/jquery.min.js'
-					]
-				}]
-			},
-			books: {
-				files: [{
-					expand: true,
-					dot: true,
-					cwd: '<%= yeoman.app %>/books',
-					dest: '<%= yeoman.dist %>/books',
-					src: [
-						'**/*'
 					]
 				}]
 			}
@@ -445,7 +440,6 @@ module.exports = function (grunt) {
 		'reader', // build the reader
 		'demo', // build the demo
 		'copy:github', // copy github static pages
-		'copy:books', // copy books to dist folder
 		'replace:dist', // add reader version
 		'docco' // generates technical documentation
 	]);

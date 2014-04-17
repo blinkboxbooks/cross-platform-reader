@@ -90,6 +90,21 @@ beforeEach(function() {
 					return { pass: actual <= input };
 				}
 			};
+		},
+		toHaveAttributes: function(){
+			return {
+				compare: function(actual, attrs){
+					var result = true;
+					for (var prop in attrs){
+						if(attrs.hasOwnProperty(prop)){
+							if ($(actual).attr(prop) !== attrs[prop]){
+								result = false;
+							}
+						}
+					}
+					return { pass: result };
+				}
+			};
 		}
 	});
 });

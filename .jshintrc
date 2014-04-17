@@ -22,6 +22,8 @@
 		"angular": false,
 		"app": true,
 		"routes": true,
-		"EPUBcfi": true
+		"EPUBcfi": true,
+		"FilterJS": true,
+		"$": true
 	}
 }

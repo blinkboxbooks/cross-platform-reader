@@ -17,6 +17,7 @@ module.exports = function(config) {
     files: [
 			// libraries
 			'app/components/jquery/jquery.js',
+			'app/components/FilterJS/FilterJS.js',
 			'app/lib/epubcfi.min.js',
 			'app/lib/bugsense.js',
 
