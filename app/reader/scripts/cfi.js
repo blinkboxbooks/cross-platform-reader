@@ -326,15 +326,16 @@ var Reader = (function (r) {
 		var offset;
 		var container = r.$reader[0];
 		var rect = container.getBoundingClientRect();
+    var left = r.getReaderLeftPosition();
 
 		/* standard */
 		if (document.caretPositionFromPoint) {
-			range = document.caretPositionFromPoint(rect.left - parseInt(r.$reader.css('left'), 10), rect.top);
+			range = document.caretPositionFromPoint(rect.left - left, rect.top);
 			textNode = range.offsetNode;
 			offset = range.offset;
 			/* WebKit */
 		} else if (document.caretRangeFromPoint) {
-			range = document.caretRangeFromPoint(rect.left - parseInt(r.$reader.css('left'), 10), rect.top);
+			range = document.caretRangeFromPoint(rect.left - left, rect.top);
 			textNode = range.startContainer;
 			offset = range.startOffset;
 		}

@@ -65,6 +65,15 @@ var Reader = (function (r) {
 		}
 	};
 
+	r.getReaderLeftPosition = function () {
+	  // Transform value is matrix(a, c, b, d, tx, ty)
+	  return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
+	};
+
+	r.setReaderLeftPosition = function (pos) {
+	  r.$reader.css('transform', 'translateX(' + pos + 'px)');
+	};
+
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
@@ -338,20 +347,20 @@ var Reader = (function (r) {
 		next: function(callback) {
 			// Advance in the chapter pages
 			page = page + 1;
-			var left = parseInt(r.$reader.css('left'), 10);
-			r.$reader.css('left', (left - Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) + 'px');
+			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
+			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
 			r.Navigation.update();
 			if (callback && typeof(callback) === 'function') { callback(); }
 		},
 		prev: function(callback) {
 			page = page - 1;
-			var left = parseInt(r.$reader.css('left'), 10);
-			r.$reader.css('left', (left + Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) + 'px');
+			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
+			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.update();
 			if (callback && typeof(callback) === 'function') { callback(); }
 		},
 		load: function() {
-			r.$reader.css('left', '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * page) + 'px');
+			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
 		}
 	};
 
