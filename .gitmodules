@@ -1,0 +1,3 @@
+[submodule "app/books"]
+	path = app/books
+	url = git@git.mobcastdev.com:Website/test-books.git
