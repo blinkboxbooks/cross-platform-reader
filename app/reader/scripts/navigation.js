@@ -108,13 +108,17 @@ var Reader = (function (r) {
 		// Update the number of columns
 		pagesByChapter = _getColumnsNumber();
 
+		var promise;
 		// Maintain reader current position
 		if(_cfi && _cfi.CFI) {
-			r.CFI.goToCFI(_cfi.CFI, true);
+			promise = r.CFI.goToCFI(_cfi.CFI, true);
+		} else {
+			promise = $.Deferred().resolve().promise();
 		}
-
-		r.Bookmarks.display();
-    r.Navigation.updateProgress();
+		promise.then(function () {
+			r.Bookmarks.display();
+			r.Navigation.updateProgress();
+		});
 	};
 
 	// The current book progress.
@@ -170,9 +174,7 @@ var Reader = (function (r) {
 			Page.set(p);
 		},
 		loadPage: function(p) {
-			// handle special case when page === last
-			Page.set(page === 'last' ? pagesByChapter : p);
-			Page.load();
+			return Page.load(p);
 		},
 		setChapter: function(c){
 			chapter = c;
@@ -215,40 +217,32 @@ var Reader = (function (r) {
 			return defer.promise();
 		},
 		next: function() {
-			var defer = $.Deferred();
 			if (page < pagesByChapter) {
-				Page.next();
-				defer.resolve();
+				return Page.next();
+			}
+			var defer = $.Deferred();
+			if (chapter < bookChapters - 1) {
+			  defer.notify();
+			  Chapter.load(Chapter.next()).then(function chapterLoadCallback(){
+			    r.Navigation.loadPage(0).then(defer.resolve, defer.reject);
+			  }, defer.reject);
 			} else {
-				if (chapter < bookChapters - 1) {
-					defer.notify();
-					Chapter.load(Chapter.next()).then(function(){
-						r.Navigation.loadPage(0);
-						r.Navigation.update();
-						defer.resolve();
-					}, defer.reject);
-				} else {
-					defer.reject(r.Event.END_OF_BOOK);
-				}
+			  defer.reject(r.Event.END_OF_BOOK);
 			}
 			return defer.promise();
 		},
 		prev: function() {
-			var defer = $.Deferred();
 			if (page > 0) {
-				Page.prev();
-				defer.resolve();
+				return Page.prev();
+			}
+			var defer = $.Deferred();
+			if (chapter > 0) {
+			  defer.notify();
+			  Chapter.load(Chapter.prev()).then(function chapterLoadCallback(){
+			    r.Navigation.loadPage('LASTPAGE').then(defer.resolve, defer.reject);
+			  }, defer.reject);
 			} else {
-				if (chapter > 0) {
-					defer.notify();
-					Chapter.load(Chapter.prev()).then(function chapterLoadCallback(){
-						r.Navigation.loadPage(pagesByChapter);
-						r.Navigation.update();
-						defer.resolve();
-					}, defer.reject);
-				} else {
-					defer.reject(r.Event.START_OF_BOOK);
-				}
+			  defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
 		},
@@ -324,6 +318,40 @@ var Reader = (function (r) {
 		}
 	};
 
+	function loadImages(reverse) {
+	  var images = $('img', r.$reader),
+		    mainDefer = $.Deferred(),
+	      promise = $.Deferred().resolve().promise();
+		if (images.length && reverse) {
+			images = $(images.get().reverse());
+		}
+		images.each(function () {
+	    var el = this,
+	        dataSrc = el && el.getAttribute('data-src');
+	    if (!dataSrc) {
+	      return;
+	    }
+	    // Load images sequentially so we only load images until the nearest pages are filled:
+	    promise = promise.then(function () {
+	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
+	        var defer = $.Deferred();
+	        $(el).one('load error', function () {
+		        // Notify on each image load:
+		        mainDefer.notify();
+	          defer.resolve();
+	        });
+	        el.setAttribute('src', dataSrc);
+	        el.removeAttribute('data-src');
+	        return defer.promise();
+	      }
+	    });
+	  });
+		promise.then(function () {
+			mainDefer.resolve();
+		});
+	  return mainDefer.promise();
+	}
+
 	// ## Page API
 	// Actual page is contained in the variable _pageIndex.
 	//
@@ -335,32 +363,61 @@ var Reader = (function (r) {
 	var Page = {
 		set: function(p) {
 			page = p;
-			return page;
 		},
 		get: function() {
 			return page;
 		},
-		getByChapter: function(callback) {
-			if (callback && typeof(callback) === 'function') { callback(); }
+		getByChapter: function() {
 			return pagesByChapter;
 		},
-		next: function(callback) {
-			// Advance in the chapter pages
+		next: function() {
 			page = page + 1;
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
-			r.Navigation.update();
-			if (callback && typeof(callback) === 'function') { callback(); }
+			r.Navigation.updateCurrentCFI();
+			return loadImages().then(function () {
+			  r.refreshLayout();
+			});
 		},
-		prev: function(callback) {
+		prev: function() {
 			page = page - 1;
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
-			r.Navigation.update();
-			if (callback && typeof(callback) === 'function') { callback(); }
+			r.Navigation.updateCurrentCFI();
+			return loadImages(true).then(function () {
+			  r.refreshLayout();
+			});
 		},
-		load: function() {
+		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
+		moveTo: function (p) {
+			if (p === 'LASTPAGE') {
+				// page is given as "LASTPAGE", jump to the last page of the chapter:
+				page = pagesByChapter;
+			} else if ($.type(p) === 'string') {
+				if (/^epubcfi\(.+\)$/.test(p)) {
+					// page is given as CFI, jump to the page containing the CFI marker:
+					var pos = r.CFI.findCFIElement(p);
+					page = pos === -1 ? 0 : pos;
+				} else {
+					// page is given as element id, jump to the page containing the element:
+					page = r.moveToAnchor(p);
+				}
+			} else {
+				page = p || 0;
+			}
 			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
+		},
+		load: function(p) {
+			Page.moveTo(p);
+			return loadImages(p === 'LASTPAGE')
+				.progress(function () {
+					// Update the colums and page position on each image load:
+					pagesByChapter = _getColumnsNumber();
+					Page.moveTo(p);
+				})
+				.then(function () {
+					r.Navigation.update();
+				});
 		}
 	};
 

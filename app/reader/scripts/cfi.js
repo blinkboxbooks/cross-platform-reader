@@ -267,40 +267,23 @@ var Reader = (function (r) {
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
-		goToCFI : function (cfi, fixed) {
-			var _fixed = !!fixed;
-
-			var _go = function(){
-				if (r.CFI.findCFIElement(cfi) !== -1) {
-					r.Navigation.loadPage(r.CFI.findCFIElement(cfi));
-				} else {
+		goToCFI : function (cfi) {
+			function _go(){
+				if (r.CFI.findCFIElement(cfi) === -1) {
 					r.CFI.setCFI(cfi, 'cpr-marker');
-					var p = r.CFI.findCFIElement(cfi);
-					if (p !== -1) {
-						r.Navigation.loadPage(p);
-					} else {
-						r.Navigation.loadPage(0);
-					}
 				}
-        // Update reader position
-        if(!_fixed){
-          r.Navigation.update();
-        }
-			};
-
+				return r.Navigation.loadPage(cfi);
+			}
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
 				if(r.Navigation.getChapter() === chapter){
-					_go();
-					var defer = $.Deferred();
-					defer.resolve();
-					return defer.promise();
+					return _go();
 				} else {
 					return r.loadChapter(chapter).then(_go);
 				}
-			} else {
-				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
 			}
+			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
+			return $.Deferred().reject().promise();
 		},
 		// <a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).
 		getChapterFromCFI: function(cfi){
@@ -326,7 +309,7 @@ var Reader = (function (r) {
 		var offset;
 		var container = r.$reader[0];
 		var rect = container.getBoundingClientRect();
-    var left = r.getReaderLeftPosition();
+		var left = r.getReaderLeftPosition();
 
 		/* standard */
 		if (document.caretPositionFromPoint) {

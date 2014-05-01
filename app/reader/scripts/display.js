@@ -128,7 +128,7 @@ var Reader = (function (r) {
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
 		if ((r.SPINE[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			r.Navigation.loadPage(r.moveToAnchor(a));
+			r.Navigation.loadPage(a);
 			return true;
 		}
 		// Check the table of contents...
@@ -343,7 +343,7 @@ var Reader = (function (r) {
 						// load the chapter specified by the CFI, otherwise load chapter 0
 						promise = r.loadChapter(chapter);
 					}
-					promise.then(r.Navigation.update).then(defer.resolve, defer.reject);
+					promise.then(r.Navigation.loadPage).then(defer.resolve, defer.reject);
 				}, defer.reject);
 			}
 			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
@@ -370,15 +370,8 @@ var Reader = (function (r) {
 
 	// Load a chapter and go to the page pointed by the anchor value.
 	r.loadAnchor = function(c,a){
-		return r.loadChapter(c).then(function onLoadAnchorSuccess(){
-			if (a) {
-				var p = r.moveToAnchor(a);
-				r.Navigation.loadPage(p);
-				r.Navigation.update();
-			} else {
-				r.Navigation.loadPage(0);
-				r.Navigation.update();
-			}
+		return r.loadChapter(c).then(function onLoadChapterSuccess(){
+			return r.Navigation.loadPage(a);
 		});
 	};
 
