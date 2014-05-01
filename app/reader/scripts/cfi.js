@@ -109,6 +109,7 @@ var Reader = (function (r) {
 			try {
 				var startTextNode = getFirstNode();
 				var elCFI = null;
+
 				if (startTextNode.textNode.nodeType === 3) {
 					elCFI = EPUBcfi.Generator.generateCharacterOffsetCFIComponent(startTextNode.textNode, startTextNode.offset, _classBlacklist);
 				} else if (startTextNode.textNode.nodeType === 1) {
@@ -121,7 +122,7 @@ var Reader = (function (r) {
 					// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
 					// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
 					// the complete CFi must not contain any '.' (processed normally, but not here)
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), document, _classBlacklist));
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), r.$iframe.contents()[0], _classBlacklist));
 					if($node.length > 1 && $node[0].nodeType === 3) {
 						var offset = startTextNode.offset;
 						for(i = 0; i < $node.length - 1; i++){
@@ -202,7 +203,7 @@ var Reader = (function (r) {
 				try {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist));
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
@@ -251,14 +252,14 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+				EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, _classBlacklist);
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
 				if(!r.CFI.addOneNodeToCFI(cfi, el, marker)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+					EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, _classBlacklist);
 				}
 			}
 		},
@@ -327,6 +328,7 @@ var Reader = (function (r) {
 		var container = r.$reader[0];
 		var rect = container.getBoundingClientRect();
     var left = r.getReaderLeftPosition();
+		var document = r.$iframe.contents()[0];
 
 		/* standard */
 		if (document.caretPositionFromPoint) {

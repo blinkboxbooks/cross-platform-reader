@@ -54,10 +54,13 @@ beforeEach(function() {
 		toHaveReaderStructure: function() {
 			return {
 				compare: function(actual){
-					var id = actual.attr('id');
-					return { pass: !!actual.parents('#' + id + '_wrap').length &&
-						!!actual.parent().siblings('#cpr-header').length &&
-						!!actual.parent().siblings('#cpr-footer').length };
+					// todo write more validations
+					var hasSingleChild = actual.children().length === 1,
+						childIsiFrame = actual.children().first().is('iframe')
+
+					return {
+						pass: hasSingleChild && childIsiFrame
+					};
 				}
 			};
 		},

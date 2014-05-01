@@ -9,6 +9,7 @@ var Reader = (function (r) {
 			columns: r.Layout.Reader.columns,
 			padding: r.Layout.Reader.padding
 		}, dimensions);
+
 		// Save new values.
 		r.Layout.Container.width = Math.floor(dimensions.width);
 		r.Layout.Container.height = Math.floor(dimensions.height);
@@ -22,6 +23,11 @@ var Reader = (function (r) {
 		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 		// Apply new size
+		r.$iframe.css({
+			width: r.Layout.Container.width + 'px',
+			height: r.Layout.Container.height + 'px'
+		});
+
 		r.$reader.css({
 			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
 			width: r.Layout.Reader.width + 'px',

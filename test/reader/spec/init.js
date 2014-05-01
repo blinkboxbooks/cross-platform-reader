@@ -47,16 +47,9 @@ describe('Initialisation', function() {
 		expect(READER.disableDebug).toBeFunction();
 	});
 
-	// expect reader to be initialised
-	it('should initialise reader with default container', function() {
-		READER.init();
-		expect($('#reader_container')).toExist();
-		expect($('#reader_container')).toHaveReaderStructure();
-	});
-
 	it('should initialise reader on DOM element', function() {
 
-		var $container = $('<div id="' + readerID + '"></div>').appendTo($('body'));
+		var $container = $('<div></div>').appendTo($('body'));
 
 		READER.init({
 			container: $container[0]
@@ -78,18 +71,22 @@ describe('Initialisation', function() {
 
 	it('should replace previous reader', function() {
 		// create a reader
-		READER.init();
-		expect($('#reader_container')).toExist();
+		var $container = $('<div></div>').appendTo($('body')),
+			$newContainer = $('<div></div>').appendTo($('body'));
 
-		var $container = $('<div id="'+readerID+'"></div>').appendTo($('body'));
-
-		// replace the reader
 		READER.init({
-			container: '#' + readerID
+			container: $container
+		});
+		expect($container).toHaveReaderStructure();
+		expect($newContainer).not.toHaveReaderStructure();
+
+		// should replace the reader
+		READER.init({
+			container: $newContainer
 		});
 
-		expect($container).toHaveReaderStructure();
-		expect($('#reader_container, #reader_container_wrap')).not.toExist();
+		expect($container).not.toHaveReaderStructure();
+		expect($newContainer).toHaveReaderStructure();
 	});
 
 });

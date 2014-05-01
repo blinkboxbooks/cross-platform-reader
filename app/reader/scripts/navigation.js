@@ -42,14 +42,15 @@ var Reader = (function (r) {
 		r.Bookmarks.reset();
 
 		// Remove book content.
-		if(r.$container !== null && r.$reader !== null){
-			r.$container.parent().remove();
+		if(r.$parent){
+			r.$parent.empty();
+			r.$iframe = null;
+			r.$wrap = null;
+			r.$head = null;
 			r.$container = null;
 			r.$reader = null;
 			r.$header = null;
 			r.$footer = null;
-
-			r.$stylesheet.remove();
 			r.$stylesheet = null;
 
 			// reset link to CSS rules

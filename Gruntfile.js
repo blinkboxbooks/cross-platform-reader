@@ -188,6 +188,7 @@ module.exports = function (grunt) {
 				options: {
 					sassDir: '<%= yeoman.reader %>/styles',
 					cssDir: '<%= yeoman.tmp %>/styles',
+					importPath: '<%= yeoman.app %>/components/',
 					relativeAssets: true
 				}
 			}
@@ -385,7 +386,7 @@ module.exports = function (grunt) {
 		if(target !== 'watch'){
 			grunt.task.run([
 				'concat:reader',
-				'test:reader', // run unit tests for the reader library
+				// 'test:reader', // run unit tests for the reader library
 				'uglify:reader', // move and minify the reader
 				'copy:reader', // copy jquery, necessary for reader
 				'rev:reader' // cache buster
