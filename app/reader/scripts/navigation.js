@@ -100,6 +100,7 @@ var Reader = (function (r) {
 
 	var _getColumnsNumber = function() {
 		var el = r.$reader[0];
+		console.log(el.getBoundingClientRect());
 		// we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)
 		return Math.floor((el.scrollWidth - 1) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
 	};
@@ -301,9 +302,9 @@ var Reader = (function (r) {
 
 			if (r.mobile) {
 				// Update footer and display progress.
-				var progressContainer = $('#cpr-progress');
+				var progressContainer = $('#cpr-progress', r.$iframe.contents());
 				if(!progressContainer.length){
-					progressContainer = $('<div id="cpr-progress"></div>').appendTo($('#cpr-footer'));
+					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}
 				if (r.sample) {
 					progressContainer.text(_progress+' % of sample');

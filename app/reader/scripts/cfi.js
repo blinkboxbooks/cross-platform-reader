@@ -199,7 +199,7 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, markerClass) { // Add an element to a CFI point
-			if($('.'+(markerClass ? markerClass : 'bookmark')+'[data-cfi="' + cfi + '"]').length === 0){
+			if($('.'+(markerClass ? markerClass : 'bookmark')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
 				try {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);

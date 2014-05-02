@@ -27,13 +27,16 @@ var Reader = (function (r) {
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
 		r.$parent = $(param.container).empty();
-		r.$iframe = $('<iframe></iframe>').appendTo(r.$parent);
+		r.$iframe = $('<iframe scrolling="no" seamless="seamless"></iframe>').appendTo(r.$parent);
 		r.$head = r.$iframe.contents().find('head');
 		r.$wrap = r.$iframe.contents().find('body');
 		r.$container = $('<div></div>').appendTo(r.$wrap);
 		r.$reader = $('<div id="cpr-reader"></div>').appendTo(r.$container);
 		r.$header = $('<div id="cpr-header"></div>').insertBefore(r.$container);
 		r.$footer = $('<div id="cpr-footer"></div>').insertAfter(r.$container);
+
+		// Add bookmark mark
+		$('<span id="cpr-bookmark-ui"></span>').insertAfter(r.$container);
 
 		// add styles and fonts
 		_addStyles();
