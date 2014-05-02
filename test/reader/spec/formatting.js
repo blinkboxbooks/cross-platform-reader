@@ -2,7 +2,7 @@
 
 describe('Formatting', function() {
 
-	var testBookUrl = '/base/app/books/9780007441235', readerID = '#formatting_test',
+	var testBookUrl = '/base/app/books/9780007441235', $container = null,
 		fontSize = {
 			unit: 18,
 			default: 1
@@ -42,8 +42,9 @@ describe('Formatting', function() {
 			hasErrors: false
 		},
 		defaultArgs = {
+			width: 200,
+			height: 300,
 			url: testBookUrl,
-			container: readerID,
 			listener: function(ev){
 				switch(ev.code){
 					case 6: // reader finished loading
@@ -65,19 +66,21 @@ describe('Formatting', function() {
 	beforeEach(function(){
 		flags.hasErrors = false;
 		// making sure the reader has a valid container in the body
-		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
+		$container = $('<div></div>').appendTo($('body'));
 	});
 
 	afterEach(function(){
-		expect($(readerID)).toHaveReaderStructure();
+		expect($container).toHaveReaderStructure();
 		expect(flags.hasErrors).toBe(false);
 	});
 
 	describe('Font size', function() {
 
 		it('should initialise the reader with the default font size', function(done) {
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({
+					container: $container
+				}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontSize: (fontSize.default * fontSize.unit) + 'px'
 				});
@@ -89,11 +92,12 @@ describe('Formatting', function() {
 			var value = 2;
 
 			READER.init($.extend({
-				preferences: {
+					container: $container,
+					preferences: {
 					fontSize: value
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontSize: (fontSize.unit * value) + 'px'
 				});
@@ -104,8 +108,10 @@ describe('Formatting', function() {
 		it('should apply font-size', function(done){
 			var value = 1.5, value2 = 2.5;
 
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({
+					container: $container
+				}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				READER.setFontSize(value);
 				expect($contents).toHaveCss({
@@ -128,11 +134,12 @@ describe('Formatting', function() {
 			var step = 0.1;
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					fontSize: 1
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				// calling increase font size twice
 				READER.increaseFontSize();
@@ -151,11 +158,12 @@ describe('Formatting', function() {
 			var step = 0.1;
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					fontSize: 1
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				// calling increase font size twice
 				READER.decreaseFontSize();
@@ -165,17 +173,15 @@ describe('Formatting', function() {
 				done();
 			});
 		});
-
-		it('should handle invalid arguments', function(){
-
-		});
 	});
 
 	describe('Line height', function() {
 
 		it('should initialise the reader with the default line height', function(done) {
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({
+				container: $container
+			}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				var fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
 					// line height appears to be computed as the floor value of the actual value
@@ -189,11 +195,12 @@ describe('Formatting', function() {
 			var value = 2;
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					lineHeight: value
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				var fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
 					lineHeight: (fontSize * value) + 'px'
@@ -205,8 +212,8 @@ describe('Formatting', function() {
 		it('should apply line height', function(done){
 			var value = 1.5, value2 = 2.5;
 
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				READER.setLineHeight(value);
 				fontSize = parseInt($contents.css('fontSize'));
@@ -230,11 +237,12 @@ describe('Formatting', function() {
 			var step = 0.1;
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					lineHeight: 2
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				fontSize = parseInt($contents.css('fontSize'));
 
 				// calling increase line height twice
@@ -252,11 +260,12 @@ describe('Formatting', function() {
 			var step = 0.1;
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					lineHeight: 2
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				fontSize = parseInt($contents.css('fontSize'));
 
 				// calling increase font size twice
@@ -267,17 +276,15 @@ describe('Formatting', function() {
 				done();
 			});
 		});
-
-		it('should handle invalid arguments', function(){
-
-		});
 	});
 
 	describe('Font family', function() {
 
 		it('should initialise the reader with the default font family', function(done) {
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({
+				container: $container
+			}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontFamily: 'Arial'
 				});
@@ -289,11 +296,12 @@ describe('Formatting', function() {
 			var value = 'Helvetica';
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					fontFamily: value
 				}
 			}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					fontFamily: value
 				});
@@ -304,8 +312,8 @@ describe('Formatting', function() {
 		it('should apply font family', function(done){
 			var value = 'Times New Roman', value2 = 'Comic Sans';
 
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				READER.setFontFamily(value);
 				expect($contents).toHaveCss({
@@ -328,8 +336,8 @@ describe('Formatting', function() {
 	describe('Text align', function() {
 
 		it('should initialise the reader with the default text align', function(done) {
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
 					textAlign: 'left'
 				});
@@ -341,11 +349,12 @@ describe('Formatting', function() {
 			var value = 'justify';
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					textAlign: value
 				}
 			}, defaultArgs)).then(function(){
-					var $contents = $(readerID).find('span, p, em, div, strong, a');
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 					expect($contents).toHaveCss({
 						textAlign: value
 					});
@@ -356,8 +365,8 @@ describe('Formatting', function() {
 		it('should apply text align', function(done){
 			var value = 'left', value2 = 'justify';
 
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				READER.setTextAlign(value);
 				expect($contents).toHaveCss({
@@ -379,9 +388,9 @@ describe('Formatting', function() {
 	describe('Theme', function() {
 
 		it('should initialise the reader with the default text align', function(done) {
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
-				expect($(readerID + '_wrap')).toHaveCss({
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
+				expect($container.find('iframe').contents().find('body')).toHaveCss({
 					backgroundColor: 'rgb(255, 255, 255)'
 				});
 				expect($contents).toHaveCss({
@@ -395,12 +404,13 @@ describe('Formatting', function() {
 			var value = 'dark';
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					theme: value
 				}
 			}, defaultArgs)).then(function(){
-					var $contents = $(readerID).find('span, p, em, div, strong, a');
-					expect($(readerID + '_wrap')).toHaveCss({
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
+					expect($container.find('iframe').contents().find('body')).toHaveCss({
 						backgroundColor: themes.dark.background
 					});
 					expect($contents).toHaveCss({
@@ -418,12 +428,13 @@ describe('Formatting', function() {
 			};
 
 			READER.init($.extend({
+				container: $container,
 				preferences: {
 					theme: value
 				}
 			}, defaultArgs)).then(function(){
-					var $contents = $(readerID).find('span, p, em, div, strong, a');
-					expect($(readerID + '_wrap')).toHaveCss({
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
+					expect($container.find('iframe').contents().find('body')).toHaveCss({
 						backgroundColor: value.background
 					});
 					expect($contents).toHaveCss({
@@ -436,11 +447,11 @@ describe('Formatting', function() {
 		it('should apply theme', function(done){
 			var value = 'sepia', value2 = 'light';
 
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).find('span, p, em, div, strong, a');
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
 				READER.setTheme(value);
-				expect($(readerID + '_wrap')).toHaveCss({
+				expect($container.find('iframe').contents().find('body')).toHaveCss({
 					backgroundColor: themes.sepia.background
 				});
 				expect($contents).toHaveCss({
@@ -450,7 +461,7 @@ describe('Formatting', function() {
 				READER.setPreferences({
 					theme: value2
 				});
-				expect($(readerID + '_wrap')).toHaveCss({
+				expect($container.find('iframe').contents().find('body')).toHaveCss({
 					backgroundColor: themes.light.background
 				});
 				expect($contents).toHaveCss({
@@ -466,10 +477,11 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default margins', function(done) {
 			READER.init($.extend({
+				container: $container,
 				width: 200,
 				height: 300
 			}, defaultArgs)).then(function(){
-					var $contents = $(readerID).parent();
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();
 					expect($contents).toHaveCss({
 						// by default the margin is 11% of the reader width
 						marginRight: Math.floor(margin.medium[1]/100 * 200) + 'px',
@@ -481,13 +493,14 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with a predefined margin', function(done) {
 			READER.init($.extend({
+				container: $container,
 				width: 200,
 				height: 300,
 				preferences: {
 					margin: 'min'
 				}
 			}, defaultArgs)).then(function(){
-					var $contents = $(readerID).parent();
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();
 
 					expect($contents).toHaveCss({
 						marginRight: Math.floor(margin.min[1]/100 * 200) + 'px',
@@ -501,13 +514,14 @@ describe('Formatting', function() {
 			var value = [10,10,10,10];
 
 			READER.init($.extend({
+				container: $container,
 				width: 200,
 				height: 300,
 				preferences: {
 					margin: value
 				}
 			}, defaultArgs)).then(function(){
-					var $contents = $(readerID).parent();
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();
 
 					expect($contents).toHaveCss({
 						marginRight: Math.floor(value[1]/100 * 200) + 'px',
@@ -520,8 +534,8 @@ describe('Formatting', function() {
 		it('should apply margin', function(done){
 			var value = 'max', value2 = 'min';
 
-			READER.init($.extend({}, defaultArgs)).then(function(){
-				var $contents = $(readerID).parent();
+			READER.init($.extend({container: $container}, defaultArgs)).then(function(){
+				var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();
 
 				READER.setMargin(value);
 				expect($contents).toHaveCss({
