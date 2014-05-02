@@ -25,7 +25,7 @@ module.exports = function(config) {
 			'app/reader/scripts/*.js',
 
 			// the tests
-			'test/reader/spec/formatting.js',
+			'test/reader/spec/filters.js',
 			'test/reader/helpers.js',
 
 			// the books
