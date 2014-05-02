@@ -2,7 +2,7 @@
 
 describe('Navigation', function() {
 
-	var testBookUrl = '/base/app/books/9780007441235', readerID = '#navigation_test',
+	var testBookUrl = '/base/app/books/9780007441235',
 		flags = {
 			hasErrors: false,
 			hasNext: true,
@@ -10,9 +10,9 @@ describe('Navigation', function() {
 		},
 		currentStatus = null,
 		previousStatus = null,
+		$container = null,
 		defaultArgs = {
 			url: testBookUrl,
-			container: readerID,
 			width: 400,
 			height: 600,
 			listener: function(ev){
@@ -47,8 +47,8 @@ describe('Navigation', function() {
 		};
 
 	beforeEach(function(){
-		// making sure the reader has a valid container in the body
-		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
+		// create a new container for the reader
+		$container = $('<div></div>').appendTo($('body'));
 
 		// reset flags and variables
 		flags.hasErrors = false;
@@ -60,7 +60,7 @@ describe('Navigation', function() {
 	});
 
 	afterEach(function(){
-		expect($(readerID)).toHaveReaderStructure();
+		expect($container).toHaveReaderStructure();
 		expect(flags.hasErrors).toBe(false);
 	});
 
@@ -147,7 +147,9 @@ describe('Navigation', function() {
 			}
 		};
 
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({
+				container: $container
+			}, defaultArgs)).then(function(){
 
 			// expect on initialization to open chapter 0 and page 0
 			expect(currentStatus.page).toBe(0);
@@ -159,7 +161,9 @@ describe('Navigation', function() {
 	});
 
 	it('should load the specified chapter', function(done){
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({
+				container: $container
+			}, defaultArgs)).then(function(){
 			var spine = JSON.parse(READER.getSPINE());
 
 			function saveChapter(chapter){
