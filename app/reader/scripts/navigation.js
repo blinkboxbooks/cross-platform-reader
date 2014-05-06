@@ -100,10 +100,6 @@ var Reader = (function (r) {
 
 	var _getColumnsNumber = function() {
 		var el = r.$reader[0];
-
-		console.log(r.$reader[0].clientWidth, r.$reader[0].clientHeight);
-		console.log(r.$reader[0].scrollWidth, r.$reader[0].scrollHeight);
-
 		// we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)
 		return Math.floor((el.scrollWidth - 1) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
 	};
