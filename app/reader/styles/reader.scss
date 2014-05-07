@@ -46,6 +46,8 @@ body {
   background: white; // @@theme_background x
   position: relative;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 
   #cpr-reader {
     // Force GPU hardware acceleration:
@@ -53,6 +55,7 @@ body {
     -webkit-perspective: 1000;
     backface-visibility: hidden;
     perspective: 1000;
+    display: inline-block;
 
     *, span, p, em, div, strong, a, h1, h2, h3, h4, h5, h6 {
       padding: 0;
