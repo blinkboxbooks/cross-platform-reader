@@ -131,13 +131,13 @@ angular.module('app', ['ngRoute'])
 					url: val,
 					bookmarks: [],
 					listener: _log,
-					//preferences: $scope.preferences
+					preferences: $scope.preferences
 				});
 
 				// watch for new watches
 				if(!_isWatching){
-					//$scope.$watch('preferences', READER.setPreferences, true);
-					//$scope.$watch('layout', READER.resizeContainer, true);
+					$scope.$watch('preferences', READER.setPreferences, true);
+					$scope.$watch('layout', READER.resizeContainer, true);
 					_isWatching = true;
 				}
 			}

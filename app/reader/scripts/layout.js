@@ -29,7 +29,6 @@ var Reader = (function (r) {
 		});
 
 		r.$reader.css({
-			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
 			width: r.Layout.Reader.width + 'px',
 			height: r.Layout.Reader.height + 'px',
 			'column-width': columnWidth + 'px',
