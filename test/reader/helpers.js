@@ -56,11 +56,15 @@ beforeEach(function() {
 				compare: function(actual){
 					// todo write more validations
 					var hasSingleChild = actual.children().length === 1,
-						childIsiFrame = actual.children().first().is('iframe')
+						childIsiFrame = actual.children().first().is('iframe'),
+						contents = actual.children().first().contents(),
+						hasHeader = contents.has('#cpr-header'),
+						hasFooter = contents.has('#cpr-footer'),
+						hasReader = contents.has('#cpr-reader');
 
-					return {
-						pass: hasSingleChild && childIsiFrame
-					};
+						return {
+							pass: hasSingleChild && childIsiFrame && hasHeader && hasFooter && hasReader
+						};
 				}
 			};
 		},
