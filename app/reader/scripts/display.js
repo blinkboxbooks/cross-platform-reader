@@ -271,6 +271,7 @@ var Reader = (function (r) {
 	// * `width` In pixels
 	// * `height` In pixels
 	var _createContainer = function() {
+		var document = r.$iframe.contents()[0];
 		r.$iframe.css({
 			display: 'inline-block',
 			border: 'none'
