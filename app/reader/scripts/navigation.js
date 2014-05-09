@@ -337,6 +337,10 @@ var Reader = (function (r) {
 	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
 	        var defer = $.Deferred();
 	        $(el).one('load error', function () {
+		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
+		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
+			        $(el).addClass('cpr-center');
+		        }
 		        // Notify on each image load:
 		        mainDefer.notify();
 	          defer.resolve();
