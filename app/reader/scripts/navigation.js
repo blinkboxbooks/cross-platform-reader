@@ -342,7 +342,7 @@ var Reader = (function (r) {
 			        $(el).addClass('cpr-center');
 		        }
 		        // Notify on each image load:
-		        mainDefer.notify();
+		        mainDefer.notify({type: 'load.img', element: el});
 	          defer.resolve();
 	        });
 	        el.setAttribute('src', dataSrc);
