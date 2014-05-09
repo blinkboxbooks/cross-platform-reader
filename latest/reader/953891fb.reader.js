@@ -4064,7 +4064,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.33-104'
+				appversion: '0.1.34-105'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4194,6 +4194,7 @@ var Reader = (function (r) {
 	// * `width` In pixels
 	// * `height` In pixels
 	var _createContainer = function() {
+		var doc = r.$iframe.contents()[0];
 		r.$iframe.css({
 			display: 'inline-block',
 			border: 'none'
@@ -4212,10 +4213,10 @@ var Reader = (function (r) {
 
 		// Set touch handler for mobile clients, to send back the coordinates of the click
 		if(r.mobile){
-			document.removeEventListener('touchstart', _touchStartHandler);
-			document.addEventListener('touchstart', _touchStartHandler);
-			document.removeEventListener('touchend', _touchEndHandler);
-			document.addEventListener('touchend', _touchEndHandler);
+			doc.removeEventListener('touchstart', _touchStartHandler);
+			doc.addEventListener('touchstart', _touchStartHandler);
+			doc.removeEventListener('touchend', _touchEndHandler);
+			doc.addEventListener('touchend', _touchEndHandler);
 		}
 	};
 
@@ -4420,7 +4421,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.33-104'
+			'version': '0.1.34-105'
 		},
 		START_OF_BOOK : {
 			code: 8,
