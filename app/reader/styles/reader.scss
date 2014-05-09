@@ -68,6 +68,7 @@ body {
       line-height: 1.2; // @@lineHeight x
       font-size: 18px; // @@fontSize * 16 px  x
       font-family: Arial; // @@fontFamily x
+      word-wrap: break-word;
     }
     h1, h2, h3, h4, h5, h6 {
       font-weight: bold;
