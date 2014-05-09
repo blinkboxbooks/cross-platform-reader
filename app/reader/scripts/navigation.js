@@ -174,8 +174,8 @@ var Reader = (function (r) {
 		setPage: function(p) {
 			Page.set(p);
 		},
-		loadPage: function(p) {
-			return Page.load(p);
+		loadPage: function(p, fixed) {
+			return Page.load(p, fixed);
 		},
 		setChapter: function(c){
 			chapter = c;
@@ -412,17 +412,20 @@ var Reader = (function (r) {
 			}
 			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
 		},
-		load: function(p) {
+		load: function(p, fixed) {
 			Page.moveTo(p);
-			return loadImages(p === 'LASTPAGE')
+			var promise = loadImages(p === 'LASTPAGE')
 				.progress(function () {
 					// Update the colums and page position on each image load:
 					pagesByChapter = _getColumnsNumber();
 					Page.moveTo(p);
-				})
-				.then(function () {
+				});
+			if (!fixed) {
+				promise = promise.then(function () {
 					r.Navigation.update();
 				});
+			}
+			return promise;
 		}
 	};
 

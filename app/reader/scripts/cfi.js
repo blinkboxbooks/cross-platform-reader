@@ -268,12 +268,12 @@ var Reader = (function (r) {
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
-		goToCFI : function (cfi) {
+		goToCFI : function (cfi, fixed) {
 			function _go(){
 				if (r.CFI.findCFIElement(cfi) === -1) {
 					r.CFI.setCFI(cfi, 'cpr-marker');
 				}
-				return r.Navigation.loadPage(cfi);
+				return r.Navigation.loadPage(cfi, fixed);
 			}
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
