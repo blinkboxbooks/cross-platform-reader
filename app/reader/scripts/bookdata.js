@@ -92,7 +92,7 @@ var Reader = (function (r) {
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter][index] = null;
 
-					var $marker = $('*[data-cfi="' + cfi + '"]');
+					var $marker = $('*[data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
 						var $parent = $marker.parent();
 						$marker.remove();

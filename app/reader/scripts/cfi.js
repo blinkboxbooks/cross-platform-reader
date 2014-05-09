@@ -170,7 +170,7 @@ var Reader = (function (r) {
 								if(!anchor){
 									continue;
 								} else {
-									var $anchor = $(anchor);
+									var $anchor = $(anchor, r.$iframe.contents());
 									// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
 									if($anchor.length){
 										var anchorPage = r.returnPageElement($anchor);
