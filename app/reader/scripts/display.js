@@ -239,6 +239,7 @@ var Reader = (function (r) {
 	// * `width` In pixels
 	// * `height` In pixels
 	var _createContainer = function() {
+		var doc = r.$iframe.contents()[0];
 		r.$iframe.css({
 			display: 'inline-block',
 			border: 'none'
@@ -257,10 +258,10 @@ var Reader = (function (r) {
 
 		// Set touch handler for mobile clients, to send back the coordinates of the click
 		if(r.mobile){
-			document.removeEventListener('touchstart', _touchStartHandler);
-			document.addEventListener('touchstart', _touchStartHandler);
-			document.removeEventListener('touchend', _touchEndHandler);
-			document.addEventListener('touchend', _touchEndHandler);
+			doc.removeEventListener('touchstart', _touchStartHandler);
+			doc.addEventListener('touchstart', _touchStartHandler);
+			doc.removeEventListener('touchend', _touchEndHandler);
+			doc.addEventListener('touchend', _touchEndHandler);
 		}
 	};
 
