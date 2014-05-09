@@ -151,12 +151,12 @@ describe('Navigation', function() {
 				container: $container
 			}, defaultArgs)).then(function(){
 
-			// expect on initialization to open chapter 0 and page 0
-			expect(currentStatus.page).toBe(0);
-			expect(currentStatus.chapter).toBe(0);
+				// expect on initialization to open chapter 0 and page 0
+				expect(currentStatus.page).toBe(0);
+				expect(currentStatus.chapter).toBe(0);
 
-			_nextLoop();
-		});
+				_nextLoop();
+			});
 
 	});
 
@@ -164,25 +164,25 @@ describe('Navigation', function() {
 		READER.init($.extend({
 				container: $container
 			}, defaultArgs)).then(function(){
-			var spine = JSON.parse(READER.getSPINE());
+				var spine = JSON.parse(READER.getSPINE());
 
-			function saveChapter(chapter){
-				chapters.push(chapter.href);
-				if(chapter.children){
-					for(var i = 0, l = chapter.children.length; i < l; i++){
-						saveChapter(chapter.children[i]);
+				function saveChapter(chapter){
+					chapters.push(chapter.href);
+					if(chapter.children){
+						for(var i = 0, l = chapter.children.length; i < l; i++){
+							saveChapter(chapter.children[i]);
+						}
 					}
 				}
-			}
 
-			for(var i = 0, l = spine.length; i < l; i++){
-				saveChapter(spine[i]);
-			}
+				for(var i = 0, l = spine.length; i < l; i++){
+					saveChapter(spine[i]);
+				}
 
-			expect(currentStatus.chapters).toBe(chapters.length);
+				expect(currentStatus.chapters).toBe(chapters.length);
 
-			loadChapterTest(0);
-		});
+				loadChapterTest(0);
+			});
 
 		// an array of chapter urls to test
 		var chapters = [];

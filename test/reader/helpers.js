@@ -62,9 +62,9 @@ beforeEach(function() {
 						hasFooter = contents.has('#cpr-footer'),
 						hasReader = contents.has('#cpr-reader');
 
-						return {
-							pass: hasSingleChild && childIsiFrame && hasHeader && hasFooter && hasReader
-						};
+					return {
+						pass: hasSingleChild && childIsiFrame && hasHeader && hasFooter && hasReader
+					};
 				}
 			};
 		},

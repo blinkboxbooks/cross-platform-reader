@@ -80,12 +80,12 @@ describe('Formatting', function() {
 			READER.init($.extend({
 					container: $container
 				}, defaultArgs)).then(function(){
-				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
-				expect($contents).toHaveCss({
-					'font-size': (fontSize.default * fontSize.unit) + 'px'
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
+					expect($contents).toHaveCss({
+						'font-size': (fontSize.default * fontSize.unit) + 'px'
+					});
+					done();
 				});
-				done();
-			});
 		});
 
 		it('should initialise the reader with the given font size', function(done) {
@@ -94,15 +94,15 @@ describe('Formatting', function() {
 			READER.init($.extend({
 					container: $container,
 					preferences: {
-					fontSize: value
-				}
-			}, defaultArgs)).then(function(){
-				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
-				expect($contents).toHaveCss({
-					'font-size': (fontSize.unit * value) + 'px'
+						fontSize: value
+					}
+				}, defaultArgs)).then(function(){
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
+					expect($contents).toHaveCss({
+						'font-size': (fontSize.unit * value) + 'px'
+					});
+					done();
 				});
-				done();
-			});
 		});
 
 		it('should apply font-size', function(done){
@@ -111,22 +111,22 @@ describe('Formatting', function() {
 			READER.init($.extend({
 					container: $container
 				}, defaultArgs)).then(function(){
-				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
+					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
-				READER.setFontSize(value);
-				expect($contents).toHaveCss({
-					'font-size': (fontSize.unit * value) + 'px'
-				});
+					READER.setFontSize(value);
+					expect($contents).toHaveCss({
+						'font-size': (fontSize.unit * value) + 'px'
+					});
 
-				READER.setPreferences({
-					fontSize: value2
-				});
-				expect($contents).toHaveCss({
-					'font-size': (fontSize.unit * value2) + 'px'
-				});
+					READER.setPreferences({
+						fontSize: value2
+					});
+					expect($contents).toHaveCss({
+						'font-size': (fontSize.unit * value2) + 'px'
+					});
 
-				done();
-			});
+					done();
+				});
 		});
 
 		it('should increase font size', function(done){
