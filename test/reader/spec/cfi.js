@@ -2,7 +2,7 @@
 
 describe('CFI', function() {
 
-	var testBookUrl = '/base/app/books/9780007441235', readerID = '#cfi_test', CFI = Reader.CFI,
+	var testBookUrl = '/base/app/books/9780007441235', $container = null, CFI = Reader.CFI,
 		flags = {
 			hasErrors: false,
 			hasNext: true,
@@ -12,7 +12,6 @@ describe('CFI', function() {
 		cfis = [],
 		defaultArgs = {
 			url: testBookUrl,
-			container: readerID,
 			width: 400,
 			height: 600,
 			listener: function(ev){
@@ -47,7 +46,7 @@ describe('CFI', function() {
 
 	beforeEach(function(){
 		// making sure the reader has a valid container in the body
-		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
+		$container = $('<div></div>').appendTo($('body'));
 
 		// reset flags and variables
 		flags.hasErrors = false;
@@ -100,7 +99,7 @@ describe('CFI', function() {
 			}
 		};
 
-		READER.init($.extend({}, defaultArgs)).then(_nextLoop);
+		READER.init($.extend({container: $container}, defaultArgs)).then(_nextLoop);
 	});
 
 	it('should inject marker in the specified CFI location', function(done){
@@ -117,7 +116,7 @@ describe('CFI', function() {
 			cfi = cfi.CFI;
 			CFI.setCFI(cfi);
 
-			var marker = $('[data-cfi="'+cfi+'"]');
+			var marker = $('[data-cfi="'+cfi+'"]', $container.find('iframe').contents());
 
 			expect(cfi).toEqual(currentStatus.cfi.CFI);
 			expect(marker).toExist();
@@ -132,7 +131,7 @@ describe('CFI', function() {
 			}
 		};
 
-		READER.init($.extend({}, defaultArgs)).then(_nextLoop);
+		READER.init($.extend({container: $container}, defaultArgs)).then(_nextLoop);
 
 	});
 
@@ -142,7 +141,7 @@ describe('CFI', function() {
 			if(index < cfis.length){
 				READER.goToCFI(cfis[index]).then(function(){
 
-					var marker = $('[data-cfi="'+cfis[index]+'"]');
+					var marker = $('[data-cfi="'+cfis[index]+'"]', $container.find('iframe').contents());
 
 					expect(marker).toExist();
 					expect(Reader.returnPageElement(marker)).toBe(currentStatus.page);
@@ -155,7 +154,7 @@ describe('CFI', function() {
 			}
 		};
 
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({container: $container}, defaultArgs)).then(function(){
 			_go(0);
 		});
 

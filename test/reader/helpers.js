@@ -54,10 +54,17 @@ beforeEach(function() {
 		toHaveReaderStructure: function() {
 			return {
 				compare: function(actual){
-					var id = actual.attr('id');
-					return { pass: !!actual.parents('#' + id + '_wrap').length &&
-						!!actual.parent().siblings('#cpr-header').length &&
-						!!actual.parent().siblings('#cpr-footer').length };
+					// todo write more validations
+					var hasSingleChild = actual.children().length === 1,
+						childIsiFrame = actual.children().first().is('iframe'),
+						contents = actual.children().first().contents(),
+						hasHeader = contents.has('#cpr-header'),
+						hasFooter = contents.has('#cpr-footer'),
+						hasReader = contents.has('#cpr-reader');
+
+					return {
+						pass: hasSingleChild && childIsiFrame && hasHeader && hasFooter && hasReader
+					};
 				}
 			};
 		},
@@ -68,7 +75,15 @@ beforeEach(function() {
 					var $dummy = $('<span></span>').css(css);
 					for (var prop in css){
 						if(css.hasOwnProperty(prop)){
-							if ($(actual).css(prop) !== $dummy.css(prop)){
+							// todo workaround for font-size and line height. different browsers calculate font-size differently, therefore the test only checks if the actual font-size is within +-1px of expected value
+							// can be removed once this is fixed https://tools.mobcastdev.com/jira/browse/CR-264
+							if(prop === 'font-size' || prop === 'line-height'){
+								var avalue = parseInt($(actual).css(prop), 10), dvalue = parseInt($dummy.css(prop), 10);
+								if (avalue + 1 < dvalue || avalue - 1 > dvalue){
+									result = false;
+								}
+							}
+							else if ($(actual).css(prop) !== $dummy.css(prop)){
 								result = false;
 							}
 						}
