@@ -3558,39 +3558,22 @@ var Reader = (function (r) {
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
 		goToCFI : function (cfi, fixed) {
-			var _fixed = !!fixed;
-
-			var _go = function(){
-				if (r.CFI.findCFIElement(cfi) !== -1) {
-					r.Navigation.loadPage(r.CFI.findCFIElement(cfi));
-				} else {
+			function _go(){
+				if (r.CFI.findCFIElement(cfi) === -1) {
 					r.CFI.setCFI(cfi, 'cpr-marker');
-					var p = r.CFI.findCFIElement(cfi);
-					if (p !== -1) {
-						r.Navigation.loadPage(p);
-					} else {
-						r.Navigation.loadPage(0);
-					}
 				}
-        // Update reader position
-        if(!_fixed){
-          r.Navigation.update();
-        }
-			};
-
+				return r.Navigation.loadPage(cfi, fixed);
+			}
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
 				if(r.Navigation.getChapter() === chapter){
-					_go();
-					var defer = $.Deferred();
-					defer.resolve();
-					return defer.promise();
+					return _go();
 				} else {
 					return r.loadChapter(chapter).then(_go);
 				}
-			} else {
-				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
 			}
+			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
+			return $.Deferred().reject().promise();
 		},
 		// <a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).
 		getChapterFromCFI: function(cfi){
@@ -3616,7 +3599,7 @@ var Reader = (function (r) {
 		var offset;
 		var container = r.$reader[0];
 		var rect = container.getBoundingClientRect();
-    var left = r.getReaderLeftPosition();
+		var left = r.getReaderLeftPosition();
 		var document = r.$iframe.contents()[0];
 
 		/* standard */
@@ -4081,7 +4064,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.32-102'
+				appversion: '0.1.33-103'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4101,7 +4084,7 @@ var Reader = (function (r) {
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
 		if ((r.SPINE[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			r.Navigation.loadPage(r.moveToAnchor(a));
+			r.Navigation.loadPage(a);
 			return true;
 		}
 		// Check the table of contents...
@@ -4184,8 +4167,6 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: content, page and mimetype
 	// * `callback` Function to be called after the function's logic
 	var displayContent = function(param) {
-		var defer = $.Deferred();
-
 		if (!param) { param = []; }
 		// Take the params values
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
@@ -4198,35 +4179,6 @@ var Reader = (function (r) {
 
 		r.$reader.html(content);
 
-		// Wait for the images and build the container
-		var $images = $('img', r.$reader);
-		var counter = 0, i = 0;
-		var timer = setInterval(function () {
-
-			if (counter >= $images.length) {
-				clearInterval(timer);
-
-				for (i = 0; i < $images.length; i++) {
-					var $image = $($images[i]);
-					// All images greater than 75% of the reader width will receive cpr-center class to center them
-					if($image.width() > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)){
-						$image.addClass('cpr-center');
-					}
-				}
-
-				defer.resolve();
-				return;
-			}
-
-			var tempCounter = 0;
-			for (i = 0; i < $images.length; i++) {
-				if ($images[i].complete === true) {
-					tempCounter++;
-				}
-			}
-			counter = tempCounter;
-		}, 100);
-
 		// Add all bookmarks for this chapter.
 		var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
 		if(typeof(bookmarks) !== 'undefined'){
@@ -4234,8 +4186,7 @@ var Reader = (function (r) {
 				r.Navigation.setCFI(bookmark);
 			});
 		}
-
-		return defer.promise();
+		return $.Deferred().resolve().promise();
 	};
 
 	// Define the container dimensions and create the multi column or adjust the height for the vertical scroll.
@@ -4321,7 +4272,7 @@ var Reader = (function (r) {
 						// load the chapter specified by the CFI, otherwise load chapter 0
 						promise = r.loadChapter(chapter);
 					}
-					promise.then(r.Navigation.update).then(defer.resolve, defer.reject);
+					promise.then(r.Navigation.loadPage).then(defer.resolve, defer.reject);
 				}, defer.reject);
 			}
 			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
@@ -4348,15 +4299,8 @@ var Reader = (function (r) {
 
 	// Load a chapter and go to the page pointed by the anchor value.
 	r.loadAnchor = function(c,a){
-		return r.loadChapter(c).then(function onLoadAnchorSuccess(){
-			if (a) {
-				var p = r.moveToAnchor(a);
-				r.Navigation.loadPage(p);
-				r.Navigation.update();
-			} else {
-				r.Navigation.loadPage(0);
-				r.Navigation.update();
-			}
+		return r.loadChapter(c).then(function onLoadChapterSuccess(){
+			return r.Navigation.loadPage(a);
 		});
 	};
 
@@ -4476,7 +4420,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.32-102'
+			'version': '0.1.33-103'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4730,11 +4674,13 @@ var Reader = (function (r) {
 			images = content.getElementsByTagName('IMG');
 		}
 		// Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.
-		for (var i = 0; i < images.length; i++) {
-			if (images[i].hasAttribute('src')) {
-				var imgSrc = images[i].getAttribute('src');
-				imgSrc = _parseURL(imgSrc);
-				images[i].setAttribute('src', imgSrc);
+		for (var i = 0, image = images[i]; image; image = images[++i]) {
+			if (image.hasAttribute('src')) {
+				var imgSrc = _parseURL(image.getAttribute('src'));
+				// Prevent premature loading of img elements:
+				image.setAttribute('data-src', imgSrc);
+				// Use a tiny data-uri GIF as placeholder:
+				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D');
 			}
 		}
 		return content;
@@ -5231,13 +5177,17 @@ var Reader = (function (r) {
 		// Update the number of columns
 		pagesByChapter = _getColumnsNumber();
 
+		var promise;
 		// Maintain reader current position
 		if(_cfi && _cfi.CFI) {
-			r.CFI.goToCFI(_cfi.CFI, true);
+			promise = r.CFI.goToCFI(_cfi.CFI, true);
+		} else {
+			promise = $.Deferred().resolve().promise();
 		}
-
-		r.Bookmarks.display();
-    r.Navigation.updateProgress();
+		promise.then(function () {
+			r.Bookmarks.display();
+			r.Navigation.updateProgress();
+		});
 	};
 
 	// The current book progress.
@@ -5292,10 +5242,8 @@ var Reader = (function (r) {
 		setPage: function(p) {
 			Page.set(p);
 		},
-		loadPage: function(p) {
-			// handle special case when page === last
-			Page.set(page === 'last' ? pagesByChapter : p);
-			Page.load();
+		loadPage: function(p, fixed) {
+			return Page.load(p, fixed);
 		},
 		setChapter: function(c){
 			chapter = c;
@@ -5338,40 +5286,32 @@ var Reader = (function (r) {
 			return defer.promise();
 		},
 		next: function() {
-			var defer = $.Deferred();
 			if (page < pagesByChapter) {
-				Page.next();
-				defer.resolve();
+				return Page.next();
+			}
+			var defer = $.Deferred();
+			if (chapter < bookChapters - 1) {
+			  defer.notify();
+			  Chapter.load(Chapter.next()).then(function chapterLoadCallback(){
+			    r.Navigation.loadPage(0).then(defer.resolve, defer.reject);
+			  }, defer.reject);
 			} else {
-				if (chapter < bookChapters - 1) {
-					defer.notify();
-					Chapter.load(Chapter.next()).then(function(){
-						r.Navigation.loadPage(0);
-						r.Navigation.update();
-						defer.resolve();
-					}, defer.reject);
-				} else {
-					defer.reject(r.Event.END_OF_BOOK);
-				}
+			  defer.reject(r.Event.END_OF_BOOK);
 			}
 			return defer.promise();
 		},
 		prev: function() {
-			var defer = $.Deferred();
 			if (page > 0) {
-				Page.prev();
-				defer.resolve();
+				return Page.prev();
+			}
+			var defer = $.Deferred();
+			if (chapter > 0) {
+			  defer.notify();
+			  Chapter.load(Chapter.prev()).then(function chapterLoadCallback(){
+			    r.Navigation.loadPage('LASTPAGE').then(defer.resolve, defer.reject);
+			  }, defer.reject);
 			} else {
-				if (chapter > 0) {
-					defer.notify();
-					Chapter.load(Chapter.prev()).then(function chapterLoadCallback(){
-						r.Navigation.loadPage(pagesByChapter);
-						r.Navigation.update();
-						defer.resolve();
-					}, defer.reject);
-				} else {
-					defer.reject(r.Event.START_OF_BOOK);
-				}
+			  defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
 		},
@@ -5447,6 +5387,44 @@ var Reader = (function (r) {
 		}
 	};
 
+	function loadImages(reverse) {
+	  var images = $('img', r.$reader),
+		    mainDefer = $.Deferred(),
+	      promise = $.Deferred().resolve().promise();
+		if (images.length && reverse) {
+			images = $(images.get().reverse());
+		}
+		images.each(function () {
+	    var el = this,
+	        dataSrc = el && el.getAttribute('data-src');
+	    if (!dataSrc) {
+	      return;
+	    }
+	    // Load images sequentially so we only load images until the nearest pages are filled:
+	    promise = promise.then(function () {
+	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
+	        var defer = $.Deferred();
+	        $(el).one('load error', function () {
+		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
+		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
+			        $(el).addClass('cpr-center');
+		        }
+		        // Notify on each image load:
+		        mainDefer.notify({type: 'load.img', element: el});
+	          defer.resolve();
+	        });
+	        el.setAttribute('src', dataSrc);
+	        el.removeAttribute('data-src');
+	        return defer.promise();
+	      }
+	    });
+	  });
+		promise.then(function () {
+			mainDefer.resolve();
+		});
+	  return mainDefer.promise();
+	}
+
 	// ## Page API
 	// Actual page is contained in the variable _pageIndex.
 	//
@@ -5458,32 +5436,64 @@ var Reader = (function (r) {
 	var Page = {
 		set: function(p) {
 			page = p;
-			return page;
 		},
 		get: function() {
 			return page;
 		},
-		getByChapter: function(callback) {
-			if (callback && typeof(callback) === 'function') { callback(); }
+		getByChapter: function() {
 			return pagesByChapter;
 		},
-		next: function(callback) {
-			// Advance in the chapter pages
+		next: function() {
 			page = page + 1;
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
-			r.Navigation.update();
-			if (callback && typeof(callback) === 'function') { callback(); }
+			r.Navigation.updateCurrentCFI();
+			return loadImages().then(function () {
+			  r.refreshLayout();
+			});
 		},
-		prev: function(callback) {
+		prev: function() {
 			page = page - 1;
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
-			r.Navigation.update();
-			if (callback && typeof(callback) === 'function') { callback(); }
+			r.Navigation.updateCurrentCFI();
+			return loadImages(true).then(function () {
+			  r.refreshLayout();
+			});
 		},
-		load: function() {
+		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
+		moveTo: function (p) {
+			if (p === 'LASTPAGE') {
+				// page is given as "LASTPAGE", jump to the last page of the chapter:
+				page = pagesByChapter;
+			} else if ($.type(p) === 'string') {
+				if (/^epubcfi\(.+\)$/.test(p)) {
+					// page is given as CFI, jump to the page containing the CFI marker:
+					var pos = r.CFI.findCFIElement(p);
+					page = pos === -1 ? 0 : pos;
+				} else {
+					// page is given as element id, jump to the page containing the element:
+					page = r.moveToAnchor(p);
+				}
+			} else {
+				page = p || 0;
+			}
 			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
+		},
+		load: function(p, fixed) {
+			Page.moveTo(p);
+			var promise = loadImages(p === 'LASTPAGE')
+				.progress(function () {
+					// Update the colums and page position on each image load:
+					pagesByChapter = _getColumnsNumber();
+					Page.moveTo(p);
+				});
+			if (!fixed) {
+				promise = promise.then(function () {
+					r.Navigation.update();
+				});
+			}
+			return promise;
 		}
 	};
 
@@ -5693,7 +5703,10 @@ var READER = (function() {
 					} else {
 						Reader.Notify.error(err);
 					}
-				}, function nextOnNotification(){
+				}, function nextOnNotification(args){
+					if (args && args.type === 'load.img') {
+						return;
+					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
 					_loading_required = true;
@@ -5715,7 +5728,10 @@ var READER = (function() {
 					} else {
 						Reader.Notify.error(err);
 					}
-				}, function prevOnNotification(){
+				}, function prevOnNotification(args){
+					if (args && args.type === 'load.img') {
+						return;
+					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
 					_loading_required = true;
