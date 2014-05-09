@@ -3141,7 +3141,7 @@ var Reader = (function (r) {
 		},
 		getVisibleBookmarks: function(){
 			var bookmarks = [];
-			$('.bookmark[data-cfi]').each(function(index, el){
+			$('.bookmark[data-cfi]', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					bookmarks.push($(el).attr('data-cfi'));
 				}
@@ -3209,7 +3209,7 @@ var Reader = (function (r) {
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter][index] = null;
 
-					var $marker = $('*[data-cfi="' + cfi + '"]');
+					var $marker = $('*[data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
 						var $parent = $marker.parent();
 						$marker.remove();
@@ -3236,7 +3236,7 @@ var Reader = (function (r) {
 		// <a name="display"></a>This function refreshes the bookmark UI. If a bookmark is visible on the current page, it will display the bookmark UI. Ignores mobile readers.
 		display: function(){
 			var isVisible = false;
-			$('.bookmark').each(function(index, el){
+			$('.bookmark', r.$iframe.contents()).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -3246,10 +3246,10 @@ var Reader = (function (r) {
 				return isVisible;
 			}
 			if(isVisible){
-				$('#cpr-bookmark-ui').show();
+				$('#cpr-bookmark-ui', r.$iframe.contents()).show();
 				return isVisible;
 			} else {
-				$('#cpr-bookmark-ui').hide();
+				$('#cpr-bookmark-ui', r.$iframe.contents()).hide();
 			}
 			return false;
 		}
@@ -3398,6 +3398,7 @@ var Reader = (function (r) {
 			try {
 				var startTextNode = getFirstNode();
 				var elCFI = null;
+
 				if (startTextNode.textNode.nodeType === 3) {
 					elCFI = EPUBcfi.Generator.generateCharacterOffsetCFIComponent(startTextNode.textNode, startTextNode.offset, _classBlacklist);
 				} else if (startTextNode.textNode.nodeType === 1) {
@@ -3410,7 +3411,7 @@ var Reader = (function (r) {
 					// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
 					// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
 					// the complete CFi must not contain any '.' (processed normally, but not here)
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), document, _classBlacklist));
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), r.$iframe.contents()[0], _classBlacklist));
 					if($node.length > 1 && $node[0].nodeType === 3) {
 						var offset = startTextNode.offset;
 						for(i = 0; i < $node.length - 1; i++){
@@ -3458,7 +3459,7 @@ var Reader = (function (r) {
 								if(!anchor){
 									continue;
 								} else {
-									var $anchor = $(anchor);
+									var $anchor = $(anchor, r.$iframe.contents());
 									// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
 									if($anchor.length){
 										var anchorPage = r.returnPageElement($anchor);
@@ -3487,11 +3488,11 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, markerClass) { // Add an element to a CFI point
-			if($('.'+(markerClass ? markerClass : 'bookmark')+'[data-cfi="' + cfi + '"]').length === 0){
+			if($('.'+(markerClass ? markerClass : 'bookmark')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
 				try {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, document, _classBlacklist));
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
@@ -3540,19 +3541,19 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+				EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, _classBlacklist);
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
 				if(!r.CFI.addOneNodeToCFI(cfi, el, marker)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					EPUBcfi.Interpreter.injectElement(cfi, document, marker, _classBlacklist);
+					EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, _classBlacklist);
 				}
 			}
 		},
 		findCFIElement : function (value) {
-			var $elem = $('*[data-cfi="' + value + '"]');
+			var $elem = $('*[data-cfi="' + value + '"]', r.$iframe.contents());
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
@@ -3616,6 +3617,7 @@ var Reader = (function (r) {
 		var container = r.$reader[0];
 		var rect = container.getBoundingClientRect();
     var left = r.getReaderLeftPosition();
+		var document = r.$iframe.contents()[0];
 
 		/* standard */
 		if (document.caretPositionFromPoint) {
@@ -3791,8 +3793,11 @@ var Reader = (function (r) {
 			padding: 0
 		}
 	};
-	r.$reader = null;
+	r.$iframe = null;
+	r.$wrap = null;
+	r.$head = null;
 	r.$container = null;
+	r.$reader = null;
 	r.$header = null;
 	r.$footer = null;
 	r.$stylesheet = null;
@@ -3992,13 +3997,18 @@ var Reader = (function (r) {
 		_initURL = null;
 
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
-		r.$reader = param.hasOwnProperty('container') && $(param.container).length ? $(param.container) : $('<div id="reader_container"></div>').appendTo(document.body);
-		r.$container = r.$reader.empty().wrap($('<div></div>')).parent().wrap($('<div id="' + (r.$reader[0].id + '_wrap') + '"></div>').css('display', 'inline-block'));
-
+		// todo validate container
+		r.$parent = $(param.container).empty();
+		r.$iframe = $('<iframe scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
+		r.$head = r.$iframe.contents().find('head');
+		r.$wrap = r.$iframe.contents().find('body');
+		r.$container = $('<div></div>').appendTo(r.$wrap);
+		r.$reader = $('<div id="cpr-reader"></div>').appendTo(r.$container);
 		r.$header = $('<div id="cpr-header"></div>').insertBefore(r.$container);
 		r.$footer = $('<div id="cpr-footer"></div>').insertAfter(r.$container);
 
-    $('<span id="cpr-bookmark-ui"></span>').insertAfter(r.$container); // Add bookmark mark
+		// Add bookmark mark
+		$('<span id="cpr-bookmark-ui"></span>').insertAfter(r.$container);
 
 		// add styles and fonts
 		_addStyles();
@@ -4034,17 +4044,13 @@ var Reader = (function (r) {
 	};
 
 	var _addStyles= function(){
-		var $head = $('head');
+		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#cpr-header{color:#fff;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}body{background:#fff;position:relative;overflow:hidden;margin:0;padding:0}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}body #cpr-reader *,body #cpr-reader a,body #cpr-reader div,body #cpr-reader em,body #cpr-reader h1,body #cpr-reader h2,body #cpr-reader h3,body #cpr-reader h4,body #cpr-reader h5,body #cpr-reader h6,body #cpr-reader p,body #cpr-reader span,body #cpr-reader strong{padding:0;margin:0;font-weight:400;font-style:normal;text-decoration:none;text-align:left;color:#000;line-height:1.2;font-size:18px;font-family:Arial;word-wrap:break-word}body #cpr-reader h1,body #cpr-reader h2,body #cpr-reader h3,body #cpr-reader h4,body #cpr-reader h5,body #cpr-reader h6{font-weight:700;font-size:24px}body #cpr-reader p{margin-bottom:1em}body #cpr-reader :last-child{margin-bottom:0}body #cpr-reader :link{color:#09f;text-decoration:none;border-bottom:1px solid #09f}body #cpr-reader :link[data-link-type=external]:after{content:" ";font-size:.83em;vertical-align:super}body #cpr-reader :link *{color:#09f}body #cpr-reader img,body #cpr-reader svg,body #cpr-reader svg *{max-width:100%;max-height:100%}body #cpr-reader img.cpr-center,body #cpr-reader svg .cpr-center,body #cpr-reader svg.cpr-center{display:block;margin-right:auto;margin-left:auto}';
 
-		var styles = '#wrap_id #id *{animation:none;animation-delay:0;animation-direction:normal;animation-duration:0;animation-fill-mode:none;animation-iteration-count:1;animation-name:none;animation-play-state:running;animation-timing-function:ease;backface-visibility:visible;background:0;background-attachment:scroll;background-clip:border-box;background-color:transparent;background-image:none;background-origin:padding-box;background-position:0 0;background-position-x:0;background-position-y:0;background-repeat:repeat;background-size:auto auto;border:0;border-style:none;border-width:medium;border-color:inherit;border-bottom:0;border-bottom-color:inherit;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom-style:none;border-bottom-width:medium;border-collapse:separate;border-image:none;border-left:0;border-left-color:inherit;border-left-style:none;border-left-width:medium;border-radius:0;border-right:0;border-right-color:inherit;border-right-style:none;border-right-width:medium;border-spacing:0;border-top:0;border-top-color:inherit;border-top-left-radius:0;border-top-right-radius:0;border-top-style:none;border-top-width:medium;bottom:auto;box-shadow:none;box-sizing:content-box;caption-side:top;clear:none;clip:auto;columns:auto;column-count:auto;column-fill:balance;column-gap:normal;column-rule:medium none currentColor;column-rule-color:currentColor;column-rule-style:none;column-rule-width:none;column-span:1;column-width:auto;content:normal;counter-increment:none;counter-reset:none;cursor:auto;direction:ltr;display:inline;empty-cells:show;float:none;font:400;font-variant:normal;height:auto;hyphens:none;left:auto;letter-spacing:normal;list-style:none;list-style-image:none;list-style-position:outside;list-style-type:disc;max-height:none;max-width:none;min-height:0;min-width:0;opacity:1;orphans:0;outline:0;outline-color:invert;outline-style:none;outline-width:medium;overflow:visible;overflow-x:visible;overflow-y:visible;page-break-after:auto;page-break-before:auto;page-break-inside:auto;perspective:none;perspective-origin:50% 50%;position:static;right:auto;tab-size:8;table-layout:auto;text-align-last:auto;text-decoration-color:inherit;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-shadow:none;text-transform:none;top:auto;transform:none;transform-style:flat;transition:none;transition-delay:0s;transition-duration:0s;transition-property:none;transition-timing-function:ease;unicode-bidi:normal;vertical-align:baseline;visibility:visible;white-space:normal;widows:0;width:auto;word-spacing:normal;z-index:auto}#wrap_id #id address,#wrap_id #id blockquote,#wrap_id #id body,#wrap_id #id center,#wrap_id #id dd,#wrap_id #id dir,#wrap_id #id div,#wrap_id #id dl,#wrap_id #id dt,#wrap_id #id fieldset,#wrap_id #id form,#wrap_id #id frame,#wrap_id #id frameset,#wrap_id #id h1,#wrap_id #id h2,#wrap_id #id h3,#wrap_id #id h4,#wrap_id #id h5,#wrap_id #id h6,#wrap_id #id hr,#wrap_id #id html,#wrap_id #id menu,#wrap_id #id noframes,#wrap_id #id ol,#wrap_id #id p,#wrap_id #id pre,#wrap_id #id ul{display:block;unicode-bidi:embed}#wrap_id #id li{display:list-item}#wrap_id #id head{display:none}#wrap_id #id table{display:table}#wrap_id #id tr{display:table-row}#wrap_id #id thead{display:table-header-group}#wrap_id #id tbody{display:table-row-group}#wrap_id #id tfoot{display:table-footer-group}#wrap_id #id col{display:table-column}#wrap_id #id colgroup{display:table-column-group}#wrap_id #id td,#wrap_id #id th{display:table-cell}#wrap_id #id caption{display:table-caption}#wrap_id #id th{font-weight:bolder;text-align:center}#wrap_id #id caption{text-align:center}#wrap_id #id blockquote,#wrap_id #id dir,#wrap_id #id dl,#wrap_id #id fieldset,#wrap_id #id form,#wrap_id #id h4,#wrap_id #id menu,#wrap_id #id ol,#wrap_id #id p,#wrap_id #id ul{margin:1.12em 0}#wrap_id #id blockquote{margin-left:40px;margin-right:40px}#wrap_id #id address,#wrap_id #id cite,#wrap_id #id em,#wrap_id #id i,#wrap_id #id var{font-style:italic}#wrap_id #id code,#wrap_id #id kbd,#wrap_id #id pre,#wrap_id #id samp,#wrap_id #id tt{font-family:monospace}#wrap_id #id button,#wrap_id #id input,#wrap_id #id select,#wrap_id #id textarea{display:inline-block}#wrap_id #id big{font-size:1.17em}#wrap_id #id tbody,#wrap_id #id tfoot,#wrap_id #id thead{vertical-align:middle}#wrap_id #id td,#wrap_id #id th,#wrap_id #id tr{vertical-align:inherit}#wrap_id #id del,#wrap_id #id s,#wrap_id #id strike{text-decoration:line-through}#wrap_id #id hr{border:1px inset}#wrap_id #id dd,#wrap_id #id dir,#wrap_id #id menu,#wrap_id #id ol,#wrap_id #id ul{margin-left:40px}#wrap_id #id ol{list-style-type:decimal}#wrap_id #id ol ol,#wrap_id #id ol ul,#wrap_id #id ul ol,#wrap_id #id ul ul{margin-top:0;margin-bottom:0}#wrap_id #id ins,#wrap_id #id u{text-decoration:underline}#wrap_id #id br:before{content:"";white-space:pre-line}#wrap_id #id center{text-align:center}#wrap_id #id :link,#wrap_id #id :visited{text-decoration:underline}#wrap_id #id :focus{outline:thin dotted invert}#wrap_id #id BDO[DIR=ltr]{direction:ltr;unicode-bidi:bidi-override}#wrap_id #id BDO[DIR=rtl]{direction:rtl;unicode-bidi:bidi-override}#wrap_id #id [DIR=ltr]{direction:ltr;unicode-bidi:embed}#wrap_id #id [DIR=rtl]{direction:rtl;unicode-bidi:embed}@media print{#wrap_id #id h1{page-break-before:always}#wrap_id #id h1,#wrap_id #id h2,#wrap_id #id h3,#wrap_id #id h4,#wrap_id #id h5,#wrap_id #id h6{page-break-after:avoid}#wrap_id #id dl,#wrap_id #id ol,#wrap_id #id ul{page-break-before:avoid}}#wrap_id #id article,#wrap_id #id aside,#wrap_id #id details,#wrap_id #id figcaption,#wrap_id #id figure,#wrap_id #id footer,#wrap_id #id header,#wrap_id #id hgroup,#wrap_id #id main,#wrap_id #id nav,#wrap_id #id section,#wrap_id #id summary{display:block}#wrap_id #id audio,#wrap_id #id canvas,#wrap_id #id video{display:inline-block}#wrap_id #id audio:not([controls]){display:none;height:0}#wrap_id #id [hidden],#wrap_id #id template{display:none}#wrap_id #id html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}#wrap_id #id body{margin:0}#wrap_id #id a{background:0 0}#wrap_id #id a:focus{outline:thin dotted}#wrap_id #id a:active,#wrap_id #id a:hover{outline:0}#wrap_id #id abbr[title]{border-bottom:1px dotted}#wrap_id #id b,#wrap_id #id strong{font-weight:700}#wrap_id #id dfn{font-style:italic}#wrap_id #id hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}#wrap_id #id mark{background:#ff0;color:#000}#wrap_id #id code,#wrap_id #id kbd,#wrap_id #id pre,#wrap_id #id samp{font-family:monospace,serif;font-size:1em}#wrap_id #id pre{white-space:pre-wrap}#wrap_id #id small{font-size:80%}#wrap_id #id sub,#wrap_id #id sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}#wrap_id #id sup{top:-.5em}#wrap_id #id sub{bottom:-.25em}#wrap_id #id img{border:0}#wrap_id #id svg:not(:root){overflow:hidden}#wrap_id #id figure{margin:0}#wrap_id #id fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}#wrap_id #id legend{border:0;padding:0}#wrap_id #id button,#wrap_id #id input,#wrap_id #id select,#wrap_id #id textarea{font-family:inherit;font-size:100%;margin:0}#wrap_id #id button,#wrap_id #id input{line-height:normal}#wrap_id #id button,#wrap_id #id select{text-transform:none}#wrap_id #id button,#wrap_id #id html input[type=button],#wrap_id #id input[type=reset],#wrap_id #id input[type=submit]{-webkit-appearance:button;cursor:pointer}#wrap_id #id button[disabled],#wrap_id #id html input[disabled]{cursor:default}#wrap_id #id input[type=checkbox],#wrap_id #id input[type=radio]{box-sizing:border-box;padding:0}#wrap_id #id input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}#wrap_id #id input[type=search]::-webkit-search-cancel-button,#wrap_id #id input[type=search]::-webkit-search-decoration{-webkit-appearance:none}#wrap_id #id button::-moz-focus-inner,#wrap_id #id input::-moz-focus-inner{border:0;padding:0}#wrap_id #id textarea{overflow:auto;vertical-align:top}#wrap_id #id table{border-collapse:collapse;border-spacing:0}#reader_container{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#cpr-header{color:#fff;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}#wrap_id{background:#fff;position:relative;overflow:hidden}#wrap_id #id *,#wrap_id #id a,#wrap_id #id div,#wrap_id #id em,#wrap_id #id h1,#wrap_id #id h2,#wrap_id #id h3,#wrap_id #id h4,#wrap_id #id h5,#wrap_id #id h6,#wrap_id #id p,#wrap_id #id span,#wrap_id #id strong{padding:0;margin:0;font-weight:400;font-style:normal;text-decoration:none;text-align:left;color:#000;line-height:1.2;font-size:18px;font-family:Arial}#wrap_id #id h1,#wrap_id #id h2,#wrap_id #id h3,#wrap_id #id h4,#wrap_id #id h5,#wrap_id #id h6{font-weight:700;font-size:24px}#wrap_id #id p{margin-bottom:1em}#wrap_id #id :last-child{margin-bottom:0}#wrap_id #id :link{color:#09f;text-decoration:none;border-bottom:1px solid #09f}#wrap_id #id :link[data-link-type=external]:after{content:" ";font-size:.83em;vertical-align:super}#wrap_id #id :link *{color:#09f}#wrap_id #id img,#wrap_id #id svg,#wrap_id #id svg *{max-width:100%;max-height:100%}#wrap_id #id img.cpr-center,#wrap_id #id svg .cpr-center,#wrap_id #id svg.cpr-center{display:block;margin-right:auto;margin-left:auto}';
-
-		r.$stylesheet = $('<style id="cpr-stylesheet">' +
-			styles.replace(/#wrap_id/g, '#' + r.$reader.attr('id') + '_wrap').replace(/#id/g, '#' + r.$reader.attr('id')) +
-			'</style>').appendTo($head);
+		r.$stylesheet = $('<style>' + styles + '</style>').appendTo(r.$head);
 
 		// Save a reference for each style
 		var rules = r.$stylesheet[0].sheet.cssRules;
-		var i= 0, l= rules.length, wrap_id = '#' + r.$reader.attr('id') + '_wrap', id = wrap_id + ' #' + r.$reader.attr('id');
+		var i, l= rules.length, wrap_id = 'body', id = ' #' + r.$reader.attr('id');
     var _checkSelectors = function(v) { if (rule.selectorText) { return rule.selectorText.indexOf(v) >= 0; }};
 		for(i=0; i< l; i++){
 			var rule = rules[i];
@@ -4066,7 +4072,7 @@ var Reader = (function (r) {
 
 		// Note, this is injected regardless if it exists or not
 		if(!r.mobile){
-			$head.append('<link href=\'//fonts.googleapis.com/css?family=Droid+Serif:400,700,700italic,400italic\' rel=\'stylesheet\' type=\'text/css\'>');
+			r.$head.append('<link href=\'//fonts.googleapis.com/css?family=Droid+Serif:400,700,700italic,400italic\' rel=\'stylesheet\' type=\'text/css\'>');
 		}
 	};
 
@@ -4075,7 +4081,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.31-100'
+				appversion: '0.1.32-101'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4237,6 +4243,11 @@ var Reader = (function (r) {
 	// * `width` In pixels
 	// * `height` In pixels
 	var _createContainer = function() {
+		r.$iframe.css({
+			display: 'inline-block',
+			border: 'none'
+		});
+
 		r.$reader.addClass(areColumnsSupported() ? 'columns' : 'scroll');
 
 		// Container parent styles.
@@ -4465,7 +4476,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.31-100'
+			'version': '0.1.32-101'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4998,6 +5009,7 @@ var Reader = (function (r) {
 			columns: r.Layout.Reader.columns,
 			padding: r.Layout.Reader.padding
 		}, dimensions);
+
 		// Save new values.
 		r.Layout.Container.width = Math.floor(dimensions.width);
 		r.Layout.Container.height = Math.floor(dimensions.height);
@@ -5011,8 +5023,12 @@ var Reader = (function (r) {
 		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 		// Apply new size
+		r.$iframe.css({
+			width: r.Layout.Container.width + 'px',
+			height: r.Layout.Container.height + 'px'
+		});
+
 		r.$reader.css({
-			left: '-' + ((Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding)) * (r.Navigation.getPage())) + 'px',
 			width: r.Layout.Reader.width + 'px',
 			height: r.Layout.Reader.height + 'px',
 			'column-width': columnWidth + 'px',
@@ -5148,14 +5164,15 @@ var Reader = (function (r) {
 		r.Bookmarks.reset();
 
 		// Remove book content.
-		if(r.$container !== null && r.$reader !== null){
-			r.$container.parent().remove();
+		if(r.$parent){
+			r.$parent.empty();
+			r.$iframe = null;
+			r.$wrap = null;
+			r.$head = null;
 			r.$container = null;
 			r.$reader = null;
 			r.$header = null;
 			r.$footer = null;
-
-			r.$stylesheet.remove();
 			r.$stylesheet = null;
 
 			// reset link to CSS rules
@@ -5183,7 +5200,7 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = $(document.getElementById(String(id)));
+		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
     if (obj.length === 0) {
       return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
     } else {
@@ -5198,7 +5215,7 @@ var Reader = (function (r) {
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-    obj = (obj instanceof $) ? obj : $(obj);
+    obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
 		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
 	};
@@ -5406,9 +5423,9 @@ var Reader = (function (r) {
 
 			if (r.mobile) {
 				// Update footer and display progress.
-				var progressContainer = $('#cpr-progress');
+				var progressContainer = $('#cpr-progress', r.$iframe.contents());
 				if(!progressContainer.length){
-					progressContainer = $('<div id="cpr-progress"></div>').appendTo($('#cpr-footer'));
+					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}
 				if (r.sample) {
 					progressContainer.text(_progress+' % of sample');
