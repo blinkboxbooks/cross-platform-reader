@@ -117,11 +117,13 @@ var Reader = (function (r) {
 			images = content.getElementsByTagName('IMG');
 		}
 		// Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.
-		for (var i = 0; i < images.length; i++) {
-			if (images[i].hasAttribute('src')) {
-				var imgSrc = images[i].getAttribute('src');
-				imgSrc = _parseURL(imgSrc);
-				images[i].setAttribute('src', imgSrc);
+		for (var i = 0, image = images[i]; image; image = images[++i]) {
+			if (image.hasAttribute('src')) {
+				var imgSrc = _parseURL(image.getAttribute('src'));
+				// Prevent premature loading of img elements:
+				image.setAttribute('data-src', imgSrc);
+				// Use a tiny data-uri GIF as placeholder:
+				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D');
 			}
 		}
 		return content;

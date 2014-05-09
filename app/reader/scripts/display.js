@@ -129,7 +129,7 @@ var Reader = (function (r) {
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
 		if ((r.SPINE[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			r.Navigation.loadPage(r.moveToAnchor(a));
+			r.Navigation.loadPage(a);
 			return true;
 		}
 		// Check the table of contents...
@@ -212,8 +212,6 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: content, page and mimetype
 	// * `callback` Function to be called after the function's logic
 	var displayContent = function(param) {
-		var defer = $.Deferred();
-
 		if (!param) { param = []; }
 		// Take the params values
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
@@ -226,35 +224,6 @@ var Reader = (function (r) {
 
 		r.$reader.html(content);
 
-		// Wait for the images and build the container
-		var $images = $('img', r.$reader);
-		var counter = 0, i = 0;
-		var timer = setInterval(function () {
-
-			if (counter >= $images.length) {
-				clearInterval(timer);
-
-				for (i = 0; i < $images.length; i++) {
-					var $image = $($images[i]);
-					// All images greater than 75% of the reader width will receive cpr-center class to center them
-					if($image.width() > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)){
-						$image.addClass('cpr-center');
-					}
-				}
-
-				defer.resolve();
-				return;
-			}
-
-			var tempCounter = 0;
-			for (i = 0; i < $images.length; i++) {
-				if ($images[i].complete === true) {
-					tempCounter++;
-				}
-			}
-			counter = tempCounter;
-		}, 100);
-
 		// Add all bookmarks for this chapter.
 		var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
 		if(typeof(bookmarks) !== 'undefined'){
@@ -262,8 +231,7 @@ var Reader = (function (r) {
 				r.Navigation.setCFI(bookmark);
 			});
 		}
-
-		return defer.promise();
+		return $.Deferred().resolve().promise();
 	};
 
 	// Define the container dimensions and create the multi column or adjust the height for the vertical scroll.
@@ -349,7 +317,7 @@ var Reader = (function (r) {
 						// load the chapter specified by the CFI, otherwise load chapter 0
 						promise = r.loadChapter(chapter);
 					}
-					promise.then(r.Navigation.update).then(defer.resolve, defer.reject);
+					promise.then(r.Navigation.loadPage).then(defer.resolve, defer.reject);
 				}, defer.reject);
 			}
 			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
@@ -376,15 +344,8 @@ var Reader = (function (r) {
 
 	// Load a chapter and go to the page pointed by the anchor value.
 	r.loadAnchor = function(c,a){
-		return r.loadChapter(c).then(function onLoadAnchorSuccess(){
-			if (a) {
-				var p = r.moveToAnchor(a);
-				r.Navigation.loadPage(p);
-				r.Navigation.update();
-			} else {
-				r.Navigation.loadPage(0);
-				r.Navigation.update();
-			}
+		return r.loadChapter(c).then(function onLoadChapterSuccess(){
+			return r.Navigation.loadPage(a);
 		});
 	};
 

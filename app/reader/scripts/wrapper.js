@@ -70,7 +70,10 @@ var READER = (function() {
 					} else {
 						Reader.Notify.error(err);
 					}
-				}, function nextOnNotification(){
+				}, function nextOnNotification(args){
+					if (args && args.type === 'load.img') {
+						return;
+					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
 					_loading_required = true;
@@ -92,7 +95,10 @@ var READER = (function() {
 					} else {
 						Reader.Notify.error(err);
 					}
-				}, function prevOnNotification(){
+				}, function prevOnNotification(args){
+					if (args && args.type === 'load.img') {
+						return;
+					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
 					_loading_required = true;
