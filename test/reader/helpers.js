@@ -75,7 +75,15 @@ beforeEach(function() {
 					var $dummy = $('<span></span>').css(css);
 					for (var prop in css){
 						if(css.hasOwnProperty(prop)){
-							if ($(actual).css(prop) !== $dummy.css(prop)){
+							// todo workaround for font-size and line height. different browsers calculate font-size differently, therefore the test only checks if the actual font-size is within +-1px of expected value
+							// can be removed once this is fixed https://tools.mobcastdev.com/jira/browse/CR-264
+							if(prop === 'font-size' || prop === 'line-height'){
+								var avalue = parseInt($(actual).css(prop), 10), dvalue = parseInt($dummy.css(prop), 10);
+								if (avalue + 1 < dvalue || avalue - 1 > dvalue){
+									result = false;
+								}
+							}
+							else if ($(actual).css(prop) !== $dummy.css(prop)){
 								result = false;
 							}
 						}

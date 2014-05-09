@@ -82,7 +82,7 @@ describe('Formatting', function() {
 				}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
-					fontSize: (fontSize.default * fontSize.unit) + 'px'
+					'font-size': (fontSize.default * fontSize.unit) + 'px'
 				});
 				done();
 			});
@@ -99,7 +99,7 @@ describe('Formatting', function() {
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
-					fontSize: (fontSize.unit * value) + 'px'
+					'font-size': (fontSize.unit * value) + 'px'
 				});
 				done();
 			});
@@ -115,14 +115,14 @@ describe('Formatting', function() {
 
 				READER.setFontSize(value);
 				expect($contents).toHaveCss({
-					fontSize: (fontSize.unit * value) + 'px'
+					'font-size': (fontSize.unit * value) + 'px'
 				});
 
 				READER.setPreferences({
 					fontSize: value2
 				});
 				expect($contents).toHaveCss({
-					fontSize: (fontSize.unit * value2) + 'px'
+					'font-size': (fontSize.unit * value2) + 'px'
 				});
 
 				done();
@@ -147,7 +147,7 @@ describe('Formatting', function() {
 				var $test = $('<span></span>');
 				$test.css('font-size', ((fontSize.default + 2 * step) * fontSize.unit) + 'px');
 				expect($contents).toHaveCss({
-					fontSize: Math.round((fontSize.default + 2 * step) * fontSize.unit) + 'px'
+					'font-size': Math.round((fontSize.default + 2 * step) * fontSize.unit) + 'px'
 				});
 				done();
 			});
@@ -168,7 +168,7 @@ describe('Formatting', function() {
 				// calling increase font size twice
 				READER.decreaseFontSize();
 				expect($contents).toHaveCss({
-					fontSize: Math.round((fontSize.default - step) * fontSize.unit) + 'px'
+					'font-size': Math.round((fontSize.default - step) * fontSize.unit) + 'px'
 				});
 				done();
 			});
@@ -185,7 +185,7 @@ describe('Formatting', function() {
 				var fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
 					// line height appears to be computed as the floor value of the actual value
-					lineHeight: Math.floor(lineHeight.default * fontSize) + 'px'
+					'line-height': Math.floor(lineHeight.default * fontSize) + 'px'
 				});
 				done();
 			});
@@ -203,7 +203,7 @@ describe('Formatting', function() {
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				var fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
-					lineHeight: (fontSize * value) + 'px'
+					'line-height': (fontSize * value) + 'px'
 				});
 				done();
 			});
@@ -218,7 +218,7 @@ describe('Formatting', function() {
 				READER.setLineHeight(value);
 				fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
-					lineHeight: (fontSize * value) + 'px'
+					'line-height': (fontSize * value) + 'px'
 				});
 
 				READER.setPreferences({
@@ -226,7 +226,7 @@ describe('Formatting', function() {
 				});
 				fontSize = parseInt($contents.css('fontSize'));
 				expect($contents).toHaveCss({
-					lineHeight: (fontSize * value2) + 'px'
+					'line-height': (fontSize * value2) + 'px'
 				});
 				done();
 			});
@@ -249,7 +249,7 @@ describe('Formatting', function() {
 				READER.increaseLineHeight();
 				READER.increaseLineHeight();
 				expect($contents).toHaveCss({
-					lineHeight: Math.round((2 + 2 * step) * fontSize) + 'px'
+					'line-height': Math.round((2 + 2 * step) * fontSize) + 'px'
 				});
 				done();
 			});
@@ -271,7 +271,7 @@ describe('Formatting', function() {
 				// calling increase font size twice
 				READER.decreaseLineHeight();
 				expect($contents).toHaveCss({
-					lineHeight: Math.round((2 - step) * fontSize) + 'px'
+					'line-height': Math.round((2 - step) * fontSize) + 'px'
 				});
 				done();
 			});

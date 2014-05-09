@@ -94,7 +94,6 @@ describe('Navigation', function() {
 
 		var _nextLoop = function(){
 			_commonTests();
-			console.log(currentStatus.pages);
 
 			if(previousStatus){
 				expect(currentStatus.progress).toBeGreaterOrEqualThan(previousStatus.progress);
