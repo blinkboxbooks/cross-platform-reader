@@ -24,7 +24,7 @@ var Reader = (function (r) {
 		},
 		getVisibleBookmarks: function(){
 			var bookmarks = [];
-			$('.bookmark[data-cfi]').each(function(index, el){
+			$('.bookmark[data-cfi]', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					bookmarks.push($(el).attr('data-cfi'));
 				}
@@ -92,7 +92,7 @@ var Reader = (function (r) {
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter][index] = null;
 
-					var $marker = $('*[data-cfi="' + cfi + '"]');
+					var $marker = $('*[data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
 						var $parent = $marker.parent();
 						$marker.remove();
@@ -119,7 +119,7 @@ var Reader = (function (r) {
 		// <a name="display"></a>This function refreshes the bookmark UI. If a bookmark is visible on the current page, it will display the bookmark UI. Ignores mobile readers.
 		display: function(){
 			var isVisible = false;
-			$('.bookmark').each(function(index, el){
+			$('.bookmark', r.$iframe.contents()).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -129,10 +129,10 @@ var Reader = (function (r) {
 				return isVisible;
 			}
 			if(isVisible){
-				$('#cpr-bookmark-ui').show();
+				$('#cpr-bookmark-ui', r.$iframe.contents()).show();
 				return isVisible;
 			} else {
-				$('#cpr-bookmark-ui').hide();
+				$('#cpr-bookmark-ui', r.$iframe.contents()).hide();
 			}
 			return false;
 		}

@@ -2,7 +2,7 @@
 
 describe('Layout', function() {
 
-	var testBookUrl = '/base/app/books/9780007441235', readerID = '#layout_test',
+	var testBookUrl = '/base/app/books/9780007441235',
 		flags = {
 			hasErrors: false,
 			hasNext: true,
@@ -11,7 +11,6 @@ describe('Layout', function() {
 		currentStatus = null,
 		defaultArgs = {
 			url: testBookUrl,
-			container: readerID,
 			width: 400,
 			height: 600,
 			listener: function(ev){
@@ -45,9 +44,6 @@ describe('Layout', function() {
 		};
 
 	beforeEach(function(){
-		// making sure the reader has a valid container in the body
-		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
-
 		// reset flags and variables
 		flags.hasErrors = false;
 		flags.hasNext = true;
@@ -72,17 +68,19 @@ describe('Layout', function() {
 	it('should initialize reader to given dimensions', function(done){
 
 		var _dimensionTest = function(index){
-			var dimension = dimensions[index], testID = '#dimension_test_' + index, margin = [5, 5, 5, 5];
+			var dimension = dimensions[index], margin = [5, 5, 5, 5];
 
-			$('<div id="'+testID.slice(1)+'"></div>').appendTo($('body'));
+			var $container = $('<div></div>').appendTo($('body'));
 			READER.init($.extend({
 					url: testBookUrl,
-					container: testID,
+					container: $container,
 					preferences: {
 						margin: margin
 					}
 				}, dimension)).then(function(){
-					var $reader_wrap = $(testID + '_wrap'), $reader = $(testID);
+					var $iframe = $container.find('iframe'),
+						$reader_wrap = $iframe.contents().find('body'),
+						$reader = $iframe.contents().find('#cpr-reader');
 
 					var expectedWidth = dimension.width - Math.floor(margin[1]*dimension.width/100) - Math.floor(margin[3]*dimension.width/100);
 					var expectedColumn = Math.floor(expectedWidth / dimension.columns - dimension.padding / 2);
@@ -113,13 +111,17 @@ describe('Layout', function() {
 	it('should resize reader to given dimensions', function(done){
 		var margin = [5, 5, 5, 5];
 
+		var $container = $('<div></div>').appendTo($('body'));
 		READER.init($.extend({
+				container: $container,
 				preferences: {
 					margin: margin
 				}
 			}, defaultArgs)).then(function(){
 
-				var $reader_wrap = $(readerID + '_wrap'), $reader = $(readerID);
+				var $iframe = $container.find('iframe'),
+					$reader_wrap = $iframe.contents().find('body'),
+					$reader = $iframe.contents().find('#cpr-reader');
 
 				for(var i = 0, l = dimensions.length; i < l; i++){
 					var dimension = dimensions[i];
@@ -142,7 +144,7 @@ describe('Layout', function() {
 					});
 				}
 
-				expect($(readerID)).toHaveReaderStructure();
+				expect($container).toHaveReaderStructure();
 
 				done();
 			});

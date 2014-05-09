@@ -13,6 +13,7 @@
     "jquery": "1.10.2",
     "angular": "~1.2.13",
     "angular-route": "~1.2.13",
-    "FilterJS": "~0.0.1"
+    "FilterJS": "~0.0.1",
+    "normalize-scss": "~3.0.1"
   }
 }

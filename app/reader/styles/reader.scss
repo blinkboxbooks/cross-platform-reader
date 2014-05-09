@@ -1,13 +1,4 @@
-@import '_reset';
-@import '_normalize';
-
-#reader_container {
-  // Force GPU hardware acceleration:
-  -webkit-backface-visibility: hidden;
-  -webkit-perspective: 1000;
-  backface-visibility: hidden;
-  perspective: 1000;
-}
+@import 'normalize-scss/_normalize';
 
 // the selector text is used as an identifier in the script, be careful if you need to change it (display.js)
 #cpr-bookmark-ui {
@@ -51,12 +42,20 @@
 .cpr-marker {
 
 }
-#wrap_id {
+body {
   background: white; // @@theme_background x
   position: relative;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 
-  #id {
+  #cpr-reader {
+    // Force GPU hardware acceleration:
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    backface-visibility: hidden;
+    perspective: 1000;
+
     *, span, p, em, div, strong, a, h1, h2, h3, h4, h5, h6 {
       padding: 0;
       margin: 0;
@@ -69,6 +68,7 @@
       line-height: 1.2; // @@lineHeight x
       font-size: 18px; // @@fontSize * 16 px  x
       font-family: Arial; // @@fontFamily x
+      word-wrap: break-word;
     }
     h1, h2, h3, h4, h5, h6 {
       font-weight: bold;

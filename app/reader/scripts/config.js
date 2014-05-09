@@ -33,8 +33,11 @@ var Reader = (function (r) {
 			padding: 0
 		}
 	};
-	r.$reader = null;
+	r.$iframe = null;
+	r.$wrap = null;
+	r.$head = null;
 	r.$container = null;
+	r.$reader = null;
 	r.$header = null;
 	r.$footer = null;
 	r.$stylesheet = null;

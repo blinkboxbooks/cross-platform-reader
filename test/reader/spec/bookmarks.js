@@ -2,7 +2,7 @@
 
 describe('Bookmarks', function() {
 
-	var testBookUrl = '/base/app/books/9780007441235', readerID = '#bookmarks_test',
+	var testBookUrl = '/base/app/books/9780007441235', $container = null,
 		flags = {
 			hasErrors: false,
 			hasNext: true,
@@ -17,7 +17,6 @@ describe('Bookmarks', function() {
 		currentStatus = null,
 		defaultArgs = {
 			url: testBookUrl,
-			container: readerID,
 			width: 400,
 			height: 600,
 			listener: function(ev){
@@ -52,7 +51,7 @@ describe('Bookmarks', function() {
 
 	beforeEach(function(){
 		// making sure the reader has a valid container in the body
-		$('<div id="'+readerID.slice(1)+'"></div>').appendTo($('body'));
+		$container = $('<div></div>').appendTo($('body'));
 
 		// reset flags and variables
 		flags.hasErrors = false;
@@ -63,7 +62,7 @@ describe('Bookmarks', function() {
 	});
 
 	afterEach(function(){
-		expect($(readerID)).toHaveReaderStructure();
+		expect($container).toHaveReaderStructure();
 		expect(flags.hasErrors).toBe(false);
 	});
 
@@ -99,7 +98,7 @@ describe('Bookmarks', function() {
 			}
 		};
 
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({container: $container}, defaultArgs)).then(function(){
 
 			// expect on initialization to open chapter 0 and page 0
 			expect(currentStatus.page).toBe(0);
@@ -125,7 +124,7 @@ describe('Bookmarks', function() {
 
 	it('should set all bookmarks', function(done){
 
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({container: $container}, defaultArgs)).then(function(){
 
 			expect(currentStatus.bookmarksInPage).toBeArray(0);
 			expect(currentStatus.bookmarks).toBeArray(0);
@@ -140,6 +139,7 @@ describe('Bookmarks', function() {
 
 	it('should disregard previous bookmarks after set', function(done){
 		READER.init($.extend({
+				container: $container,
 				bookmarks: [bookmark]
 			}, defaultArgs)).then(function(){
 				expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
@@ -155,6 +155,7 @@ describe('Bookmarks', function() {
 
 	it('should initialise with specified bookmarks', function(done){
 		READER.init($.extend({
+				container: $container,
 				bookmarks: bookmarks
 			}, defaultArgs)).then(function(){
 
@@ -164,7 +165,7 @@ describe('Bookmarks', function() {
 	});
 
 	it('should set a bookmark', function(done){
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({container: $container}, defaultArgs)).then(function(){
 				expect(_flattenBookmarks(currentStatus.bookmarks)).not.toContain(bookmark);
 
 				READER.setBookmark(bookmark);
@@ -176,6 +177,7 @@ describe('Bookmarks', function() {
 
 	it('should remove a bookmark', function(done){
 		READER.init($.extend({
+				container: $container,
 				bookmarks: [bookmark]
 			}, defaultArgs)).then(function(){
 				expect(_flattenBookmarks(currentStatus.bookmarks)).toContain(bookmark);
@@ -189,6 +191,7 @@ describe('Bookmarks', function() {
 
 	it('should set bookmark in its chapter location', function(done){
 		READER.init($.extend({
+				container: $container,
 				bookmarks: [bookmark]
 			}, defaultArgs)).then(function(){
 				expect(currentStatus.bookmarks).toBeArray(5); // bookmark is in chapter 4
@@ -200,7 +203,7 @@ describe('Bookmarks', function() {
 	});
 
 	it('should return the spine and toc', function(done){
-		READER.init($.extend({}, defaultArgs)).then(function(){
+		READER.init($.extend({container: $container}, defaultArgs)).then(function(){
 				expect(JSON.parse(READER.getSPINE())).toBeArray();
 				expect(JSON.parse(READER.getTOC())).toBeArray();
 
