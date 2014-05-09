@@ -310,7 +310,7 @@ var Reader = (function (r) {
 		var offset;
 		var container = r.$reader[0];
 		var rect = container.getBoundingClientRect();
-    	var left = r.getReaderLeftPosition();
+		var left = r.getReaderLeftPosition();
 		var document = r.$iframe.contents()[0];
 
 		/* standard */
