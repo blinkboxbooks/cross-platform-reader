@@ -133,7 +133,7 @@ var Reader = (function (r) {
 				value = r.preferences.margin.clear(args.margin);
 				if(value !== r.preferences.margin.value){
 					r.preferences.margin.value = value;
-					r.resizeContainer();
+					r.Layout.resizeContainer();
 					updated = true;
 				}
 			}

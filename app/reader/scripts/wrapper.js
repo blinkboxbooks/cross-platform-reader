@@ -138,7 +138,7 @@ var READER = (function() {
 		removeBookmark: _status_wrap(Reader.Bookmarks.removeBookmark, 'removeBookmark'),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
-		resizeContainer: _status_wrap(Reader.resizeContainer, 'resizeContainer'),
+		resizeContainer: _status_wrap(Reader.Layout.resizeContainer, 'resizeContainer'),
 		Event: Reader.Event,
 		refreshLayout: _status_wrap(Reader.refreshLayout, 'refreshLayout'),
 		enableDebug: Reader.Debug.enable,

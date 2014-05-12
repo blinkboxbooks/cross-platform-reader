@@ -62,7 +62,7 @@ var Reader = (function (r) {
 		// Apply all user preferences
 		r.setPreferences(param.preferences);
 
-		r.resizeContainer(param);
+		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
 		_setBugsense();
