@@ -154,9 +154,9 @@ var Reader = (function (r) {
 					};
 
 					if(chapter !== -1){
-						var href = r.SPINE[chapter].href;
-						for(i = 0; i < r.TOC.length; i++){
-							_parseItem(r.TOC[i]);
+						var href = r.Book.spine[chapter].href;
+						for(i = 0; i < r.Book.toc.length; i++){
+							_parseItem(r.Book.toc[i]);
 						}
 					}
 					if(sections.length){

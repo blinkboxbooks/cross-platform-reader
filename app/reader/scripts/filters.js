@@ -26,8 +26,8 @@ var Reader = (function (r) {
 
 		// Absolute path of the document containing the image
 		// TODO Move this to Chapter object? Maybe separate file?
-		for (var i = 0; i < r.SPINE.length; i++) {
-			var href = r.SPINE[i].href;
+		for (var i = 0; i < r.Book.spine.length; i++) {
+			var href = r.Book.spine[i].href;
 			if (href.indexOf(docName) !== -1) {
 				// The document name was found.
 				var pathComponents = href.split('/');
@@ -188,7 +188,7 @@ var Reader = (function (r) {
 	// ex: `../html/chapter.html` -> `chapter.html`
 	var _normalizeLink = function(url){
 		// get current chapter folder url
-		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;
+		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.Book.spine[chapter].href), result = chapterURL;
 
 		// parse current url to remove `..` from path
 		var paths = url.split('/');
