@@ -3,13 +3,46 @@
 describe('Initialisation', function() {
 	var readerID = 'reader';
 
-	beforeEach(function(){
-		// mock all ajax requests and return empty promise
-		// can and should be be overwritten for each specific test
-		spyOn( $, 'ajax' ).and.callFake( function () {
-			return $.Deferred().promise();
-		});
-	});
+	var testBookUrl = '/base/app/books/9780007441235',
+		flags = {
+			hasErrors: false,
+			hasNext: true,
+			hasPrev: false,
+		},
+		currentStatus = null,
+		defaultArgs = {
+			url: testBookUrl,
+			width: 400,
+			height: 600,
+			listener: function(ev){
+				switch(ev.code){
+					case 0: // reader reached last page of book
+						flags.hasNext = false;
+						break;
+					case 4: // reader reached first page of book
+						flags.hasPrev = false;
+						break;
+					case 5: // reader started loading
+						break;
+					case 6: // reader finished loading
+						break;
+					case 7: // reader returned status
+						currentStatus = ev;
+						break;
+					case 9: // reader missing a file
+					case 10: // parsing failed
+					case 11: // cfi generation error
+					case 12: // cfi insertion
+					case 13: // invalid argument
+					case 14: // cannot add bookmark
+					case 15: // bookmark already exists
+					case 16: // cannot remove bookmark
+						console.log(ev);
+						flags.hasErrors = true;
+						break;
+				}
+			}
+		};
 
 	it('should initialise library', function() {
 		expect(READER).toBeDefined();
@@ -47,46 +80,50 @@ describe('Initialisation', function() {
 		expect(READER.disableDebug).toBeFunction();
 	});
 
-	it('should initialise reader on DOM element', function() {
+	it('should initialise reader on DOM element', function(done) {
 
 		var $container = $('<div></div>').appendTo($('body'));
 
-		READER.init({
+		READER.init($.extend({
 			container: $container[0]
-		});
-
-		expect($container).toHaveReaderStructure();
+		}, defaultArgs)).then(function(){
+				expect($container).toHaveReaderStructure();
+				done();
+			});
 	});
 
-	it('should initialise reader with selector', function() {
+	it('should initialise reader with selector', function(done) {
 
 		var $container = $('<div id="' + readerID + '"></div>').appendTo($('body'));
 
-		READER.init({
+		READER.init($.extend({
 			container: '#' + readerID
-		});
-
-		expect($container).toHaveReaderStructure();
+		}, defaultArgs)).then(function(){
+				expect($container).toHaveReaderStructure();
+				done();
+			});
 	});
 
-	it('should replace previous reader', function() {
+	it('should replace previous reader', function(done) {
 		// create a reader
 		var $container = $('<div></div>').appendTo($('body')),
 			$newContainer = $('<div></div>').appendTo($('body'));
 
-		READER.init({
+		READER.init($.extend({
 			container: $container
-		});
-		expect($container).toHaveReaderStructure();
-		expect($newContainer).not.toHaveReaderStructure();
+		}, defaultArgs)).then(function(){
+				expect($container).toHaveReaderStructure();
+				expect($newContainer).not.toHaveReaderStructure();
 
-		// should replace the reader
-		READER.init({
-			container: $newContainer
-		});
-
-		expect($container).not.toHaveReaderStructure();
-		expect($newContainer).toHaveReaderStructure();
+				// should replace the reader
+				READER.init($.extend({
+					container: $newContainer
+				}, defaultArgs)).then(function(){
+						expect($container).not.toHaveReaderStructure();
+						expect($newContainer).toHaveReaderStructure();
+						done();
+					});
+			});
 	});
 
 });
