@@ -31,9 +31,9 @@ var Reader = (function (r) {
 			if (href.indexOf(docName) !== -1) {
 				// The document name was found.
 				var pathComponents = href.split('/');
-				if (href.indexOf(r.CONTENT_PATH_PREFIX) === -1) {
+				if (href.indexOf(r.Book.content_path_prefix) === -1) {
 					// The href didn't contain the content path prefix (i.e. any path attached to the OPF file), so add it.
-					docAbsPath += '/'+r.CONTENT_PATH_PREFIX.split('/')[0];
+					docAbsPath += '/'+r.Book.content_path_prefix.split('/')[0];
 				}
 				// Append the path components of the document to the absolute path (ignoring the path component which is the document name).
 				if (pathComponents.length > 1) {

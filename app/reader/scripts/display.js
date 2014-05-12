@@ -271,35 +271,34 @@ var Reader = (function (r) {
 	var loadInfo = function() {
 		var defer = $.Deferred();
 		loadFile(r.INF, 'json').then(function bookInfoLoaded(data){
-			// save book metadata
-			r.Book.load(data);
-
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
 
 			// Validate initCFI (chapter exists)
 			var chapter = r.CFI.getChapterFromCFI(_initCFI);
-			if(chapter === -1 || chapter >= r.Book.spine.length){
+			if(chapter === -1 || chapter >= data.spine.length){
 				chapter = 0;
 				_initCFI = null;
 			}
 
+			// todo calculate path prefix in book?
+			var path_prefix = '';
+
 			// If the OPF is in a folder...
 			if (data.opfPath.indexOf('/') !== -1) {
 				var pathComponents = data.opfPath.split('/');
-				r.CONTENT_PATH_PREFIX = '';
 				for (var i = 0; i < (pathComponents.length-1); i++){
 					if (i !== 0) {
-						r.CONTENT_PATH_PREFIX += '/';
+						path_prefix += '/';
 					}
-					r.CONTENT_PATH_PREFIX  += pathComponents[i];
+					path_prefix  += pathComponents[i];
 				}
 			}
 			// If the PATH is empty set its value with the path of the first element in the spine.
-			if (r.CONTENT_PATH_PREFIX === '') {
+			if (path_prefix === '') {
 				// Check the path has more then one component.
-				if (r.Book.spine[0].href.indexOf('/') !== -1) {
-					r.CONTENT_PATH_PREFIX = r.Book.spine[0].href.split('/')[0];
+				if (data.spine[0].href.indexOf('/') !== -1) {
+					path_prefix = data.spine[0].href.split('/')[0];
 				}
 			}
 			// Set OPF
@@ -307,6 +306,13 @@ var Reader = (function (r) {
 			if (r.OPF !== '') {
 				loadFile(r.OPF).then(function opfFileLoaded(opf){
 					r.opf = opf;
+					// save book metadata
+					r.Book.load({
+						title: data.title,
+						spine: data.spine,
+						toc: data.toc,
+						content_path_prefix: path_prefix
+					});
 
 					var promise; // promise object to return
 					if(_initCFI === null){
@@ -374,11 +380,11 @@ var Reader = (function (r) {
 		};
 
 		// Check if the PATH is in the href value from the spine...
-		if ((r.Book.spine[chapterNumber].href.indexOf(r.CONTENT_PATH_PREFIX) !== -1)) {
+		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
 			loadFile(r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		} else {
 			// If it is not, add it and load the chapter
-			loadFile(r.CONTENT_PATH_PREFIX+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
+			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
 
 		return defer.promise();

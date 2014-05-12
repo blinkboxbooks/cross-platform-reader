@@ -14,7 +14,6 @@ var Reader = (function (r) {
 	// Constants
 	r.DOCROOT = '';
 	r.INF = 'META-INF/book-info.json';
-	r.CONTENT_PATH_PREFIX = '';
 	r.OPF = '';
 
 	// Book data
