@@ -321,7 +321,8 @@ var Reader = (function (r) {
 
 	function loadImages(reverse) {
 	  var images = $('img', r.$reader),
-		    mainDefer = $.Deferred(),
+	      updatedImages = $(),
+	      mainDefer = $.Deferred(),
 	      promise = $.Deferred().resolve().promise();
 		if (images.length && reverse) {
 			images = $(images.get().reverse());
@@ -336,13 +337,19 @@ var Reader = (function (r) {
 	    promise = promise.then(function () {
 	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
 	        var defer = $.Deferred();
-	        $(el).one('load error', function () {
+	        $(el).one('load', function () {
+		        $(el).off();
 		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
 			        $(el).addClass('cpr-center');
 		        }
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
+		        updatedImages = updatedImages.add(el);
+		        defer.resolve();
+	        });
+	        $(el).one('error', function () {
+	          $(el).off();
 	          defer.resolve();
 	        });
 	        el.setAttribute('src', dataSrc);
@@ -352,7 +359,7 @@ var Reader = (function (r) {
 	    });
 	  });
 		promise.then(function () {
-			mainDefer.resolve();
+			mainDefer.resolve(updatedImages);
 		});
 	  return mainDefer.promise();
 	}
@@ -380,8 +387,10 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
-			return loadImages().then(function () {
-			  r.refreshLayout();
+			return loadImages().then(function (updatedImages) {
+				if (updatedImages.length) {
+					r.refreshLayout();
+				}
 			});
 		},
 		prev: function() {
@@ -389,8 +398,10 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
-			return loadImages(true).then(function () {
-			  r.refreshLayout();
+			return loadImages(true).then(function (updatedImages) {
+				if (updatedImages.length) {
+					r.refreshLayout();
+				}
 			});
 		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
