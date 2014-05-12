@@ -175,7 +175,7 @@ var Reader = (function (r) {
 					Chapter: status.chapter + '/' + status.chapters + ' - ' + (status.cfi ? status.cfi.chapter : 'Unknown chapter'),
 					Bookmarks: status.bookmarks,
 					Book_URL: r.DOCROOT,
-					Book_Title: r.bookTitle,
+					Book_Title: r.Book.title,
 					Book_ISBN: r.ISBN,
 					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
 					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',

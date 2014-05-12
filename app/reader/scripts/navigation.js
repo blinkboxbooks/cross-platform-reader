@@ -27,19 +27,15 @@ var Reader = (function (r) {
 		r.INF = 'META-INF/book-info.json';
 		r.CONTENT_PATH_PREFIX = '';
 		r.OPF = '';
-		r.Book.spine = [];
-		r.Book.toc = [];
 		r.opf = null;
 		r.DOCROOT = '';
-		r.sample = false;
 		r.mobile = false;
-		r.bookTitle = '';
-		r.bookAuthor = '';
 
 		// Reset all modules.
 		r.CFI.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
+		r.Book.reset();
 
 		// Remove book content.
 		if(r.$parent){

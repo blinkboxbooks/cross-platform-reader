@@ -217,7 +217,7 @@ var Reader = (function (r) {
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
 
-		r.$header.text(r.bookTitle); // TODO Do not polute the reader object.
+		r.$header.text(r.Book.title); // TODO Do not polute the reader object.
 
 		// Parse the content according its mime-type and apply all filters attached to display content
 		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
@@ -271,9 +271,6 @@ var Reader = (function (r) {
 	var loadInfo = function() {
 		var defer = $.Deferred();
 		loadFile(r.INF, 'json').then(function bookInfoLoaded(data){
-			r.sample = data.sample;
-			r.bookTitle = data.title;
-
 			// save book metadata
 			r.Book.load(data);
 
