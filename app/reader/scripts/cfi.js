@@ -38,12 +38,12 @@ var Reader = (function (r) {
 		// <a name="setUp"></a>  Initialises the CFI variables, should be called whenever we load a new chapter
 		// `chapter` the current chapter
 		setUp: function (chapter) {
-			if (r.opf === null) {
+			if (r.Book.$opf === null) {
 				return;
 			}
 			try {
-				var chapterId = $(r.opf).find('spine').children()[chapter].getAttribute('idref');
-				r.CFI.opfCFI = EPUBcfi.Generator.generatePackageDocumentCFIComponent(chapterId, r.opf);
+				var chapterId = $(r.Book.$opf).find('spine').children()[chapter].getAttribute('idref');
+				r.CFI.opfCFI = EPUBcfi.Generator.generatePackageDocumentCFIComponent(chapterId, r.Book.$opf[0]);
 			} catch (err) {
 				// cannot generate CFI
 				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: err, call: 'CFI.setUp'}));

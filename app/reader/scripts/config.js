@@ -14,10 +14,6 @@ var Reader = (function (r) {
 	// Constants
 	r.DOCROOT = '';
 	r.INF = 'META-INF/book-info.json';
-	r.OPF = '';
-
-	// Book data
-	r.opf = null;
 
 	// Initial settings.
 	r.$iframe = null;

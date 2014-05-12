@@ -302,16 +302,15 @@ var Reader = (function (r) {
 				}
 			}
 			// Set OPF
-			r.OPF = data.opfPath;
-			if (r.OPF !== '') {
-				loadFile(r.OPF).then(function opfFileLoaded(opf){
-					r.opf = opf;
+			if (data.opfPath !== '') {
+				loadFile(data.opfPath).then(function opfFileLoaded(opf){
 					// save book metadata
 					r.Book.load({
 						title: data.title,
 						spine: data.spine,
 						toc: data.toc,
-						content_path_prefix: path_prefix
+						content_path_prefix: path_prefix,
+						opf: opf
 					});
 
 					var promise; // promise object to return
