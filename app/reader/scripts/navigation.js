@@ -390,6 +390,9 @@ var Reader = (function (r) {
 			return loadImages().then(function (updatedImages) {
 				if (updatedImages.length) {
 					r.refreshLayout();
+				} else {
+					r.Navigation.updateProgress();
+					r.Bookmarks.display();
 				}
 			});
 		},
@@ -401,6 +404,9 @@ var Reader = (function (r) {
 			return loadImages(true).then(function (updatedImages) {
 				if (updatedImages.length) {
 					r.refreshLayout();
+				} else {
+					r.Navigation.updateProgress();
+					r.Bookmarks.display();
 				}
 			});
 		},
