@@ -23,6 +23,14 @@ var Reader = (function (r) {
 			r.Book.title = '';
 			r.Book.content_path_prefix = '';
 			r.Book.$opf = null;
+		},
+
+		// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
+		getTOC: function(){
+			return JSON.stringify(r.Book.toc);
+		},
+		getSPINE: function(){
+			return JSON.stringify(r.Book.spine);
 		}
 	};
 
