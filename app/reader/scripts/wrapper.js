@@ -28,7 +28,7 @@ var READER = (function() {
 	return {
 		init: function init(){
 			if(_isLoading){
-				return $.Deferred().resolve().promise();
+				return $.Deferred().reject().promise();
 			}
 			return Reader.init.apply(Reader, arguments).always(function initComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
@@ -57,7 +57,7 @@ var READER = (function() {
 		getCFI: Reader.CFI.getCFI,
 		goToCFI: function goToCFI(){
 			if(_isLoading){
-				return $.Deferred().resolve().promise();
+				return $.Deferred().reject().promise();
 			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
 			_isLoading = true;
@@ -69,7 +69,7 @@ var READER = (function() {
 		},
 		next: function next(){
 			if(_isLoading){
-				return $.Deferred().resolve().promise();
+				return $.Deferred().reject().promise();
 			}
 			var _loading_required = false;
 			return Reader.Navigation.next().always(function nextComplete(){
@@ -99,7 +99,7 @@ var READER = (function() {
 		},
 		prev: function next(){
 			if(_isLoading){
-				return $.Deferred().resolve().promise();
+				return $.Deferred().reject().promise();
 			}
 			var _loading_required = false;
 			return Reader.Navigation.prev().always(function prevComplete(){
@@ -129,7 +129,7 @@ var READER = (function() {
 		},
 		loadChapter: function loadChapter(){
 			if(_isLoading){
-				return $.Deferred().resolve().promise();
+				return $.Deferred().reject().promise();
 			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
 			_isLoading = true;
@@ -152,7 +152,7 @@ var READER = (function() {
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
 		goToBookmark: function goToBookmark(){
 			if(_isLoading){
-				return $.Deferred().resolve().promise();
+				return $.Deferred().reject().promise();
 			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
 			_isLoading = true;
