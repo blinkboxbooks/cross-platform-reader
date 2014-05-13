@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>styles.js</title>
+  <title>book.js</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -91,7 +91,7 @@
         
           <li id="title">
               <div class="annotation">
-                  <h1>styles.js</h1>
+                  <h1>book.js</h1>
               </div>
           </li>
         
@@ -106,21 +106,64 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Sub module for managing a book’s meta-information (url, title, spine, isbn)</p>
 
-<span class="hljs-comment">/* jshint unused: true */</span>
-<span class="hljs-comment">/* exported Reader */</span>
-
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
 <span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> {</span>
 
-	r.hideHeaderAndFooter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
-		r.$header.css({visibility: <span class="hljs-string">'hidden'</span>});
-		r.$footer.css({visibility: <span class="hljs-string">'hidden'</span>});
-	};
+	r.Book = {
+		spine: [],
+		toc: [],
+		title: <span class="hljs-string">''</span>,
+		content_path_prefix: <span class="hljs-string">''</span>,
+		$opf: <span class="hljs-literal">null</span>,
+		load: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span>{</span>
+			r.Book.spine = args.spine || [];
+			r.Book.toc = args.toc || [];
+			r.Book.title = args.title || <span class="hljs-string">''</span>;
+			r.Book.content_path_prefix = args.content_path_prefix || <span class="hljs-string">''</span>;
+			r.Book.$opf = $(args.opf).filter(<span class="hljs-string">'package'</span>);
+		},
+		reset: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			r.Book.spine = [];
+			r.Book.toc = [];
+			r.Book.title = <span class="hljs-string">''</span>;
+			r.Book.content_path_prefix = <span class="hljs-string">''</span>;
+			r.Book.$opf = <span class="hljs-literal">null</span>;
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>This function returns a stringified version of the table of contents. It is mainly used on mobile readers.</p>
 
-	r.showHeaderAndFooter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
-		r.$header.css({visibility: <span class="hljs-string">'visible'</span>});
-		r.$footer.css({visibility: <span class="hljs-string">'visible'</span>});
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		getTOC: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-built_in">JSON</span>.stringify(r.Book.toc);
+		},
+		getSPINE: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> <span class="hljs-built_in">JSON</span>.stringify(r.Book.spine);
+		}
 	};
 
 	<span class="hljs-keyword">return</span> r;

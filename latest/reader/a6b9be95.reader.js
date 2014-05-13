@@ -3117,6 +3117,45 @@ var bugsense;
 });
 'use strict';
 
+// Sub module for managing a book's meta-information (url, title, spine, isbn)
+
+var Reader = (function (r) {
+
+	r.Book = {
+		spine: [],
+		toc: [],
+		title: '',
+		content_path_prefix: '',
+		$opf: null,
+		load: function(args){
+			r.Book.spine = args.spine || [];
+			r.Book.toc = args.toc || [];
+			r.Book.title = args.title || '';
+			r.Book.content_path_prefix = args.content_path_prefix || '';
+			r.Book.$opf = $(args.opf).filter('package');
+		},
+		reset: function(){
+			r.Book.spine = [];
+			r.Book.toc = [];
+			r.Book.title = '';
+			r.Book.content_path_prefix = '';
+			r.Book.$opf = null;
+		},
+
+		// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
+		getTOC: function(){
+			return JSON.stringify(r.Book.toc);
+		},
+		getSPINE: function(){
+			return JSON.stringify(r.Book.spine);
+		}
+	};
+
+	return r;
+}(Reader || {}));
+
+'use strict';
+
 /* jshint unused: true */
 /* exported Reader */
 /* globals $ */
@@ -3255,19 +3294,6 @@ var Reader = (function (r) {
 		}
 	};
 
-	// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
-	r.getTOC = function(){
-		return JSON.stringify(r.TOC);
-	};
-
-	r.getSPINE = function(){
-		return JSON.stringify(r.SPINE);
-	};
-
-
-	// Initialize the table of contents.
-	r.TOC = [];
-
 	// Debug flag, used to log various events for debugging purposes
 	var _debug = false;
 	r.Debug = {
@@ -3327,12 +3353,12 @@ var Reader = (function (r) {
 		// <a name="setUp"></a>  Initialises the CFI variables, should be called whenever we load a new chapter
 		// `chapter` the current chapter
 		setUp: function (chapter) {
-			if (r.opf === null) {
+			if (r.Book.$opf === null) {
 				return;
 			}
 			try {
-				var chapterId = $(r.opf).find('spine').children()[chapter].getAttribute('idref');
-				r.CFI.opfCFI = EPUBcfi.Generator.generatePackageDocumentCFIComponent(chapterId, r.opf);
+				var chapterId = $(r.Book.$opf).find('spine').children()[chapter].getAttribute('idref');
+				r.CFI.opfCFI = EPUBcfi.Generator.generatePackageDocumentCFIComponent(chapterId, r.Book.$opf[0]);
 			} catch (err) {
 				// cannot generate CFI
 				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: err, call: 'CFI.setUp'}));
@@ -3443,9 +3469,9 @@ var Reader = (function (r) {
 					};
 
 					if(chapter !== -1){
-						var href = r.SPINE[chapter].href;
-						for(i = 0; i < r.TOC.length; i++){
-							_parseItem(r.TOC[i]);
+						var href = r.Book.spine[chapter].href;
+						for(i = 0; i < r.Book.toc.length; i++){
+							_parseItem(r.Book.toc[i]);
 						}
 					}
 					if(sections.length){
@@ -3757,25 +3783,8 @@ var Reader = (function (r) {
 	// Constants
 	r.DOCROOT = '';
 	r.INF = 'META-INF/book-info.json';
-	r.CONTENT_PATH_PREFIX = '';
-	r.OPF = '';
-
-	// Book data
-	r.opf = null;
 
 	// Initial settings.
-	r.Layout = {
-		Container: {
-			width: 0,
-			height: 0
-		},
-		Reader: {
-			width: 0,
-			height: 0,
-			columns: 1,
-			padding: 0
-		}
-	};
 	r.$iframe = null;
 	r.$wrap = null;
 	r.$head = null;
@@ -4017,7 +4026,7 @@ var Reader = (function (r) {
 		// Apply all user preferences
 		r.setPreferences(param.preferences);
 
-		r.resizeContainer(param);
+		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
 		_setBugsense();
@@ -4064,7 +4073,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.35-108'
+				appversion: '0.1.36-109'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4083,13 +4092,13 @@ var Reader = (function (r) {
 		var a = url[1];
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
-		if ((r.SPINE[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
+		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
 			r.Navigation.loadPage(a);
 			return true;
 		}
 		// Check the table of contents...
-		for (var i=0; i<r.TOC.length; i++) {
-			if (r.TOC[i].href.indexOf(u) !== -1 && r.TOC[i].active === true) { findURL = true; }
+		for (var i=0; i<r.Book.toc.length; i++) {
+			if (r.Book.toc[i].href.indexOf(u) !== -1 && r.Book.toc[i].active === true) { findURL = true; }
 		}
 
 		var _load = function(j,a){
@@ -4107,9 +4116,9 @@ var Reader = (function (r) {
 		};
 
 		// Check the spine...
-		for (var j=0; j<r.SPINE.length;j++) {
+		for (var j=0; j<r.Book.spine.length;j++) {
 			// URL is in the Spine and it has a chapter number...
-			if (r.SPINE[j].href.indexOf(u) !== -1) {
+			if (r.Book.spine[j].href.indexOf(u) !== -1) {
 				r.Navigation.setChapter(j);
 				r.Navigation.setPage(0);
 
@@ -4172,7 +4181,7 @@ var Reader = (function (r) {
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
 
-		r.$header.text(r.bookTitle); // TODO Do not polute the reader object.
+		r.$header.text(r.Book.title); // TODO Do not polute the reader object.
 
 		// Parse the content according its mime-type and apply all filters attached to display content
 		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
@@ -4226,44 +4235,47 @@ var Reader = (function (r) {
 	var loadInfo = function() {
 		var defer = $.Deferred();
 		loadFile(r.INF, 'json').then(function bookInfoLoaded(data){
-			r.SPINE = data.spine;
-			r.TOC = data.toc;
-			r.sample = data.sample;
-			r.bookTitle = data.title;
-
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
 
 			// Validate initCFI (chapter exists)
 			var chapter = r.CFI.getChapterFromCFI(_initCFI);
-			if(chapter === -1 || chapter >= r.SPINE.length){
+			if(chapter === -1 || chapter >= data.spine.length){
 				chapter = 0;
 				_initCFI = null;
 			}
 
+			// todo calculate path prefix in book?
+			var path_prefix = '';
+
 			// If the OPF is in a folder...
 			if (data.opfPath.indexOf('/') !== -1) {
 				var pathComponents = data.opfPath.split('/');
-				r.CONTENT_PATH_PREFIX = '';
 				for (var i = 0; i < (pathComponents.length-1); i++){
 					if (i !== 0) {
-						r.CONTENT_PATH_PREFIX += '/';
+						path_prefix += '/';
 					}
-					r.CONTENT_PATH_PREFIX  += pathComponents[i];
+					path_prefix  += pathComponents[i];
 				}
 			}
 			// If the PATH is empty set its value with the path of the first element in the spine.
-			if (r.CONTENT_PATH_PREFIX === '') {
+			if (path_prefix === '') {
 				// Check the path has more then one component.
-				if (r.SPINE[0].href.indexOf('/') !== -1) {
-					r.CONTENT_PATH_PREFIX = r.SPINE[0].href.split('/')[0];
+				if (data.spine[0].href.indexOf('/') !== -1) {
+					path_prefix = data.spine[0].href.split('/')[0];
 				}
 			}
 			// Set OPF
-			r.OPF = data.opfPath;
-			if (r.OPF !== '') {
-				loadFile(r.OPF).then(function opfFileLoaded(opf){
-					r.opf = opf;
+			if (data.opfPath !== '') {
+				loadFile(data.opfPath).then(function opfFileLoaded(opf){
+					// save book metadata
+					r.Book.load({
+						title: data.title,
+						spine: data.spine,
+						toc: data.toc,
+						content_path_prefix: path_prefix,
+						opf: opf
+					});
 
 					var promise; // promise object to return
 					if(_initCFI === null){
@@ -4331,11 +4343,11 @@ var Reader = (function (r) {
 		};
 
 		// Check if the PATH is in the href value from the spine...
-		if ((r.SPINE[chapterNumber].href.indexOf(r.CONTENT_PATH_PREFIX) !== -1)) {
-			loadFile(r.SPINE[chapterNumber].href).then(loadChapterSuccess, defer.reject);
+		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
+			loadFile(r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		} else {
 			// If it is not, add it and load the chapter
-			loadFile(r.CONTENT_PATH_PREFIX+'/'+r.SPINE[chapterNumber].href).then(loadChapterSuccess, defer.reject);
+			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
 
 		return defer.promise();
@@ -4421,7 +4433,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.35-108'
+			'version': '0.1.36-109'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4538,7 +4550,7 @@ var Reader = (function (r) {
 					Chapter: status.chapter + '/' + status.chapters + ' - ' + (status.cfi ? status.cfi.chapter : 'Unknown chapter'),
 					Bookmarks: status.bookmarks,
 					Book_URL: r.DOCROOT,
-					Book_Title: r.bookTitle,
+					Book_Title: r.Book.title,
 					Book_ISBN: r.ISBN,
 					CFI: status.cfi ? status.cfi.CFI : 'Unknown CFI',
 					Preview: status.cfi ? status.cfi.preview : 'Unknown preview',
@@ -4584,14 +4596,14 @@ var Reader = (function (r) {
 
 		// Absolute path of the document containing the image
 		// TODO Move this to Chapter object? Maybe separate file?
-		for (var i = 0; i < r.SPINE.length; i++) {
-			var href = r.SPINE[i].href;
+		for (var i = 0; i < r.Book.spine.length; i++) {
+			var href = r.Book.spine[i].href;
 			if (href.indexOf(docName) !== -1) {
 				// The document name was found.
 				var pathComponents = href.split('/');
-				if (href.indexOf(r.CONTENT_PATH_PREFIX) === -1) {
+				if (href.indexOf(r.Book.content_path_prefix) === -1) {
 					// The href didn't contain the content path prefix (i.e. any path attached to the OPF file), so add it.
-					docAbsPath += '/'+r.CONTENT_PATH_PREFIX.split('/')[0];
+					docAbsPath += '/'+r.Book.content_path_prefix.split('/')[0];
 				}
 				// Append the path components of the document to the absolute path (ignoring the path component which is the document name).
 				if (pathComponents.length > 1) {
@@ -4746,7 +4758,7 @@ var Reader = (function (r) {
 	// ex: `../html/chapter.html` -> `chapter.html`
 	var _normalizeLink = function(url){
 		// get current chapter folder url
-		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;
+		var chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.Book.spine[chapter].href), result = chapterURL;
 
 		// parse current url to remove `..` from path
 		var paths = url.split('/');
@@ -4920,7 +4932,7 @@ var Reader = (function (r) {
 				value = r.preferences.margin.clear(args.margin);
 				if(value !== r.preferences.margin.value){
 					r.preferences.margin.value = value;
-					r.resizeContainer();
+					r.Layout.resizeContainer();
 					updated = true;
 				}
 			}
@@ -4949,66 +4961,78 @@ var Reader = (function (r) {
 
 var Reader = (function (r) {
 
-	r.resizeContainer = function(dimensions){
-		dimensions = $.extend({
-			width: r.Layout.Container.width,
-			height: r.Layout.Container.height,
-			columns: r.Layout.Reader.columns,
-			padding: r.Layout.Reader.padding
-		}, dimensions);
+	r.Layout = {
+		Container: {
+			width: 0,
+			height: 0
+		},
+		Reader: {
+			width: 0,
+			height: 0,
+			columns: 1,
+			padding: 0
+		},
+		resizeContainer: function(dimensions){
+			dimensions = $.extend({
+				width: r.Layout.Container.width,
+				height: r.Layout.Container.height,
+				columns: r.Layout.Reader.columns,
+				padding: r.Layout.Reader.padding
+			}, dimensions);
 
-		// Save new values.
-		r.Layout.Container.width = Math.floor(dimensions.width);
-		r.Layout.Container.height = Math.floor(dimensions.height);
-		r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
-		r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
-		r.Layout.Reader.columns = dimensions.columns;
-		r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
+			// Save new values.
+			r.Layout.Container.width = Math.floor(dimensions.width);
+			r.Layout.Container.height = Math.floor(dimensions.height);
+			r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
+			r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
+			r.Layout.Reader.columns = dimensions.columns;
+			r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
 
-		// avoid rounding errors, adjust the width of the reader to contain the columns + padding
-		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
+			// avoid rounding errors, adjust the width of the reader to contain the columns + padding
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+			r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
-		// Apply new size
-		r.$iframe.css({
-			width: r.Layout.Container.width + 'px',
-			height: r.Layout.Container.height + 'px'
-		});
+			// Apply new size
+			r.$iframe.css({
+				width: r.Layout.Container.width + 'px',
+				height: r.Layout.Container.height + 'px'
+			});
 
-		r.$reader.css({
-			width: r.Layout.Reader.width + 'px',
-			height: r.Layout.Reader.height + 'px',
-			'column-width': columnWidth + 'px',
-			'column-gap': r.Layout.Reader.padding + 'px',
-			'column-fill': 'auto'
-		});
+			r.$reader.css({
+				width: r.Layout.Reader.width + 'px',
+				height: r.Layout.Reader.height + 'px',
+				'column-width': columnWidth + 'px',
+				'column-gap': r.Layout.Reader.padding + 'px',
+				'column-fill': 'auto'
+			});
 
-		r.$container.css({
-			width: r.Layout.Reader.width + 'px',
-			height: r.Layout.Reader.height + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
-		});
+			r.$container.css({
+				width: r.Layout.Reader.width + 'px',
+				height: r.Layout.Reader.height + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
+			});
 
-		r.$header.css({
-			width: r.Layout.Reader.width + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-			'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-			'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
-		});
+			r.$header.css({
+				width: r.Layout.Reader.width + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+				'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
+				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
+			});
 
-		r.$footer.css({
-			width: r.Layout.Reader.width + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-			'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-			'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
-		});
+			r.$footer.css({
+				width: r.Layout.Reader.width + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+				'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
+				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
+			});
 
-		_resizeImages();
-		// Update navigation variables
-		r.refreshLayout();
+			_resizeImages();
+			// Update navigation variables
+			r.refreshLayout();
+		}
 	};
 
 	// Modifies some parameter related to the dimensions of the images and svg elements.
@@ -5075,7 +5099,7 @@ var Reader = (function (r) {
 
 var Reader = (function (r) {
 
-	r.SPINE = [];
+	r.Book.spine = [];
 
 	// Number of chapters.
 	var bookChapters = 0;
@@ -5094,21 +5118,14 @@ var Reader = (function (r) {
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
 	r.reset = function(){
 		r.INF = 'META-INF/book-info.json';
-		r.CONTENT_PATH_PREFIX = '';
-		r.OPF = '';
-		r.SPINE = [];
-		r.TOC = [];
-		r.opf = null;
 		r.DOCROOT = '';
-		r.sample = false;
 		r.mobile = false;
-		r.bookTitle = '';
-		r.bookAuthor = '';
 
 		// Reset all modules.
 		r.CFI.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
+		r.Book.reset();
 
 		// Remove book content.
 		if(r.$parent){
@@ -5250,7 +5267,7 @@ var Reader = (function (r) {
 			chapter = c;
 			// Update the chapter doc name.
 			try {
-				var pathComponents = r.SPINE[chapter].href.split('/');
+				var pathComponents = r.Book.spine[chapter].href.split('/');
 				// get the last element in the array
 				chapterDocName = pathComponents.slice(-1)[0];
 			}
@@ -5273,9 +5290,9 @@ var Reader = (function (r) {
 				u = u.substr(u.lastIndexOf('/') + 1);
 			}
 			// Check the spine
-			for (var j=0; j<r.SPINE.length;j++) {
+			for (var j=0; j<r.Book.spine.length;j++) {
 				// URL is in the Spine and it has a chapter number.
-				if (r.SPINE[j].href.indexOf(u) !== -1) {
+				if (r.Book.spine[j].href.indexOf(u) !== -1) {
 					r.Navigation.setChapter(j);
 					return r.loadAnchor(j,a);
 				}
@@ -5337,21 +5354,21 @@ var Reader = (function (r) {
 		updateProgress: function(){
 			var i = 0;
 			// Update total number of words in the book, if not already done.
-			if(_totalWordCount === -1 && r.SPINE.length){
+			if(_totalWordCount === -1 && r.Book.spine.length){
 				_totalWordCount = 0;
-				for(i = 0; i < r.SPINE.length; i++){
-					_totalWordCount += r.SPINE[i].linear ? r.SPINE[i].wordCount : 0;
+				for(i = 0; i < r.Book.spine.length; i++){
+					_totalWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
 				}
 			}
 
 			// Get word count of all previous chapters.
 			var currentWordCount = 0;
 			for(i = 0; i < chapter; i++){
-				currentWordCount += r.SPINE[i].linear ? r.SPINE[i].wordCount : 0;
+				currentWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
 			}
 
 			// Estimate red word count from current chapter. To avoid 0 based indexes and adding +1
-			currentWordCount += r.SPINE.length && r.SPINE[chapter].linear ? r.SPINE[chapter].wordCount * (page+1) / (pagesByChapter+1) : 0;
+			currentWordCount += r.Book.spine.length && r.Book.spine[chapter].linear ? r.Book.spine[chapter].wordCount * (page+1) / (pagesByChapter+1) : 0;
 
 			// Calculate progress.
 			var progress = Math.floor(currentWordCount / _totalWordCount * 100);
@@ -5674,16 +5691,23 @@ var READER = (function() {
 		};
 	};
 
+	var _isLoading = false;
+
 	return {
 		init: function init(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			return Reader.init.apply(Reader, arguments).always(function initComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 			}).then(function initSuccess(){
 					_send_status('init');
 				}, function initFailure(err){
 					Reader.Notify.error(err);
 				}, function initNotify(){
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
+					_isLoading = true;
 				}
 			);
 		},
@@ -5700,17 +5724,26 @@ var READER = (function() {
 		setPreferences: _status_wrap(Reader.setPreferences, 'setPreferences'),
 		getCFI: Reader.CFI.getCFI,
 		goToCFI: function goToCFI(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
 			return Reader.CFI.goToCFI.apply(Reader.CFI, arguments).always(function goToCFIComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 				_send_status('goToCFI');
 			});
 		},
 		next: function next(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			var _loading_required = false;
 			return Reader.Navigation.next().always(function nextComplete(){
 				if(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
 				}
 			}).then(
 				function nextOnSuccess(){
@@ -5727,15 +5760,20 @@ var READER = (function() {
 					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
+					_isLoading = true;
 					_loading_required = true;
 				}
 			);
 		},
 		prev: function next(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			var _loading_required = false;
 			return Reader.Navigation.prev().always(function prevComplete(){
 				if(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
 				}
 			}).then(
 				function prevOnSuccess(){
@@ -5752,14 +5790,20 @@ var READER = (function() {
 					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
+					_isLoading = true;
 					_loading_required = true;
 				}
 			);
 		},
 		loadChapter: function loadChapter(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
 			return Reader.Navigation.loadChapter.apply(Reader.Navigation, arguments).always(function loadChapterComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 			}).then(
 				function loadChapterSuccess(){
 					_send_status('loadChapter');
@@ -5769,15 +5813,20 @@ var READER = (function() {
 			);
 		},
 		getProgress: Reader.Navigation.getProgress,
-		getTOC: Reader.getTOC,
-		getSPINE: Reader.getSPINE,
+		getTOC: Reader.Book.getTOC,
+		getSPINE: Reader.Book.getSPINE,
 		getBookmarks: Reader.Bookmarks.getBookmarks,
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, 'setBookmarks'),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
 		goToBookmark: function goToBookmark(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
 			return Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, arguments).always(function goToCFIComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 			}).then(
 				function goToBookmarkSuccess(){
 					_send_status('goToBookmark');
@@ -5789,7 +5838,7 @@ var READER = (function() {
 		removeBookmark: _status_wrap(Reader.Bookmarks.removeBookmark, 'removeBookmark'),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
-		resizeContainer: _status_wrap(Reader.resizeContainer, 'resizeContainer'),
+		resizeContainer: _status_wrap(Reader.Layout.resizeContainer, 'resizeContainer'),
 		Event: Reader.Event,
 		refreshLayout: _status_wrap(Reader.refreshLayout, 'refreshLayout'),
 		enableDebug: Reader.Debug.enable,
