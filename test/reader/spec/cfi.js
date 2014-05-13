@@ -86,7 +86,7 @@ describe('CFI', function() {
 
 			var cfi = CFI.getCFIObject();
 			expect(cfi).toBeObject();
-			expect(cfi).toEqual(currentStatus.cfi);
+			expect(cfi.CFI).toEqual(currentStatus.cfi.CFI);
 
 			// save cfi for next test
 			cfis.push(currentStatus.cfi.CFI);
