@@ -387,7 +387,7 @@ var Reader = (function (r) {
 
 				if ($next && $next.length) {
 					$currentNode = $next;
-					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text().trim() + ' ' : '';
+					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text() : '';
 				} else {
 					// No more content go get text from, break operation.
 					break generatePreview;
@@ -395,7 +395,7 @@ var Reader = (function (r) {
 			}
 
 			// Trim preview to 100 words.
-			var trimmed = text.trim().match(/((\S+\s+){100})/);
+			var trimmed = text.replace(/\s+/g, ' ').trim().match(/((\S+\s+){100})/);
 			return trimmed && trimmed.length ? trimmed[0] : text;
 		};
 
