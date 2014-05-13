@@ -3676,7 +3676,7 @@ var Reader = (function (r) {
 
 				if ($next && $next.length) {
 					$currentNode = $next;
-					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text().trim() + ' ' : '';
+					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text() : '';
 				} else {
 					// No more content go get text from, break operation.
 					break generatePreview;
@@ -3684,7 +3684,7 @@ var Reader = (function (r) {
 			}
 
 			// Trim preview to 100 words.
-			var trimmed = text.trim().match(/((\S+\s+){100})/);
+			var trimmed = text.replace(/\s+/g, ' ').trim().match(/((\S+\s+){100})/);
 			return trimmed && trimmed.length ? trimmed[0] : text;
 		};
 
@@ -4064,7 +4064,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.34-106'
+				appversion: '0.1.35-107'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4421,7 +4421,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.34-106'
+			'version': '0.1.35-107'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5390,7 +5390,8 @@ var Reader = (function (r) {
 
 	function loadImages(reverse) {
 	  var images = $('img', r.$reader),
-		    mainDefer = $.Deferred(),
+	      updatedImages = $(),
+	      mainDefer = $.Deferred(),
 	      promise = $.Deferred().resolve().promise();
 		if (images.length && reverse) {
 			images = $(images.get().reverse());
@@ -5405,13 +5406,19 @@ var Reader = (function (r) {
 	    promise = promise.then(function () {
 	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
 	        var defer = $.Deferred();
-	        $(el).one('load error', function () {
+	        $(el).one('load', function () {
+		        $(el).off();
 		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
 			        $(el).addClass('cpr-center');
 		        }
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
+		        updatedImages = updatedImages.add(el);
+		        defer.resolve();
+	        });
+	        $(el).one('error', function () {
+	          $(el).off();
 	          defer.resolve();
 	        });
 	        el.setAttribute('src', dataSrc);
@@ -5421,7 +5428,7 @@ var Reader = (function (r) {
 	    });
 	  });
 		promise.then(function () {
-			mainDefer.resolve();
+			mainDefer.resolve(updatedImages);
 		});
 	  return mainDefer.promise();
 	}
@@ -5449,8 +5456,13 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
-			return loadImages().then(function () {
-			  r.refreshLayout();
+			return loadImages().then(function (updatedImages) {
+				if (updatedImages.length) {
+					r.refreshLayout();
+				} else {
+					r.Navigation.updateProgress();
+					r.Bookmarks.display();
+				}
 			});
 		},
 		prev: function() {
@@ -5458,8 +5470,13 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
-			return loadImages(true).then(function () {
-			  r.refreshLayout();
+			return loadImages(true).then(function (updatedImages) {
+				if (updatedImages.length) {
+					r.refreshLayout();
+				} else {
+					r.Navigation.updateProgress();
+					r.Bookmarks.display();
+				}
 			});
 		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
