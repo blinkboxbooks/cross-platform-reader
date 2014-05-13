@@ -23,16 +23,23 @@ var READER = (function() {
 		};
 	};
 
+	var _isLoading = false;
+
 	return {
 		init: function init(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			return Reader.init.apply(Reader, arguments).always(function initComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 			}).then(function initSuccess(){
 					_send_status('init');
 				}, function initFailure(err){
 					Reader.Notify.error(err);
 				}, function initNotify(){
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
+					_isLoading = true;
 				}
 			);
 		},
@@ -49,17 +56,26 @@ var READER = (function() {
 		setPreferences: _status_wrap(Reader.setPreferences, 'setPreferences'),
 		getCFI: Reader.CFI.getCFI,
 		goToCFI: function goToCFI(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
 			return Reader.CFI.goToCFI.apply(Reader.CFI, arguments).always(function goToCFIComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 				_send_status('goToCFI');
 			});
 		},
 		next: function next(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			var _loading_required = false;
 			return Reader.Navigation.next().always(function nextComplete(){
 				if(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
 				}
 			}).then(
 				function nextOnSuccess(){
@@ -76,15 +92,20 @@ var READER = (function() {
 					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
+					_isLoading = true;
 					_loading_required = true;
 				}
 			);
 		},
 		prev: function next(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			var _loading_required = false;
 			return Reader.Navigation.prev().always(function prevComplete(){
 				if(_loading_required){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
 				}
 			}).then(
 				function prevOnSuccess(){
@@ -101,14 +122,20 @@ var READER = (function() {
 					}
 					// book requires remote file, send a loading event to notify the client
 					Reader.Notify.event(Reader.Event.LOADING_STARTED);
+					_isLoading = true;
 					_loading_required = true;
 				}
 			);
 		},
 		loadChapter: function loadChapter(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
 			return Reader.Navigation.loadChapter.apply(Reader.Navigation, arguments).always(function loadChapterComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 			}).then(
 				function loadChapterSuccess(){
 					_send_status('loadChapter');
@@ -118,15 +145,20 @@ var READER = (function() {
 			);
 		},
 		getProgress: Reader.Navigation.getProgress,
-		getTOC: Reader.getTOC,
-		getSPINE: Reader.getSPINE,
+		getTOC: Reader.Book.getTOC,
+		getSPINE: Reader.Book.getSPINE,
 		getBookmarks: Reader.Bookmarks.getBookmarks,
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, 'setBookmarks'),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
 		goToBookmark: function goToBookmark(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
 			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
 			return Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, arguments).always(function goToCFIComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
 			}).then(
 				function goToBookmarkSuccess(){
 					_send_status('goToBookmark');
@@ -138,7 +170,7 @@ var READER = (function() {
 		removeBookmark: _status_wrap(Reader.Bookmarks.removeBookmark, 'removeBookmark'),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
-		resizeContainer: _status_wrap(Reader.resizeContainer, 'resizeContainer'),
+		resizeContainer: _status_wrap(Reader.Layout.resizeContainer, 'resizeContainer'),
 		Event: Reader.Event,
 		refreshLayout: _status_wrap(Reader.refreshLayout, 'refreshLayout'),
 		enableDebug: Reader.Debug.enable,

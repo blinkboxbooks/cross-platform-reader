@@ -14,25 +14,8 @@ var Reader = (function (r) {
 	// Constants
 	r.DOCROOT = '';
 	r.INF = 'META-INF/book-info.json';
-	r.CONTENT_PATH_PREFIX = '';
-	r.OPF = '';
-
-	// Book data
-	r.opf = null;
 
 	// Initial settings.
-	r.Layout = {
-		Container: {
-			width: 0,
-			height: 0
-		},
-		Reader: {
-			width: 0,
-			height: 0,
-			columns: 1,
-			padding: 0
-		}
-	};
 	r.$iframe = null;
 	r.$wrap = null;
 	r.$head = null;

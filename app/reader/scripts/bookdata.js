@@ -138,19 +138,6 @@ var Reader = (function (r) {
 		}
 	};
 
-	// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
-	r.getTOC = function(){
-		return JSON.stringify(r.TOC);
-	};
-
-	r.getSPINE = function(){
-		return JSON.stringify(r.SPINE);
-	};
-
-
-	// Initialize the table of contents.
-	r.TOC = [];
-
 	// Debug flag, used to log various events for debugging purposes
 	var _debug = false;
 	r.Debug = {

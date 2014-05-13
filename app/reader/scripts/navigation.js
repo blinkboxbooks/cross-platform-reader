@@ -6,7 +6,7 @@
 
 var Reader = (function (r) {
 
-	r.SPINE = [];
+	r.Book.spine = [];
 
 	// Number of chapters.
 	var bookChapters = 0;
@@ -25,21 +25,14 @@ var Reader = (function (r) {
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
 	r.reset = function(){
 		r.INF = 'META-INF/book-info.json';
-		r.CONTENT_PATH_PREFIX = '';
-		r.OPF = '';
-		r.SPINE = [];
-		r.TOC = [];
-		r.opf = null;
 		r.DOCROOT = '';
-		r.sample = false;
 		r.mobile = false;
-		r.bookTitle = '';
-		r.bookAuthor = '';
 
 		// Reset all modules.
 		r.CFI.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
+		r.Book.reset();
 
 		// Remove book content.
 		if(r.$parent){
@@ -181,7 +174,7 @@ var Reader = (function (r) {
 			chapter = c;
 			// Update the chapter doc name.
 			try {
-				var pathComponents = r.SPINE[chapter].href.split('/');
+				var pathComponents = r.Book.spine[chapter].href.split('/');
 				// get the last element in the array
 				chapterDocName = pathComponents.slice(-1)[0];
 			}
@@ -204,9 +197,9 @@ var Reader = (function (r) {
 				u = u.substr(u.lastIndexOf('/') + 1);
 			}
 			// Check the spine
-			for (var j=0; j<r.SPINE.length;j++) {
+			for (var j=0; j<r.Book.spine.length;j++) {
 				// URL is in the Spine and it has a chapter number.
-				if (r.SPINE[j].href.indexOf(u) !== -1) {
+				if (r.Book.spine[j].href.indexOf(u) !== -1) {
 					r.Navigation.setChapter(j);
 					return r.loadAnchor(j,a);
 				}
@@ -268,21 +261,21 @@ var Reader = (function (r) {
 		updateProgress: function(){
 			var i = 0;
 			// Update total number of words in the book, if not already done.
-			if(_totalWordCount === -1 && r.SPINE.length){
+			if(_totalWordCount === -1 && r.Book.spine.length){
 				_totalWordCount = 0;
-				for(i = 0; i < r.SPINE.length; i++){
-					_totalWordCount += r.SPINE[i].linear ? r.SPINE[i].wordCount : 0;
+				for(i = 0; i < r.Book.spine.length; i++){
+					_totalWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
 				}
 			}
 
 			// Get word count of all previous chapters.
 			var currentWordCount = 0;
 			for(i = 0; i < chapter; i++){
-				currentWordCount += r.SPINE[i].linear ? r.SPINE[i].wordCount : 0;
+				currentWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
 			}
 
 			// Estimate red word count from current chapter. To avoid 0 based indexes and adding +1
-			currentWordCount += r.SPINE.length && r.SPINE[chapter].linear ? r.SPINE[chapter].wordCount * (page+1) / (pagesByChapter+1) : 0;
+			currentWordCount += r.Book.spine.length && r.Book.spine[chapter].linear ? r.Book.spine[chapter].wordCount * (page+1) / (pagesByChapter+1) : 0;
 
 			// Calculate progress.
 			var progress = Math.floor(currentWordCount / _totalWordCount * 100);

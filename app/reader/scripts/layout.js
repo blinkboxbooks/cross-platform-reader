@@ -2,66 +2,78 @@
 
 var Reader = (function (r) {
 
-	r.resizeContainer = function(dimensions){
-		dimensions = $.extend({
-			width: r.Layout.Container.width,
-			height: r.Layout.Container.height,
-			columns: r.Layout.Reader.columns,
-			padding: r.Layout.Reader.padding
-		}, dimensions);
+	r.Layout = {
+		Container: {
+			width: 0,
+			height: 0
+		},
+		Reader: {
+			width: 0,
+			height: 0,
+			columns: 1,
+			padding: 0
+		},
+		resizeContainer: function(dimensions){
+			dimensions = $.extend({
+				width: r.Layout.Container.width,
+				height: r.Layout.Container.height,
+				columns: r.Layout.Reader.columns,
+				padding: r.Layout.Reader.padding
+			}, dimensions);
 
-		// Save new values.
-		r.Layout.Container.width = Math.floor(dimensions.width);
-		r.Layout.Container.height = Math.floor(dimensions.height);
-		r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
-		r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
-		r.Layout.Reader.columns = dimensions.columns;
-		r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
+			// Save new values.
+			r.Layout.Container.width = Math.floor(dimensions.width);
+			r.Layout.Container.height = Math.floor(dimensions.height);
+			r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
+			r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
+			r.Layout.Reader.columns = dimensions.columns;
+			r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
 
-		// avoid rounding errors, adjust the width of the reader to contain the columns + padding
-		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-		r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
+			// avoid rounding errors, adjust the width of the reader to contain the columns + padding
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+			r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
-		// Apply new size
-		r.$iframe.css({
-			width: r.Layout.Container.width + 'px',
-			height: r.Layout.Container.height + 'px'
-		});
+			// Apply new size
+			r.$iframe.css({
+				width: r.Layout.Container.width + 'px',
+				height: r.Layout.Container.height + 'px'
+			});
 
-		r.$reader.css({
-			width: r.Layout.Reader.width + 'px',
-			height: r.Layout.Reader.height + 'px',
-			'column-width': columnWidth + 'px',
-			'column-gap': r.Layout.Reader.padding + 'px',
-			'column-fill': 'auto'
-		});
+			r.$reader.css({
+				width: r.Layout.Reader.width + 'px',
+				height: r.Layout.Reader.height + 'px',
+				'column-width': columnWidth + 'px',
+				'column-gap': r.Layout.Reader.padding + 'px',
+				'column-fill': 'auto'
+			});
 
-		r.$container.css({
-			width: r.Layout.Reader.width + 'px',
-			height: r.Layout.Reader.height + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
-		});
+			r.$container.css({
+				width: r.Layout.Reader.width + 'px',
+				height: r.Layout.Reader.height + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
+			});
 
-		r.$header.css({
-			width: r.Layout.Reader.width + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-			'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-			'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
-		});
+			r.$header.css({
+				width: r.Layout.Reader.width + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+				'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
+				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
+			});
 
-		r.$footer.css({
-			width: r.Layout.Reader.width + 'px',
-			'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-			'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-			'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-			'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
-		});
+			r.$footer.css({
+				width: r.Layout.Reader.width + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+				'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
+				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
+			});
 
-		_resizeImages();
-		// Update navigation variables
-		r.refreshLayout();
+			_resizeImages();
+			// Update navigation variables
+			r.refreshLayout();
+		}
 	};
 
 	// Modifies some parameter related to the dimensions of the images and svg elements.

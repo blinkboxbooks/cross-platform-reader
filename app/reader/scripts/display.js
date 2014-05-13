@@ -62,7 +62,7 @@ var Reader = (function (r) {
 		// Apply all user preferences
 		r.setPreferences(param.preferences);
 
-		r.resizeContainer(param);
+		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
 		_setBugsense();
@@ -128,13 +128,13 @@ var Reader = (function (r) {
 		var a = url[1];
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
-		if ((r.SPINE[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
+		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
 			r.Navigation.loadPage(a);
 			return true;
 		}
 		// Check the table of contents...
-		for (var i=0; i<r.TOC.length; i++) {
-			if (r.TOC[i].href.indexOf(u) !== -1 && r.TOC[i].active === true) { findURL = true; }
+		for (var i=0; i<r.Book.toc.length; i++) {
+			if (r.Book.toc[i].href.indexOf(u) !== -1 && r.Book.toc[i].active === true) { findURL = true; }
 		}
 
 		var _load = function(j,a){
@@ -152,9 +152,9 @@ var Reader = (function (r) {
 		};
 
 		// Check the spine...
-		for (var j=0; j<r.SPINE.length;j++) {
+		for (var j=0; j<r.Book.spine.length;j++) {
 			// URL is in the Spine and it has a chapter number...
-			if (r.SPINE[j].href.indexOf(u) !== -1) {
+			if (r.Book.spine[j].href.indexOf(u) !== -1) {
 				r.Navigation.setChapter(j);
 				r.Navigation.setPage(0);
 
@@ -217,7 +217,7 @@ var Reader = (function (r) {
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
 
-		r.$header.text(r.bookTitle); // TODO Do not polute the reader object.
+		r.$header.text(r.Book.title); // TODO Do not polute the reader object.
 
 		// Parse the content according its mime-type and apply all filters attached to display content
 		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
@@ -271,44 +271,47 @@ var Reader = (function (r) {
 	var loadInfo = function() {
 		var defer = $.Deferred();
 		loadFile(r.INF, 'json').then(function bookInfoLoaded(data){
-			r.SPINE = data.spine;
-			r.TOC = data.toc;
-			r.sample = data.sample;
-			r.bookTitle = data.title;
-
 			// Check for startCFI, save it if and only if initCFI is null
 			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
 
 			// Validate initCFI (chapter exists)
 			var chapter = r.CFI.getChapterFromCFI(_initCFI);
-			if(chapter === -1 || chapter >= r.SPINE.length){
+			if(chapter === -1 || chapter >= data.spine.length){
 				chapter = 0;
 				_initCFI = null;
 			}
 
+			// todo calculate path prefix in book?
+			var path_prefix = '';
+
 			// If the OPF is in a folder...
 			if (data.opfPath.indexOf('/') !== -1) {
 				var pathComponents = data.opfPath.split('/');
-				r.CONTENT_PATH_PREFIX = '';
 				for (var i = 0; i < (pathComponents.length-1); i++){
 					if (i !== 0) {
-						r.CONTENT_PATH_PREFIX += '/';
+						path_prefix += '/';
 					}
-					r.CONTENT_PATH_PREFIX  += pathComponents[i];
+					path_prefix  += pathComponents[i];
 				}
 			}
 			// If the PATH is empty set its value with the path of the first element in the spine.
-			if (r.CONTENT_PATH_PREFIX === '') {
+			if (path_prefix === '') {
 				// Check the path has more then one component.
-				if (r.SPINE[0].href.indexOf('/') !== -1) {
-					r.CONTENT_PATH_PREFIX = r.SPINE[0].href.split('/')[0];
+				if (data.spine[0].href.indexOf('/') !== -1) {
+					path_prefix = data.spine[0].href.split('/')[0];
 				}
 			}
 			// Set OPF
-			r.OPF = data.opfPath;
-			if (r.OPF !== '') {
-				loadFile(r.OPF).then(function opfFileLoaded(opf){
-					r.opf = opf;
+			if (data.opfPath !== '') {
+				loadFile(data.opfPath).then(function opfFileLoaded(opf){
+					// save book metadata
+					r.Book.load({
+						title: data.title,
+						spine: data.spine,
+						toc: data.toc,
+						content_path_prefix: path_prefix,
+						opf: opf
+					});
 
 					var promise; // promise object to return
 					if(_initCFI === null){
@@ -376,11 +379,11 @@ var Reader = (function (r) {
 		};
 
 		// Check if the PATH is in the href value from the spine...
-		if ((r.SPINE[chapterNumber].href.indexOf(r.CONTENT_PATH_PREFIX) !== -1)) {
-			loadFile(r.SPINE[chapterNumber].href).then(loadChapterSuccess, defer.reject);
+		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
+			loadFile(r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		} else {
 			// If it is not, add it and load the chapter
-			loadFile(r.CONTENT_PATH_PREFIX+'/'+r.SPINE[chapterNumber].href).then(loadChapterSuccess, defer.reject);
+			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
 
 		return defer.promise();
