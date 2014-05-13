@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>filters.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>filters.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> {</span>
+
+	<span class="hljs-keyword">var</span> filters = <span class="hljs-keyword">new</span> FilterJS(), HOOKS = {
+		BEFORE_CHAPTER_PARSE: <span class="hljs-string">'beforeChapterParse'</span>,
+		BEFORE_CHAPTER_DISPLAY: <span class="hljs-string">'beforeChapterDisplay'</span>
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Build an absolute path from the relative path of a resource</p>
+<ul>
+<li><code>resourcePath</code> - relative path to the resource</li>
+</ul>
+<p>N.B. any relative path of a resource is relative to the containing document’s place in the hierachary
+Notes: relative path permutations (all of which must be handled)</p>
+<ol>
+<li>Higher up the hierarchy e.g. <code>../../image.png&quot;</code></li>
+<li>Lower down int the hierarchy e.g. <code>/images/image.png</code></li>
+<li>In the same hierarchy e.g. <code>image.png&quot;</code></li>
+</ol>
+<p><code>CONTENT_PATH_PREFIX</code> represents a special case whereby there are path components present in the OPF file path e.g. <code>/OEPBS/content.opf</code> which is in turn should be inferred with any resource paths if they don’t already exist in the resource path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _parseURL = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resourcePath)</span>{</span>
+		<span class="hljs-keyword">var</span> absoluteUrl = <span class="hljs-string">''</span>,
+			docName = r.Navigation.getChapterDocName(),
+			docAbsPath = r.DOCROOT;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Absolute path of the document containing the image
+TODO Move this to Chapter object? Maybe separate file?</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; r.SPINE.length; i++) {
+			<span class="hljs-keyword">var</span> href = r.SPINE[i].href;
+			<span class="hljs-keyword">if</span> (href.indexOf(docName) !== -<span class="hljs-number">1</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>The document name was found.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> pathComponents = href.split(<span class="hljs-string">'/'</span>);
+				<span class="hljs-keyword">if</span> (href.indexOf(r.CONTENT_PATH_PREFIX) === -<span class="hljs-number">1</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>The href didn’t contain the content path prefix (i.e. any path attached to the OPF file), so add it.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					docAbsPath += <span class="hljs-string">'/'</span>+r.CONTENT_PATH_PREFIX.split(<span class="hljs-string">'/'</span>)[<span class="hljs-number">0</span>];
+				}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Append the path components of the document to the absolute path (ignoring the path component which is the document name).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">if</span> (pathComponents.length &gt; <span class="hljs-number">1</span>) {
+					<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; pathComponents.length-<span class="hljs-number">1</span>; j++) {
+						docAbsPath += <span class="hljs-string">'/'</span>+pathComponents[j];
+					}
+				}
+			}
+		}
+
+		<span class="hljs-keyword">if</span> (resourcePath.indexOf(<span class="hljs-string">'../'</span>) === <span class="hljs-number">0</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Case 1 - resource is higher up the hierarchy e.g. <code>resourcePath = &quot;../../image.png&quot;</code> - You can find an example in <em>9780141918921 (Thinking, Fast and Slow)</em></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">try</span> {
+				<span class="hljs-keyword">var</span> docPathComponents = docAbsPath.split(<span class="hljs-string">'/'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Start at the second to the rightmost element document path component (we already know there’s at least one ‘../‘ present</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> pathComponentIdx = docPathComponents.length-<span class="hljs-number">2</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Start at the index past the <code>../</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> pos = <span class="hljs-number">3</span>;
+				<span class="hljs-keyword">do</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Search resource path from left to right</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					pos = resourcePath.indexOf(<span class="hljs-string">'../'</span>, pos);
+					<span class="hljs-keyword">if</span> (pos !== -<span class="hljs-number">1</span>) {
+						pathComponentIdx--;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Skip past the <code>../</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>						pos += <span class="hljs-number">3</span>;
+					}
+				} <span class="hljs-keyword">while</span> (pos !== -<span class="hljs-number">1</span> );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Create the absolute path by using the absDocPath up to the target path component and then appending the resource path</p>
+<p>Locate the start of the target path component</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> startPos = docAbsPath.indexOf(docPathComponents[pathComponentIdx]);
+				<span class="hljs-keyword">var</span> length = docPathComponents[pathComponentIdx].length;
+				absoluteUrl += docAbsPath.substring(<span class="hljs-number">0</span>, startPos+length);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Add the resource path removing any leading <code>../</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				absoluteUrl += <span class="hljs-string">'/'</span>+resourcePath.replace(<span class="hljs-regexp">/\.\.\//g</span>, <span class="hljs-string">''</span>);
+			}
+			<span class="hljs-keyword">catch</span> (e) {
+				console.log(e);
+			}
+		}
+		<span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Case 2 - resource is lower down int the hierarchy e.g. <code>resourcePath = images/image.png</code> - You can find an example in <em>9781447213291 - The Prince who Walked with Lions</em>.</p>
+<p>Case 3 - resource is in the same hierarchy e.g. <code>resourcePath = &quot;image.png&quot;</code> - real example: <em>9781488508493 - Special Greats</em>.</p>
+<p>NOTE: docRoot has a trailing slash</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			absoluteUrl = docAbsPath.charAt(docAbsPath.length-<span class="hljs-number">1</span>) === <span class="hljs-string">'/'</span> ? docAbsPath+resourcePath : docAbsPath+<span class="hljs-string">'/'</span>+resourcePath;
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Calculate 95% of the width and height of the column.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> width = <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / <span class="hljs-number">2</span>);
+		<span class="hljs-keyword">var</span> height = <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.height);
+		<span class="hljs-keyword">return</span> absoluteUrl.replace(<span class="hljs-string">'params;'</span>, <span class="hljs-string">'params;img:w='</span>+width+<span class="hljs-string">';img:h='</span>+height+<span class="hljs-string">';img:m=scale;'</span>);
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>add data attributes to anchors</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _anchorData = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">($content)</span>{</span>
+
+		$(<span class="hljs-string">'a[href]'</span>, $content).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, link)</span>{</span>
+			<span class="hljs-keyword">var</span> $link = $(link);
+			<span class="hljs-keyword">var</span> valid = <span class="hljs-regexp">/^(ftp|http|https):\/\/[^ "]+$/</span>.test($link.attr(<span class="hljs-string">'href'</span>));
+			<span class="hljs-keyword">if</span> (!valid) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <h3 id="internal-link-">Internal link.</h3>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				$link.attr(<span class="hljs-string">'data-link-type'</span>, <span class="hljs-string">'internal'</span>);
+				<span class="hljs-comment">/* elements[idx].attributes[0].nodeValue = 'http://localhost:8888/books/9780718159467/OPS/xhtml/' + elements[idx].attributes[0].nodeValue;*/</span>
+			} <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <h3 id="external-link-">External link.</h3>
+<p>External links attribute ‘target’ set to ‘_blank’ for open the new link in another window / tab of the browser.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				$link.attr(<span class="hljs-string">'data-link-type'</span>, <span class="hljs-string">'external'</span>).attr(<span class="hljs-string">'target'</span>, <span class="hljs-string">'_blank'</span>);
+			}
+		});
+
+		<span class="hljs-keyword">return</span> $content;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Rebuild image src</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _parseImages = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(content)</span>{</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Transform relative image resource paths to absolute</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> images = content.getElementsByTagName(<span class="hljs-string">'img'</span>);
+		<span class="hljs-keyword">if</span> (images.length === <span class="hljs-number">0</span>) {
+			images = content.getElementsByTagName(<span class="hljs-string">'IMG'</span>);
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, image = images[i]; image; image = images[++i]) {
+			<span class="hljs-keyword">if</span> (image.hasAttribute(<span class="hljs-string">'src'</span>)) {
+				<span class="hljs-keyword">var</span> imgSrc = _parseURL(image.getAttribute(<span class="hljs-string">'src'</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Prevent premature loading of img elements:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				image.setAttribute(<span class="hljs-string">'data-src'</span>, imgSrc);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Use a tiny data-uri GIF as placeholder:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				image.setAttribute(<span class="hljs-string">'src'</span>, <span class="hljs-string">'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D'</span>);
+			}
+		}
+		<span class="hljs-keyword">return</span> content;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Modify SVG images URL and put it in a new IMG element.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _parseSVG = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(content)</span>{</span>
+		<span class="hljs-keyword">var</span> svg = content.getElementsByTagNameNS(<span class="hljs-string">'http://www.w3.org/2000/svg'</span>, <span class="hljs-string">'svg'</span>);
+		<span class="hljs-keyword">if</span> (svg.length === <span class="hljs-number">0</span>) { <span class="hljs-comment">// Just in case the tags are not in the NS format</span>
+			svg = content.getElementsByTagName(<span class="hljs-string">'svg'</span>);
+		}
+		<span class="hljs-keyword">if</span> (svg) {
+			<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; svg.length; j++) {
+				<span class="hljs-keyword">var</span> img = svg[j].getElementsByTagNameNS(<span class="hljs-string">'http://www.w3.org/2000/svg'</span>, <span class="hljs-string">'image'</span>)[<span class="hljs-number">0</span>];
+				<span class="hljs-keyword">if</span> (img === <span class="hljs-literal">undefined</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Check if the tag is IMG</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					img = svg[j].getElementsByTagName(<span class="hljs-string">'img'</span>)[<span class="hljs-number">0</span>];
+				}
+				<span class="hljs-keyword">if</span> (img === <span class="hljs-literal">undefined</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Check if the tag is IMAGE but it does not have Namespace</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					img = svg[j].getElementsByTagName(<span class="hljs-string">'image'</span>)[<span class="hljs-number">0</span>];
+				}
+				<span class="hljs-keyword">if</span> (img) {
+					<span class="hljs-keyword">if</span> (img.hasAttributeNS(<span class="hljs-string">'http://www.w3.org/1999/xlink'</span>, <span class="hljs-string">'href'</span>)) {
+						<span class="hljs-keyword">var</span> url = img.getAttributeNS(<span class="hljs-string">'http://www.w3.org/1999/xlink'</span>, <span class="hljs-string">'href'</span>);
+						url = _parseURL(url);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Replace the svg tag if it is an image and show it in a normal IMG tag (compatible with SVG image format)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>						<span class="hljs-keyword">var</span> newImg = document.createElement(<span class="hljs-string">'img'</span>);
+						newImg.setAttribute(<span class="hljs-string">'src'</span>, url);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>TODO Firefox max-width fix
+newImg.style.maxWidth = 95 / 100 * Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + ‘px’;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>						<span class="hljs-keyword">var</span> parentNode = svg[j].parentNode;
+						parentNode.insertBefore(newImg,svg[j]);
+						parentNode.removeChild(svg[j]);
+					}
+				}
+			}
+		}
+		<span class="hljs-keyword">return</span> content;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Modify video URL.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _parseVideos = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(content)</span>{</span>
+		<span class="hljs-keyword">var</span> videos = content.getElementsByTagName(<span class="hljs-string">'video'</span>);
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> y = <span class="hljs-number">0</span>; y &lt; videos.length; y++) {
+			<span class="hljs-keyword">var</span> vidSrc = videos[y].getAttribute(<span class="hljs-string">'src'</span>);
+			vidSrc = _parseURL(vidSrc);
+			videos[y].setAttribute(<span class="hljs-string">'src'</span>, vidSrc);
+		}
+		<span class="hljs-keyword">return</span> content;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>helper function that strips the last path from the url
+Ex: a/b/c.html -&gt; a/b</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _removeLastPath = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url)</span>{</span>
+		<span class="hljs-keyword">var</span> pathSeparatorIndex = url.lastIndexOf(<span class="hljs-string">'/'</span>);
+		<span class="hljs-keyword">return</span> pathSeparatorIndex !== -<span class="hljs-number">1</span> ? url.substring(<span class="hljs-number">0</span>, pathSeparatorIndex) : url;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Function to transform relative links
+ex: <code>../html/chapter.html</code> -&gt; <code>chapter.html</code></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _normalizeLink = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url)</span>{</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>get current chapter folder url</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> chapter = r.Navigation.getChapter(), chapterURL = _removeLastPath(r.SPINE[chapter].href), result = chapterURL;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>parse current url to remove <code>..</code> from path</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> paths = url.split(<span class="hljs-string">'/'</span>);
+		<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = paths.length; i &lt; l; i++){
+			<span class="hljs-keyword">var</span> path = paths[i];
+			<span class="hljs-keyword">if</span>(path === <span class="hljs-string">'..'</span>){
+				result = _removeLastPath(result);
+			} <span class="hljs-keyword">else</span> {
+				result += <span class="hljs-string">'/'</span> + path;
+			}
+		}
+		<span class="hljs-keyword">return</span> result;
+	};
+
+	<span class="hljs-keyword">var</span> _parseAnchors = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(content)</span>{</span>
+		<span class="hljs-keyword">var</span> anchors = content.getElementsByTagName(<span class="hljs-string">'a'</span>);
+		<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> y = <span class="hljs-number">0</span>; y &lt; anchors.length; y++) {
+			<span class="hljs-keyword">var</span> href = anchors[y].getAttribute(<span class="hljs-string">'href'</span>);
+			<span class="hljs-keyword">if</span>(href){
+				href = _normalizeLink(href);
+				anchors[y].setAttribute(<span class="hljs-string">'href'</span>, href);
+			}
+		}
+		<span class="hljs-keyword">return</span> content;
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Register all the anchors.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseAnchors);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
+
+	r.Filters = $.extend({HOOKS: HOOKS}, filters);
+
+	<span class="hljs-keyword">return</span> r;
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
