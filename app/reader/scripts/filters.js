@@ -126,7 +126,7 @@ var Reader = (function (r) {
 				// Prevent premature loading of img elements:
 				image.setAttribute('data-src', imgSrc);
 				// Use a tiny data-uri GIF as placeholder:
-				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D');
+				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
 			}
 		}
 		return content;
