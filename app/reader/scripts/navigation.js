@@ -101,7 +101,6 @@ var Reader = (function (r) {
 	r.refreshLayout = function(){
 		// Update the number of columns
 		pagesByChapter = _getColumnsNumber();
-
 		var promise;
 		// Maintain reader current position
 		if(_cfi && _cfi.CFI) {
@@ -109,7 +108,7 @@ var Reader = (function (r) {
 		} else {
 			promise = $.Deferred().resolve().promise();
 		}
-		promise.then(function () {
+		return promise.then(function () {
 			r.Bookmarks.display();
 			r.Navigation.updateProgress();
 		});
@@ -394,14 +393,15 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
-			return loadImages(true).then(function (updatedImages) {
-				if (updatedImages.length) {
-					r.refreshLayout();
-				} else {
+			return loadImages(true)
+				.progress(function () {
+					pagesByChapter = _getColumnsNumber();
+					r.CFI.goToCFI(_cfi.CFI, true);
+				})
+				.then(function () {
 					r.Navigation.updateProgress();
 					r.Bookmarks.display();
-				}
-			});
+				});
 		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
 		moveTo: function (p) {
