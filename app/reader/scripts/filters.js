@@ -92,13 +92,16 @@ var Reader = (function (r) {
 	// add data attributes to anchors
 	var _anchorData = function($content){
 
-		$('a[href]', $content).each(function(i, link){
+		$content.find('a[href]').add($content.filter('a[href]')).each(function(i, link){
 			var $link = $(link);
 			var valid = /^(ftp|http|https):\/\/[^ "]+$/.test($link.attr('href'));
 			if (!valid) {
 				// ### Internal link.
 				$link.attr('data-link-type', 'internal');
 				/* elements[idx].attributes[0].nodeValue = 'http://localhost:8888/books/9780718159467/OPS/xhtml/' + elements[idx].attributes[0].nodeValue;*/
+
+				// internal links must be normalized to point to the correct content
+				$link.attr('href', _normalizeLink($link.attr('href')));
 			} else {
 				// ### External link.
 				// External links attribute 'target' set to '_blank' for open the new link in another window / tab of the browser.
@@ -203,22 +206,9 @@ var Reader = (function (r) {
 		return result;
 	};
 
-	var _parseAnchors = function(content){
-		var anchors = content.getElementsByTagName('a');
-		for (var y = 0; y < anchors.length; y++) {
-			var href = anchors[y].getAttribute('href');
-			if(href){
-				href = _normalizeLink(href);
-				anchors[y].setAttribute('href', href);
-			}
-		}
-		return content;
-	};
-
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
-	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseAnchors);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
 
