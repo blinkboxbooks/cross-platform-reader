@@ -4089,7 +4089,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.39-116'
+				appversion: '0.1.40-117'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4451,7 +4451,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.39-116'
+			'version': '0.1.40-117'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4714,7 +4714,7 @@ var Reader = (function (r) {
 				// Prevent premature loading of img elements:
 				image.setAttribute('data-src', imgSrc);
 				// Use a tiny data-uri GIF as placeholder:
-				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D');
+				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
 			}
 		}
 		return content;
