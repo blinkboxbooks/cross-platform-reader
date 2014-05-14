@@ -250,7 +250,9 @@ var Reader = (function (r) {
 		// Container parent styles.
 		r.$container
 			.css({
-				overflow: 'hidden'
+				overflow: 'hidden',
+				'-webkit-tap-highlight-color': 'rgba(0,0,0,0)',
+				'-webkit-touch-callout': 'none'
 			});
 
 		// Capture the anchor links into the content
