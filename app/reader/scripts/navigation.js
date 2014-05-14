@@ -327,7 +327,7 @@ var Reader = (function (r) {
 	    }
 	    // Load images sequentially so we only load images until the nearest pages are filled:
 	    promise = promise.then(function () {
-	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
+	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
 	        var defer = $.Deferred();
 	        $(el).one('load', function () {
 		        $(el).off();
