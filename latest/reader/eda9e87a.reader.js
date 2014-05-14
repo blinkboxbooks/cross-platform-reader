@@ -3801,6 +3801,22 @@ var Reader = (function (r) {
 	// User-set preferences that are related to the display options.
 	var i, rule;
 	r.preferences = {
+		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
+		preloadRange: {
+			min: 1,
+			max: 10,
+			value: 2,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.preloadRange.max) {
+					return r.preferences.preloadRange.max;
+				}
+				if (value < r.preferences.preloadRange.min) {
+					return r.preferences.preloadRange.min;
+				}
+				return value;
+			}
+		},
 		lineHeight : {
 			rules: [],
 			min: 1.1,
@@ -4073,7 +4089,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.38-114'
+				appversion: '0.1.39-115'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4435,7 +4451,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.38-114'
+			'version': '0.1.39-115'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4808,6 +4824,11 @@ var Reader = (function (r) {
 // * [`setTheme`](#setTheme)
 
 var Reader = (function (r) {
+	// <a name="setPreloadRange"></a> Set preload range (within bounds).
+	r.setPreloadRange = function(value){
+		return r.setPreferences({preloadRange: value});
+	};
+
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -4886,6 +4907,12 @@ var Reader = (function (r) {
 	r.setPreferences = function(args){
 		if(typeof args === 'object'){
 			var value, updated = false;
+
+			// Set preload range (within bounds).
+			// Updating preload range does not need any styles update nor a layout refresh.
+			if(args.hasOwnProperty('preloadRange')){
+				r.preferences.preloadRange.value = r.preferences.preloadRange.clear(args.preloadRange);
+			}
 
 			// Set line height if all conditions are met
 			if(args.hasOwnProperty('lineHeight')){
@@ -5186,7 +5213,6 @@ var Reader = (function (r) {
 	r.refreshLayout = function(){
 		// Update the number of columns
 		pagesByChapter = _getColumnsNumber();
-
 		var promise;
 		// Maintain reader current position
 		if(_cfi && _cfi.CFI) {
@@ -5194,7 +5220,7 @@ var Reader = (function (r) {
 		} else {
 			promise = $.Deferred().resolve().promise();
 		}
-		promise.then(function () {
+		return promise.then(function () {
 			r.Bookmarks.display();
 			r.Navigation.updateProgress();
 		});
@@ -5413,7 +5439,7 @@ var Reader = (function (r) {
 	    }
 	    // Load images sequentially so we only load images until the nearest pages are filled:
 	    promise = promise.then(function () {
-	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) < 2) {
+	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
 	        var defer = $.Deferred();
 	        $(el).one('load', function () {
 		        $(el).off();
@@ -5479,14 +5505,15 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
-			return loadImages(true).then(function (updatedImages) {
-				if (updatedImages.length) {
-					r.refreshLayout();
-				} else {
+			return loadImages(true)
+				.progress(function () {
+					pagesByChapter = _getColumnsNumber();
+					r.CFI.goToCFI(_cfi.CFI, true);
+				})
+				.then(function () {
 					r.Navigation.updateProgress();
 					r.Bookmarks.display();
-				}
-			});
+				});
 		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
 		moveTo: function (p) {
