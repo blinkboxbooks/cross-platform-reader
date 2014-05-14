@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>config.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="book.html">
+                book.js
+              </a>
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>config.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
+ * ReaderJS v1.0.0
+ * (c) 2013 BlinkboxBooks
+ * config.js: contains global variables
+ */</span>
+
+<span class="hljs-comment">/* jshint unused: true */</span>
+<span class="hljs-comment">/* exported Reader */</span>
+<span class="hljs-comment">/* globals $ */</span>
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> {</span>
+<span class="hljs-pi">	'use strict'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Constants</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.DOCROOT = <span class="hljs-string">''</span>;
+	r.INF = <span class="hljs-string">'META-INF/book-info.json'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Initial settings.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.$iframe = <span class="hljs-literal">null</span>;
+	r.$wrap = <span class="hljs-literal">null</span>;
+	r.$head = <span class="hljs-literal">null</span>;
+	r.$container = <span class="hljs-literal">null</span>;
+	r.$reader = <span class="hljs-literal">null</span>;
+	r.$header = <span class="hljs-literal">null</span>;
+	r.$footer = <span class="hljs-literal">null</span>;
+	r.$stylesheet = <span class="hljs-literal">null</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Indicates if the Reader has been called from a mobile app.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.mobile = <span class="hljs-literal">false</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>DOM object</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.listener = <span class="hljs-literal">null</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>User-set preferences that are related to the display options.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> i, rule;
+	r.preferences = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		preloadRange: {
+			min: <span class="hljs-number">1</span>,
+			max: <span class="hljs-number">10</span>,
+			value: <span class="hljs-number">2</span>,
+			clear: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> {</span>
+				value = <span class="hljs-built_in">Number</span>(value) || <span class="hljs-number">0</span>;
+				<span class="hljs-keyword">if</span> (value &gt; r.preferences.preloadRange.max) {
+					<span class="hljs-keyword">return</span> r.preferences.preloadRange.max;
+				}
+				<span class="hljs-keyword">if</span> (value &lt; r.preferences.preloadRange.min) {
+					<span class="hljs-keyword">return</span> r.preferences.preloadRange.min;
+				}
+				<span class="hljs-keyword">return</span> value;
+			}
+		},
+		lineHeight : {
+			rules: [],
+			min: <span class="hljs-number">1.1</span>,
+			max: <span class="hljs-number">20</span>,
+			unit: <span class="hljs-number">0.1</span>,
+			value: <span class="hljs-number">1.6</span>,
+			applyRules: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.lineHeight.rules.length; i++){
+					rule = r.preferences.lineHeight.rules[i];
+					rule.rule[rule.property] = r.preferences.lineHeight.value + <span class="hljs-string">'em'</span>;
+				}
+			}
+		},
+		fontSize : {
+			rules: [],
+			min: <span class="hljs-number">0.5</span>,
+			max: <span class="hljs-number">15</span>,
+			unit: <span class="hljs-number">0.1</span>,
+			value: <span class="hljs-number">1.125</span>,
+			applyRules: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.fontSize.rules.length; i++){
+					rule = r.preferences.fontSize.rules[i];
+					rule.rule[rule.property] = (r.preferences.fontSize.value * <span class="hljs-number">18</span>) + <span class="hljs-string">'px'</span>;
+				}
+			}
+		},
+		fontFamily : {
+			rules: [],
+			value: <span class="hljs-string">''</span>,
+			applyRules: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.fontFamily.rules.length; i++){
+					rule = r.preferences.fontFamily.rules[i];
+					rule.rule[rule.property] = r.preferences.fontFamily.value;
+				}
+			}
+		},
+		margin : { <span class="hljs-comment">// top, right, bottom, left</span>
+			min : [<span class="hljs-number">9.8</span>, <span class="hljs-number">4</span>, <span class="hljs-number">6.5</span>, <span class="hljs-number">4</span>],
+			max: [<span class="hljs-number">9.8</span>, <span class="hljs-number">17.75</span>, <span class="hljs-number">6.5</span>, <span class="hljs-number">17.75</span>],
+			medium: [<span class="hljs-number">9.8</span>, <span class="hljs-number">11</span>, <span class="hljs-number">6.5</span>, <span class="hljs-number">11</span>],
+			value: [<span class="hljs-number">9.8</span>, <span class="hljs-number">11</span>, <span class="hljs-number">6.5</span>, <span class="hljs-number">11</span>],</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Helper function that sets a valid margin from an argument.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			clear: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span>{</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Replace keywords with their respective values…</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">if</span>(args === <span class="hljs-string">'min'</span>){
+					args = r.preferences.margin.min;
+					<span class="hljs-keyword">return</span> args;
+				}
+				<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(args === <span class="hljs-string">'max'</span>){
+					args = r.preferences.margin.max;
+					<span class="hljs-keyword">return</span> args;
+				}
+				<span class="hljs-keyword">if</span>(args === <span class="hljs-string">'medium'</span>){
+					args = r.preferences.margin.medium;
+					<span class="hljs-keyword">return</span> args;
+				}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Make sure the args are an array of length 4…</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">if</span>(!<span class="hljs-built_in">Array</span>.isArray(args) || args.length !== <span class="hljs-number">4</span>){</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Only send error notification if the client actually attemted to set the value</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					<span class="hljs-keyword">if</span>(args){
+						r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {value: args, details: <span class="hljs-string">'The reader margin has to be defined as either min, max or medium. Alternatively, you can define your own values by sending an array in the following format [top, right, bottom, left].'</span>, call: <span class="hljs-string">'margin'</span>}));
+					}
+					args = r.preferences.margin.value;
+				}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Make sure bounds are respected…</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span>  i = <span class="hljs-number">0</span>; i &lt; args.length; i++){
+					args[i] = args[i] &lt; r.preferences.margin.min[i] ? r.preferences.margin.min[i] : args[i];
+					args[i] = args[i] &gt; r.preferences.margin.max[i] ? r.preferences.margin.max[i] : args[i];
+				}
+				<span class="hljs-keyword">return</span> args;
+			}
+		},
+		theme : {
+			rules: {
+				background: [],
+				title: [],
+				color: []
+			},
+			transparent : {
+				background : <span class="hljs-string">'transparent'</span>,
+				title : <span class="hljs-string">'#666'</span>,
+				color : <span class="hljs-string">'#000'</span>
+			},
+			light : {
+				background : <span class="hljs-string">'#f4f4f4'</span>,
+				title : <span class="hljs-string">'#666'</span>,
+				color : <span class="hljs-string">'#000'</span>
+			},
+			dark : {
+				background : <span class="hljs-string">'#000000'</span>,
+				title : <span class="hljs-string">'#666'</span>,
+				color : <span class="hljs-string">'#dddddd'</span>
+			},
+			sepia : {
+				background : <span class="hljs-string">'#ede7d5'</span>,
+				title : <span class="hljs-string">'#666'</span>,
+				color : <span class="hljs-string">'#181818'</span>
+			},
+			value : {
+				background : <span class="hljs-string">'#f4f4f4'</span>,
+				title : <span class="hljs-string">'#666'</span>,
+				color : <span class="hljs-string">'#000'</span>
+			},
+			clear : <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span>{</span>
+				<span class="hljs-keyword">if</span>(args === <span class="hljs-string">'light'</span> || args === <span class="hljs-string">'dark'</span> || args === <span class="hljs-string">'sepia'</span> || args === <span class="hljs-string">'transparent'</span>){
+					<span class="hljs-keyword">return</span> r.preferences.theme[args];
+				}
+				<span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span>(args) === <span class="hljs-string">'object'</span> &amp;&amp; args.hasOwnProperty(<span class="hljs-string">'color'</span>) &amp;&amp; args.hasOwnProperty(<span class="hljs-string">'background'</span>) &amp;&amp; args.hasOwnProperty(<span class="hljs-string">'title'</span>)){
+					<span class="hljs-keyword">return</span> args;
+				}
+				<span class="hljs-keyword">if</span>(args){
+					r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {value: args, details: <span class="hljs-string">'The reader theme has to be either transparent, light, dark or sepia. Alternatively you can set your own custom theme by sending an object with background and color properties defined.'</span>, call: <span class="hljs-string">'theme'</span>}));
+				}
+				<span class="hljs-keyword">return</span> r.preferences.theme.value;
+			},
+			applyRules: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.theme.rules.background.length; i++){
+					rule = r.preferences.theme.rules.background[i];
+					rule.rule[rule.property] = r.preferences.theme.value.background;
+				}
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.theme.rules.title.length; i++){
+					rule = r.preferences.theme.rules.title[i];
+					rule.rule[rule.property] = r.preferences.theme.value.title;
+				}
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.theme.rules.color.length; i++){
+					rule = r.preferences.theme.rules.color[i];
+					rule.rule[rule.property] = r.preferences.theme.value.color;
+				}
+			}
+		},
+		textAlign:{
+			rules: [],
+			values: [<span class="hljs-string">'left'</span>, <span class="hljs-string">'justify'</span>],
+			value: <span class="hljs-string">'left'</span>,
+			clear: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span>{</span>
+				<span class="hljs-keyword">if</span>(args &amp;&amp; (<span class="hljs-keyword">typeof</span>(args) !== <span class="hljs-string">'string'</span> || $.inArray(args, r.preferences.textAlign.values) === -<span class="hljs-number">1</span>)){
+					r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {value: args, details: <span class="hljs-string">'The text align has to be either left or justify.'</span>, call: <span class="hljs-string">'textAlign'</span>}));
+					<span class="hljs-keyword">return</span> r.preferences.textAlign.value;
+				}
+				<span class="hljs-keyword">return</span> args;
+			},
+			applyRules: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+				<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>; i&lt; r.preferences.textAlign.rules.length; i++){
+					rule = r.preferences.textAlign.rules[i];
+					rule.rule[rule.property] = r.preferences.textAlign.value;
+				}
+			}
+		},
+		applyAll: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			r.preferences.lineHeight.applyRules();
+			r.preferences.fontSize.applyRules();
+			r.preferences.fontFamily.applyRules();
+			r.preferences.theme.applyRules();
+			r.preferences.lineHeight.applyRules();
+			r.preferences.textAlign.applyRules();
+		}
+	};
+	<span class="hljs-keyword">return</span> r;
+
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
