@@ -32,6 +32,22 @@ var Reader = (function (r) {
 	// User-set preferences that are related to the display options.
 	var i, rule;
 	r.preferences = {
+		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
+		preloadRange: {
+			min: 1,
+			max: 10,
+			value: 2,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.preloadRange.max) {
+					return r.preferences.preloadRange.max;
+				}
+				if (value < r.preferences.preloadRange.min) {
+					return r.preferences.preloadRange.min;
+				}
+				return value;
+			}
+		},
 		lineHeight : {
 			rules: [],
 			min: 1.1,

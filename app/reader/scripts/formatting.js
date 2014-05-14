@@ -17,6 +17,11 @@
 // * [`setTheme`](#setTheme)
 
 var Reader = (function (r) {
+	// <a name="setPreloadRange"></a> Set preload range (within bounds).
+	r.setPreloadRange = function(value){
+		return r.setPreferences({preloadRange: value});
+	};
+
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -95,6 +100,12 @@ var Reader = (function (r) {
 	r.setPreferences = function(args){
 		if(typeof args === 'object'){
 			var value, updated = false;
+
+			// Set preload range (within bounds).
+			// Updating preload range does not need any styles update nor a layout refresh.
+			if(args.hasOwnProperty('preloadRange')){
+				r.preferences.preloadRange.value = r.preferences.preloadRange.clear(args.preloadRange);
+			}
 
 			// Set line height if all conditions are met
 			if(args.hasOwnProperty('lineHeight')){
