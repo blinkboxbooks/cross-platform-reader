@@ -4073,7 +4073,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.36-110'
+				appversion: '0.1.37-111'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4214,7 +4214,9 @@ var Reader = (function (r) {
 		// Container parent styles.
 		r.$container
 			.css({
-				overflow: 'hidden'
+				overflow: 'hidden',
+				'-webkit-tap-highlight-color': 'rgba(0,0,0,0)',
+				'-webkit-touch-callout': 'none'
 			});
 
 		// Capture the anchor links into the content
@@ -4433,7 +4435,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.36-110'
+			'version': '0.1.37-111'
 		},
 		START_OF_BOOK : {
 			code: 8,
