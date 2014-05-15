@@ -311,39 +311,94 @@ var Reader = (function (r) {
 		}
 	};
 
-	function loadImages(reverse) {
-	  var images = $('img', r.$reader),
-	      updatedImages = $(),
-	      mainDefer = $.Deferred(),
-	      promise = $.Deferred().resolve().promise();
-		if (images.length && reverse) {
+	// Returns images in the ideal loading order:
+	function getImagesToLoad(reverse, nearestSelector) {
+		// nearestSelector is the selector for the element identifying the current position,
+		// e.g. a CFI marker as data attribute selector or an element id to identify an anchor in the current document:
+		var nearestElement = nearestSelector && $(nearestSelector, r.$reader)[0],
+				// Both jQuery and the DOM selector API will return matching elements in DOM order.
+				// Using this information, we combine the img selector with the nearestSelector:
+				selector = nearestElement ? 'img.cpr-placeholder,' + nearestSelector : 'img.cpr-placeholder',
+				// As a result, we will get a collection of elements with the CFI marker or anchor in the middle:
+				images = $(selector, r.$reader),
+				sortedImages,
+				nearestIndex,
+				i,
+				el;
+		// If the reverse argument is set, reverse the order of the elements,
+		// which is useful for navigating backwards in a book:
+		if (images.length > 1 && reverse) {
 			images = $(images.get().reverse());
 		}
-		images.each(function () {
+		// If no position element is given, simply return the collected images:
+		if (!nearestElement) {
+			return images;
+		}
+		// Retrieve the index of the position element in the collection:
+		nearestIndex = images.index(nearestElement);
+		sortedImages = [];
+		// Build a new collection without the position element,
+		// starting with the images closest to the position element index:
+		for (i = 1; sortedImages.length < images.length - 1; i++) {
+			// Add the previous image before the position element:
+			el = images[nearestIndex - i];
+			if (el) {
+				sortedImages.push(el);
+			}
+			// Add the next image after the position element:
+			el = images[nearestIndex + i];
+			if (el) {
+				sortedImages.push(el);
+			}
+		}
+		// Return the collection of img elements sorted based on their relative distance to the given element:
+		return $(sortedImages);
+	}
+
+	// Loads images in sequential order based on the current chapter position:
+	function loadImages(reverse, nearestSelector) {
+		// A list to collect the images to be loaded:
+	  var updatedImages = $(),
+	      // Main deferred object, will be resolved once all the required images have been loaded:
+	      mainDefer = $.Deferred(),
+	      // Promise which will be used to chain the sequential image loading:
+	      promise = $.Deferred().resolve().promise();
+		getImagesToLoad(reverse, nearestSelector).each(function () {
 	    var el = this,
 	        dataSrc = el && el.getAttribute('data-src');
+			// Ignore images that have no data-src (safeguard, they should not be in the collection):
 	    if (!dataSrc) {
 	      return;
 	    }
-	    // Load images sequentially so we only load images until the nearest pages are filled:
+	    // Chaining the promises so we only load images until the nearest pages are filled.
+			// Since each loaded image can influence the page layout we have to load them sequentially:
 	    promise = promise.then(function () {
+		    // Check if the img element is within the preload range:
 	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
-	        var defer = $.Deferred();
-	        $(el).one('load', function () {
-		        $(el).off();
+	        var $el = $(el),
+		          defer = $.Deferred();
+		      $el.one('load', function () {
+			      // Remove all event handlers (load/error):
+			      $el.off();
 		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
-			        $(el).addClass('cpr-center');
+			        $el.addClass('cpr-center');
 		        }
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
 		        updatedImages = updatedImages.add(el);
+			      // Resolve the promise for the current image:
 		        defer.resolve();
 	        });
-	        $(el).one('error', function () {
-	          $(el).off();
+		      $el.one('error', function () {
+			      // Remove all event handlers (load/error):
+			      $el.off();
+			      // Resolve the promise for the current image:
 	          defer.resolve();
 	        });
+		      // Remove the placeholder class from the image element:
+		      $el.removeClass('cpr-placeholder');
+		      // Start the image load by using the data-src for the actual img src:
 	        el.setAttribute('src', dataSrc);
 	        el.removeAttribute('data-src');
 	        return defer.promise();
@@ -351,6 +406,8 @@ var Reader = (function (r) {
 	    });
 	  });
 		promise.then(function () {
+			// Resolve the main deferred after the promise chain is resolved
+			// and pass the list of updated images as argument:
 			mainDefer.resolve(updatedImages);
 		});
 	  return mainDefer.promise();
@@ -409,7 +466,7 @@ var Reader = (function (r) {
 				// page is given as "LASTPAGE", jump to the last page of the chapter:
 				page = pagesByChapter;
 			} else if ($.type(p) === 'string') {
-				if (/^epubcfi\(.+\)$/.test(p)) {
+				if (r.CFI.isValidCFI(p)) {
 					// page is given as CFI, jump to the page containing the CFI marker:
 					var pos = r.CFI.findCFIElement(p);
 					page = pos === -1 ? 0 : pos;
@@ -423,8 +480,10 @@ var Reader = (function (r) {
 			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
 		},
 		load: function(p, fixed) {
+			var isLastPage = p === 'LASTPAGE',
+			    selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
 			Page.moveTo(p);
-			var promise = loadImages(p === 'LASTPAGE')
+			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
 					// Update the colums and page position on each image load:
 					pagesByChapter = _getColumnsNumber();
