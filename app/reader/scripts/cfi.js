@@ -263,8 +263,14 @@ var Reader = (function (r) {
 				}
 			}
 		},
+		isValidCFI: function (cfi) {
+			return /^epubcfi\(.+\)$/.test(cfi);
+		},
+		getCFISelector: function (cfi) {
+			return '*[data-cfi="' + cfi + '"]';
+		},
 		findCFIElement : function (value) {
-			var $elem = $('*[data-cfi="' + value + '"]', r.$iframe.contents());
+			var $elem = $(r.CFI.getCFISelector(value), r.$iframe.contents());
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
