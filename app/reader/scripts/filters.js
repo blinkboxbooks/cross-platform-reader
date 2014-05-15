@@ -127,6 +127,8 @@ var Reader = (function (r) {
 				image.setAttribute('data-src', imgSrc);
 				// Use a tiny data-uri GIF as placeholder:
 				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+				// Add a placeholder class:
+				$(image).addClass('cpr-placeholder');
 			}
 		}
 		return content;
