@@ -286,7 +286,7 @@ var Reader = (function (r) {
 				if(r.Navigation.getChapter() === chapter){
 					return _go();
 				} else {
-					return r.loadChapter(chapter).then(_go);
+					return r.loadChapter(chapter, true).then(_go);
 				}
 			}
 			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));

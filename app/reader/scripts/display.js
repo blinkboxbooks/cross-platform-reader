@@ -356,7 +356,7 @@ var Reader = (function (r) {
 	};
 
 	// Load a chapter with the index from the spine of this chapter
-	r.loadChapter = function(chapterNumber) {
+	r.loadChapter = function(chapterNumber, noPageLoad) {
 		var defer = $.Deferred();
 
 		r.CFI.setUp(chapterNumber);
@@ -370,8 +370,9 @@ var Reader = (function (r) {
 				r.Navigation.setNumberOfPages();
 				r.$reader.css('opacity', 1);
 
-				// Go to init cfi, if it was set.
-				if (_initCFI) {
+				if (noPageLoad) {
+					defer.resolve();
+				} else if (_initCFI) {
 					r.CFI.goToCFI(_initCFI).then(defer.resolve);
 					_initCFI = null;
 				} else {
