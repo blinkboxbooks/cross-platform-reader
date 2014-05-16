@@ -323,7 +323,7 @@ var Reader = (function (r) {
 						// load the chapter specified by the CFI, otherwise load chapter 0
 						promise = r.loadChapter(chapter);
 					}
-					promise.then(r.Navigation.loadPage).then(defer.resolve, defer.reject);
+					promise.then(defer.resolve, defer.reject);
 				}, defer.reject);
 			}
 			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
@@ -371,12 +371,12 @@ var Reader = (function (r) {
 				r.$reader.css('opacity', 1);
 
 				// Go to init cfi, if it was set.
-				if(_initCFI){
-					r.CFI.goToCFI(_initCFI);
+				if (_initCFI) {
+					r.CFI.goToCFI(_initCFI).then(defer.resolve);
 					_initCFI = null;
+				} else {
+					r.Navigation.loadPage().then(defer.resolve);
 				}
-
-				defer.resolve();
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		};
 
