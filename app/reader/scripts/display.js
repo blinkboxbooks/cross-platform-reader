@@ -356,7 +356,7 @@ var Reader = (function (r) {
 	};
 
 	// Load a chapter with the index from the spine of this chapter
-	r.loadChapter = function(chapterNumber, noPageLoad) {
+	r.loadChapter = function(chapterNumber, cfi) {
 		var defer = $.Deferred();
 
 		r.CFI.setUp(chapterNumber);
@@ -368,12 +368,9 @@ var Reader = (function (r) {
 			displayContent({content: data}).then(function(){
 
 				r.Navigation.setNumberOfPages();
-				r.$reader.css('opacity', 1);
 
-				if (noPageLoad) {
-					defer.resolve();
-				} else if (_initCFI) {
-					r.CFI.goToCFI(_initCFI).then(defer.resolve);
+				if (cfi || _initCFI) {
+					r.CFI.goToCFI(cfi || _initCFI).then(defer.resolve);
 					_initCFI = null;
 				} else {
 					r.Navigation.loadPage().then(defer.resolve);
@@ -389,7 +386,9 @@ var Reader = (function (r) {
 			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
 
-		return defer.promise();
+		return defer.promise().then(function () {
+			r.$reader.css('opacity', 1);
+		});
 	};
 
 	// Check if the browser supports css-columns.
