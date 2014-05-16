@@ -356,7 +356,7 @@ var Reader = (function (r) {
 	};
 
 	// Load a chapter with the index from the spine of this chapter
-	r.loadChapter = function(chapterNumber, cfi) {
+	r.loadChapter = function(chapterNumber, page) {
 		var defer = $.Deferred();
 
 		r.CFI.setUp(chapterNumber);
@@ -369,11 +369,12 @@ var Reader = (function (r) {
 
 				r.Navigation.setNumberOfPages();
 
+				var cfi = r.CFI.isValidCFI(String(page)) && page;
 				if (cfi || _initCFI) {
 					r.CFI.goToCFI(cfi || _initCFI).then(defer.resolve);
 					_initCFI = null;
 				} else {
-					r.Navigation.loadPage().then(defer.resolve);
+					r.Navigation.loadPage(page).then(defer.resolve);
 				}
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		};

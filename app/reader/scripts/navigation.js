@@ -216,9 +216,7 @@ var Reader = (function (r) {
 			var defer = $.Deferred();
 			if (chapter < bookChapters - 1) {
 			  defer.notify();
-			  Chapter.load(Chapter.next()).then(function chapterLoadCallback(){
-			    r.Navigation.loadPage(0).then(defer.resolve, defer.reject);
-			  }, defer.reject);
+			  Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
 			} else {
 			  defer.reject(r.Event.END_OF_BOOK);
 			}
@@ -231,9 +229,7 @@ var Reader = (function (r) {
 			var defer = $.Deferred();
 			if (chapter > 0) {
 			  defer.notify();
-			  Chapter.load(Chapter.prev()).then(function chapterLoadCallback(){
-			    r.Navigation.loadPage('LASTPAGE').then(defer.resolve, defer.reject);
-			  }, defer.reject);
+			  Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
 			} else {
 			  defer.reject(r.Event.START_OF_BOOK);
 			}
@@ -525,8 +521,8 @@ var Reader = (function (r) {
 		prev: function() {
 			return --chapter;
 		},
-		load: function(c) {
-			return r.loadChapter(c);
+		load: function(c, p) {
+			return r.loadChapter(c, p);
 		}
 	};
 
