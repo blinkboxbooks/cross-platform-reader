@@ -380,6 +380,8 @@ var Reader = (function (r) {
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
 			        $el.addClass('cpr-center');
 		        }
+			      // Remove the placeholder class from the image element:
+			      $el.removeClass('cpr-placeholder');
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
 		        updatedImages = updatedImages.add(el);
@@ -392,8 +394,6 @@ var Reader = (function (r) {
 			      // Resolve the promise for the current image:
 	          defer.resolve();
 	        });
-		      // Remove the placeholder class from the image element:
-		      $el.removeClass('cpr-placeholder');
 		      // Start the image load by using the data-src for the actual img src:
 	        el.setAttribute('src', dataSrc);
 	        el.removeAttribute('data-src');
