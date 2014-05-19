@@ -64,8 +64,26 @@ var Reader = (function (r) {
 	  return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
 	};
 
-	r.setReaderLeftPosition = function (pos) {
-	  r.$reader.css('transform', 'translateX(' + pos + 'px)');
+	r.setReaderLeftPosition = function (pos, speed) {
+		var defer = $.Deferred(),
+				timeout;
+		if (speed) {
+			r.$reader.one('transitionend', function () {
+				defer.resolve();
+				clearTimeout(timeout);
+			});
+		} else {
+			defer.resolve();
+		}
+		r.$reader.css({
+			'transition-duration': (speed || 0) + 's',
+			transform: 'translateX(' + pos + 'px)'
+		});
+		if (speed) {
+			// Fallback if transitionend is not triggered (delayed by 200 ms):
+			timeout = setTimeout(defer.resolve, (speed * 1000) + 200);
+		}
+		return defer.promise();
 	};
 
 	// Return the page number in the actual chapter where it is an element.
@@ -435,31 +453,39 @@ var Reader = (function (r) {
 		next: function() {
 			page = page + 1;
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
-			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
-			r.Navigation.updateCurrentCFI();
-			return loadImages().then(function (updatedImages) {
-				if (updatedImages.length) {
-					r.refreshLayout();
-				} else {
-					r.Navigation.updateProgress();
-					r.Bookmarks.display();
-				}
+			return r.setReaderLeftPosition(
+				r.getReaderLeftPosition() - readerOuterWidth,
+				r.preferences.transitionDuration.value
+			).then(function () {
+				r.Navigation.updateCurrentCFI();
+				return loadImages().then(function (updatedImages) {
+					if (updatedImages.length) {
+						r.refreshLayout();
+					} else {
+						r.Navigation.updateProgress();
+						r.Bookmarks.display();
+					}
+				});
 			});
 		},
 		prev: function() {
 			page = page - 1;
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
-			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
-			r.Navigation.updateCurrentCFI();
-			return loadImages(true)
-				.progress(function () {
-					pagesByChapter = _getColumnsNumber();
-					r.CFI.goToCFI(_cfi.CFI, true);
-				})
-				.then(function () {
-					r.Navigation.updateProgress();
-					r.Bookmarks.display();
-				});
+			return r.setReaderLeftPosition(
+				r.getReaderLeftPosition() + readerOuterWidth,
+				r.preferences.transitionDuration.value
+			).then(function () {
+				r.Navigation.updateCurrentCFI();
+				return loadImages(true)
+					.progress(function () {
+						pagesByChapter = _getColumnsNumber();
+						r.CFI.goToCFI(_cfi.CFI, true);
+					})
+					.then(function () {
+						r.Navigation.updateProgress();
+						r.Bookmarks.display();
+					});
+			});
 		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
 		moveTo: function (p) {

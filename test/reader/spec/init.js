@@ -11,6 +11,9 @@ describe('Initialisation', function() {
 		},
 		currentStatus = null,
 		defaultArgs = {
+			preferences: {
+				transitionDuration: 0
+			},
 			url: testBookUrl,
 			width: 400,
 			height: 600,
