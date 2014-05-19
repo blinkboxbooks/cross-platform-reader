@@ -380,10 +380,8 @@ var Reader = (function (r) {
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
 			        $el.addClass('cpr-center');
 		        }
-			      // Remove the placeholder class from the image element:
-			      $el.removeClass('cpr-placeholder');
-			      // Remove the obsolete data-src:
-			      el.removeAttribute('data-src');
+		        // Remove the placeholder class from the image element:
+		        $el.removeClass('cpr-placeholder');
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
 		        updatedImages = updatedImages.add(el);
@@ -393,13 +391,17 @@ var Reader = (function (r) {
 		      $el.one('error', function () {
 			      // Remove all event handlers (load/error):
 			      $el.off();
-			      // Restore the original src to allow reloading the failed image:
+			      // Restore the data-src to allow reloading the failed image:
+			      el.setAttribute('data-src', el.getAttribute('src'));
+			      // Restore the original src with the placeholder image:
 			      el.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
 			      // Resolve the promise for the current image:
 	          defer.resolve();
 	        });
-		      // Start the image load by using the data-src for the actual img src:
+	        // Start the image load by using the data-src for the actual img src:
 	        el.setAttribute('src', dataSrc);
+	        // Remove the obsolete data-src:
+	        el.removeAttribute('data-src');
 	        return defer.promise();
 	      }
 	    });
