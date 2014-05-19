@@ -40,7 +40,11 @@
   width: 100%;
 }
 .cpr-marker {
-
+}
+.cpr-placeholder {
+  visibility: hidden;
+  width: 1px;
+  height: 1px;
 }
 body {
   background: white; // @@theme_background x
