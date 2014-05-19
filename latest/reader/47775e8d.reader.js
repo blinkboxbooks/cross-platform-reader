@@ -3578,24 +3578,27 @@ var Reader = (function (r) {
 				}
 			}
 		},
+		isValidCFI: function (cfi) {
+			return /^epubcfi\(.+\)$/.test(cfi);
+		},
+		getCFISelector: function (cfi) {
+			return '*[data-cfi="' + cfi + '"]';
+		},
 		findCFIElement : function (value) {
-			var $elem = $('*[data-cfi="' + value + '"]', r.$iframe.contents());
+			var $elem = $(r.CFI.getCFISelector(value), r.$iframe.contents());
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
 		goToCFI : function (cfi, fixed) {
-			function _go(){
-				if (r.CFI.findCFIElement(cfi) === -1) {
-					r.CFI.setCFI(cfi, 'cpr-marker');
-				}
-				return r.Navigation.loadPage(cfi, fixed);
-			}
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
 				if(r.Navigation.getChapter() === chapter){
-					return _go();
+					if (r.CFI.findCFIElement(cfi) === -1) {
+						r.CFI.setCFI(cfi, 'cpr-marker');
+					}
+					return r.Navigation.loadPage(cfi, fixed);
 				} else {
-					return r.loadChapter(chapter).then(_go);
+					return r.loadChapter(chapter, cfi);
 				}
 			}
 			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
@@ -4052,7 +4055,7 @@ var Reader = (function (r) {
 	};
 
 	var _addStyles= function(){
-		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#cpr-header{color:#fff;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}body{background:#fff;position:relative;overflow:hidden;margin:0;padding:0}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}body #cpr-reader *,body #cpr-reader a,body #cpr-reader div,body #cpr-reader em,body #cpr-reader h1,body #cpr-reader h2,body #cpr-reader h3,body #cpr-reader h4,body #cpr-reader h5,body #cpr-reader h6,body #cpr-reader p,body #cpr-reader span,body #cpr-reader strong{padding:0;margin:0;font-weight:400;font-style:normal;text-decoration:none;text-align:left;color:#000;line-height:1.2;font-size:18px;font-family:Arial;word-wrap:break-word}body #cpr-reader h1,body #cpr-reader h2,body #cpr-reader h3,body #cpr-reader h4,body #cpr-reader h5,body #cpr-reader h6{font-weight:700;font-size:24px}body #cpr-reader p{margin-bottom:1em}body #cpr-reader :last-child{margin-bottom:0}body #cpr-reader :link{color:#09f;text-decoration:none;border-bottom:1px solid #09f}body #cpr-reader :link[data-link-type=external]:after{content:" ";font-size:.83em;vertical-align:super}body #cpr-reader :link *{color:#09f}body #cpr-reader img,body #cpr-reader svg,body #cpr-reader svg *{max-width:100%;max-height:100%}body #cpr-reader img.cpr-center,body #cpr-reader svg .cpr-center,body #cpr-reader svg.cpr-center{display:block;margin-right:auto;margin-left:auto}';
+		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}h1{font-size:2em;margin:.67em 0}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#cpr-header{color:#fff;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}.cpr-placeholder{visibility:hidden;width:1px;height:1px}body{background:#fff;position:relative;overflow:hidden;margin:0;padding:0}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}body #cpr-reader *,body #cpr-reader a,body #cpr-reader div,body #cpr-reader em,body #cpr-reader h1,body #cpr-reader h2,body #cpr-reader h3,body #cpr-reader h4,body #cpr-reader h5,body #cpr-reader h6,body #cpr-reader p,body #cpr-reader span,body #cpr-reader strong{padding:0;margin:0;font-weight:400;font-style:normal;text-decoration:none;text-align:left;color:#000;line-height:1.2;font-size:18px;font-family:Arial;word-wrap:break-word}body #cpr-reader h1,body #cpr-reader h2,body #cpr-reader h3,body #cpr-reader h4,body #cpr-reader h5,body #cpr-reader h6{font-weight:700;font-size:24px}body #cpr-reader p{margin-bottom:1em}body #cpr-reader :last-child{margin-bottom:0}body #cpr-reader :link{color:#09f;text-decoration:none;border-bottom:1px solid #09f}body #cpr-reader :link[data-link-type=external]:after{content:" ";font-size:.83em;vertical-align:super}body #cpr-reader :link *{color:#09f}body #cpr-reader img,body #cpr-reader svg,body #cpr-reader svg *{max-width:100%;max-height:100%}body #cpr-reader img.cpr-center,body #cpr-reader svg .cpr-center,body #cpr-reader svg.cpr-center{display:block;margin-right:auto;margin-left:auto}';
 
 		r.$stylesheet = $('<style>' + styles + '</style>').appendTo(r.$head);
 
@@ -4089,7 +4092,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.40-118'
+				appversion: '0.1.41-119'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4303,7 +4306,7 @@ var Reader = (function (r) {
 						// load the chapter specified by the CFI, otherwise load chapter 0
 						promise = r.loadChapter(chapter);
 					}
-					promise.then(r.Navigation.loadPage).then(defer.resolve, defer.reject);
+					promise.then(defer.resolve, defer.reject);
 				}, defer.reject);
 			}
 			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
@@ -4336,7 +4339,7 @@ var Reader = (function (r) {
 	};
 
 	// Load a chapter with the index from the spine of this chapter
-	r.loadChapter = function(chapterNumber) {
+	r.loadChapter = function(chapterNumber, page) {
 		var defer = $.Deferred();
 
 		r.CFI.setUp(chapterNumber);
@@ -4348,15 +4351,14 @@ var Reader = (function (r) {
 			displayContent({content: data}).then(function(){
 
 				r.Navigation.setNumberOfPages();
-				r.$reader.css('opacity', 1);
 
-				// Go to init cfi, if it was set.
-				if(_initCFI){
-					r.CFI.goToCFI(_initCFI);
+				var cfi = r.CFI.isValidCFI(String(page)) && page;
+				if (cfi || _initCFI) {
+					r.CFI.goToCFI(cfi || _initCFI).then(defer.resolve);
 					_initCFI = null;
+				} else {
+					r.Navigation.loadPage(page).then(defer.resolve);
 				}
-
-				defer.resolve();
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		};
 
@@ -4368,7 +4370,9 @@ var Reader = (function (r) {
 			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
 
-		return defer.promise();
+		return defer.promise().then(function () {
+			r.$reader.css('opacity', 1);
+		});
 	};
 
 	// Check if the browser supports css-columns.
@@ -4451,7 +4455,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.40-118'
+			'version': '0.1.41-119'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4715,6 +4719,8 @@ var Reader = (function (r) {
 				image.setAttribute('data-src', imgSrc);
 				// Use a tiny data-uri GIF as placeholder:
 				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+				// Add a placeholder class:
+				$(image).addClass('cpr-placeholder');
 			}
 		}
 		return content;
@@ -5328,9 +5334,7 @@ var Reader = (function (r) {
 			var defer = $.Deferred();
 			if (chapter < bookChapters - 1) {
 			  defer.notify();
-			  Chapter.load(Chapter.next()).then(function chapterLoadCallback(){
-			    r.Navigation.loadPage(0).then(defer.resolve, defer.reject);
-			  }, defer.reject);
+			  Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
 			} else {
 			  defer.reject(r.Event.END_OF_BOOK);
 			}
@@ -5343,9 +5347,7 @@ var Reader = (function (r) {
 			var defer = $.Deferred();
 			if (chapter > 0) {
 			  defer.notify();
-			  Chapter.load(Chapter.prev()).then(function chapterLoadCallback(){
-			    r.Navigation.loadPage('LASTPAGE').then(defer.resolve, defer.reject);
-			  }, defer.reject);
+			  Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
 			} else {
 			  defer.reject(r.Event.START_OF_BOOK);
 			}
@@ -5423,46 +5425,108 @@ var Reader = (function (r) {
 		}
 	};
 
-	function loadImages(reverse) {
-	  var images = $('img', r.$reader),
-	      updatedImages = $(),
-	      mainDefer = $.Deferred(),
-	      promise = $.Deferred().resolve().promise();
-		if (images.length && reverse) {
+	// Returns images in the ideal loading order:
+	function getImagesToLoad(reverse, nearestSelector) {
+		// nearestSelector is the selector for the element identifying the current position,
+		// e.g. a CFI marker as data attribute selector or an element id to identify an anchor in the current document:
+		var nearestElement = nearestSelector && $(nearestSelector, r.$reader)[0],
+				// Both jQuery and the DOM selector API will return matching elements in DOM order.
+				// Using this information, we combine the img selector with the nearestSelector:
+				selector = nearestElement ? 'img.cpr-placeholder,' + nearestSelector : 'img.cpr-placeholder',
+				// As a result, we will get a collection of elements with the CFI marker or anchor in the middle:
+				images = $(selector, r.$reader),
+				sortedImages,
+				nearestIndex,
+				i,
+				el;
+		// If the reverse argument is set, reverse the order of the elements,
+		// which is useful for navigating backwards in a book:
+		if (images.length > 1 && reverse) {
 			images = $(images.get().reverse());
 		}
-		images.each(function () {
+		// If no position element is given, simply return the collected images:
+		if (!nearestElement) {
+			return images;
+		}
+		// Retrieve the index of the position element in the collection:
+		nearestIndex = images.index(nearestElement);
+		sortedImages = [];
+		// Build a new collection without the position element,
+		// starting with the images closest to the position element index:
+		for (i = 1; sortedImages.length < images.length - 1; i++) {
+			// Add the previous image before the position element:
+			el = images[nearestIndex - i];
+			if (el) {
+				sortedImages.push(el);
+			}
+			// Add the next image after the position element:
+			el = images[nearestIndex + i];
+			if (el) {
+				sortedImages.push(el);
+			}
+		}
+		// Return the collection of img elements sorted based on their relative distance to the given element:
+		return $(sortedImages);
+	}
+
+	// Loads images in sequential order based on the current chapter position:
+	function loadImages(reverse, nearestSelector) {
+		// A list to collect the images to be loaded:
+	  var updatedImages = $(),
+	      // Main deferred object, will be resolved once all the required images have been loaded:
+	      mainDefer = $.Deferred(),
+	      // Promise which will be used to chain the sequential image loading:
+	      promise = $.Deferred().resolve().promise();
+		getImagesToLoad(reverse, nearestSelector).each(function () {
 	    var el = this,
 	        dataSrc = el && el.getAttribute('data-src');
+			// Ignore images that have no data-src (safeguard, they should not be in the collection):
 	    if (!dataSrc) {
 	      return;
 	    }
-	    // Load images sequentially so we only load images until the nearest pages are filled:
+	    // Chaining the promises so we only load images until the nearest pages are filled.
+			// Since each loaded image can influence the page layout we have to load them sequentially:
 	    promise = promise.then(function () {
+		    // Check if the img element is within the preload range:
 	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
-	        var defer = $.Deferred();
-	        $(el).one('load', function () {
-		        $(el).off();
+	        var $el = $(el),
+		          defer = $.Deferred();
+		      $el.one('load', function () {
+			      // Remove all event handlers (load/error):
+			      $el.off();
 		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
-			        $(el).addClass('cpr-center');
+			        $el.addClass('cpr-center');
 		        }
+		        // Remove the placeholder class from the image element:
+		        $el.removeClass('cpr-placeholder');
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
 		        updatedImages = updatedImages.add(el);
+			      // Resolve the promise for the current image:
 		        defer.resolve();
 	        });
-	        $(el).one('error', function () {
-	          $(el).off();
+		      $el.one('error', function () {
+			      // Remove all event handlers (load/error):
+			      $el.off();
+			      // Restore the data-src to allow reloading the failed image:
+			      el.setAttribute('data-src', el.getAttribute('src'));
+			      // Restore the original src with the placeholder image:
+			      el.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+			      // Resolve the promise for the current image:
 	          defer.resolve();
 	        });
+	        // Start the image load by using the data-src for the actual img src:
 	        el.setAttribute('src', dataSrc);
+	        // Remove the obsolete data-src:
 	        el.removeAttribute('data-src');
 	        return defer.promise();
 	      }
 	    });
 	  });
 		promise.then(function () {
+			// Resolve the main deferred after the promise chain is resolved
+			// and pass the list of updated images as argument:
 			mainDefer.resolve(updatedImages);
 		});
 	  return mainDefer.promise();
@@ -5521,7 +5585,7 @@ var Reader = (function (r) {
 				// page is given as "LASTPAGE", jump to the last page of the chapter:
 				page = pagesByChapter;
 			} else if ($.type(p) === 'string') {
-				if (/^epubcfi\(.+\)$/.test(p)) {
+				if (r.CFI.isValidCFI(p)) {
 					// page is given as CFI, jump to the page containing the CFI marker:
 					var pos = r.CFI.findCFIElement(p);
 					page = pos === -1 ? 0 : pos;
@@ -5535,8 +5599,10 @@ var Reader = (function (r) {
 			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
 		},
 		load: function(p, fixed) {
+			var isLastPage = p === 'LASTPAGE',
+			    selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
 			Page.moveTo(p);
-			var promise = loadImages(p === 'LASTPAGE')
+			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
 					// Update the colums and page position on each image load:
 					pagesByChapter = _getColumnsNumber();
@@ -5578,8 +5644,8 @@ var Reader = (function (r) {
 		prev: function() {
 			return --chapter;
 		},
-		load: function(c) {
-			return r.loadChapter(c);
+		load: function(c, p) {
+			return r.loadChapter(c, p);
 		}
 	};
 
