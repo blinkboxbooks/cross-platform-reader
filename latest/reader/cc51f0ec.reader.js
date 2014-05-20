@@ -4092,7 +4092,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.41-121'
+				appversion: '0.1.42-122'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4455,7 +4455,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.41-121'
+			'version': '0.1.42-122'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5494,12 +5494,12 @@ var Reader = (function (r) {
 		      $el.one('load', function () {
 			      // Remove all event handlers (load/error):
 			      $el.off();
+			      // Remove the placeholder class from the image element:
+			      $el.removeClass('cpr-placeholder');
 		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
 			        $el.addClass('cpr-center');
 		        }
-		        // Remove the placeholder class from the image element:
-		        $el.removeClass('cpr-placeholder');
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
 		        updatedImages = updatedImages.add(el);
@@ -5569,12 +5569,14 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
+			r.$reader.css('opacity', 0);
 			return loadImages(true)
 				.progress(function () {
 					pagesByChapter = _getColumnsNumber();
 					r.CFI.goToCFI(_cfi.CFI, true);
 				})
 				.then(function () {
+					r.$reader.css('opacity', 1);
 					r.Navigation.updateProgress();
 					r.Bookmarks.display();
 				});
