@@ -451,12 +451,14 @@ var Reader = (function (r) {
 			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
 			r.Navigation.updateCurrentCFI();
+			r.$reader.css('opacity', 0);
 			return loadImages(true)
 				.progress(function () {
 					pagesByChapter = _getColumnsNumber();
 					r.CFI.goToCFI(_cfi.CFI, true);
 				})
 				.then(function () {
+					r.$reader.css('opacity', 1);
 					r.Navigation.updateProgress();
 					r.Bookmarks.display();
 				});
