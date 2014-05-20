@@ -376,12 +376,12 @@ var Reader = (function (r) {
 		      $el.one('load', function () {
 			      // Remove all event handlers (load/error):
 			      $el.off();
+			      // Remove the placeholder class from the image element:
+			      $el.removeClass('cpr-placeholder');
 		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
 		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
 			        $el.addClass('cpr-center');
 		        }
-		        // Remove the placeholder class from the image element:
-		        $el.removeClass('cpr-placeholder');
 		        // Notify on each image load:
 		        mainDefer.notify({type: 'load.img', element: el});
 		        updatedImages = updatedImages.add(el);
