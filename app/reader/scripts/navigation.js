@@ -65,13 +65,9 @@ var Reader = (function (r) {
 	};
 
 	r.setReaderLeftPosition = function (pos, speed) {
-		var defer = $.Deferred(),
-				timeout;
+		var defer = $.Deferred();
 		if (speed) {
-			r.$reader.one('transitionend', function () {
-				defer.resolve();
-				clearTimeout(timeout);
-			});
+			r.$reader.one('transitionend', defer.resolve);
 		} else {
 			defer.resolve();
 		}
@@ -79,10 +75,6 @@ var Reader = (function (r) {
 			'transition-duration': (speed || 0) + 's',
 			transform: 'translateX(' + pos + 'px)'
 		});
-		if (speed) {
-			// Fallback if transitionend is not triggered (delayed by 200 ms):
-			timeout = setTimeout(defer.resolve, (speed * 1000) + 200);
-		}
 		return defer.promise();
 	};
 
