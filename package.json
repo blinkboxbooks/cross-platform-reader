@@ -1,6 +1,6 @@
 {
   "name": "CPR",
-  "version": "0.1.41",
+  "version": "0.1.42",
   "description": "Cross Platform Reader",
   "scripts": {
     "pages": "sh config/pages.sh",
