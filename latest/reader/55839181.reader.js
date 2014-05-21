@@ -4092,7 +4092,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.42-123'
+				appversion: '0.1.43-124'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4206,6 +4206,8 @@ var Reader = (function (r) {
 		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
 
 		r.$reader.html(content);
+
+		r.Filters.applyFilters(r.Filters.HOOKS.AFTER_CHAPTER_DISPLAY);
 
 		// Add all bookmarks for this chapter.
 		var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
@@ -4455,7 +4457,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.42-123'
+			'version': '0.1.43-124'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4596,7 +4598,8 @@ var Reader = (function (r) {
 
 	var filters = new FilterJS(), HOOKS = {
 		BEFORE_CHAPTER_PARSE: 'beforeChapterParse',
-		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay'
+		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay',
+		AFTER_CHAPTER_DISPLAY: 'afterChapterDisplay'
 	};
 
 	// Build an absolute path from the relative path of a resource
@@ -5524,11 +5527,20 @@ var Reader = (function (r) {
 	      }
 	    });
 	  });
-		promise.then(function () {
-			// Resolve the main deferred after the promise chain is resolved
-			// and pass the list of updated images as argument:
+		// This method is called after all the required images have been loaded:
+		function resolveLoadImages() {
+			r.Filters.removeFilter(afterChapterDisplayFilter);
 			mainDefer.resolve(updatedImages);
-		});
+		}
+		// When a new chapter is displayed, it will remove the current images on the page
+		// and might prevent any outstanding img load events and never resolve loadImages.
+		// Therefore we call resolveLoadImages manually after the chapter content has been replaced:
+		function afterChapterDisplayFilter (content) {
+			resolveLoadImages();
+			return content;
+		}
+		r.Filters.addFilter(r.Filters.HOOKS.AFTER_CHAPTER_DISPLAY, afterChapterDisplayFilter);
+		promise.then(resolveLoadImages);
 	  return mainDefer.promise();
 	}
 
