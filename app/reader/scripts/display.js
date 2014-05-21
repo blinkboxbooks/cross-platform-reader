@@ -224,6 +224,8 @@ var Reader = (function (r) {
 
 		r.$reader.html(content);
 
+		r.Filters.applyFilters(r.Filters.HOOKS.AFTER_CHAPTER_DISPLAY);
+
 		// Add all bookmarks for this chapter.
 		var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
 		if(typeof(bookmarks) !== 'undefined'){

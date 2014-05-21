@@ -406,11 +406,20 @@ var Reader = (function (r) {
 	      }
 	    });
 	  });
-		promise.then(function () {
-			// Resolve the main deferred after the promise chain is resolved
-			// and pass the list of updated images as argument:
+		// This method is called after all the required images have been loaded:
+		function resolveLoadImages() {
+			r.Filters.removeFilter(afterChapterDisplayFilter);
 			mainDefer.resolve(updatedImages);
-		});
+		}
+		// When a new chapter is displayed, it will remove the current images on the page
+		// and might prevent any outstanding img load events and never resolve loadImages.
+		// Therefore we call resolveLoadImages manually after the chapter content has been replaced:
+		function afterChapterDisplayFilter (content) {
+			resolveLoadImages();
+			return content;
+		}
+		r.Filters.addFilter(r.Filters.HOOKS.AFTER_CHAPTER_DISPLAY, afterChapterDisplayFilter);
+		promise.then(resolveLoadImages);
 	  return mainDefer.promise();
 	}
 
