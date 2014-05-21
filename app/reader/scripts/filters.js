@@ -4,7 +4,8 @@ var Reader = (function (r) {
 
 	var filters = new FilterJS(), HOOKS = {
 		BEFORE_CHAPTER_PARSE: 'beforeChapterParse',
-		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay'
+		BEFORE_CHAPTER_DISPLAY: 'beforeChapterDisplay',
+		AFTER_CHAPTER_DISPLAY: 'afterChapterDisplay'
 	};
 
 	// Build an absolute path from the relative path of a resource
