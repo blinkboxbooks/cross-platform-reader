@@ -122,6 +122,7 @@ angular.module('app', ['ngRoute'])
 		$scope.$watch('book.url', function(val){
 			if(val){
 				// Call the Reader
+				READER.enableDebug();
 				READER.init({
 					container: '#reader_container',
 					width: $scope.layout.width,

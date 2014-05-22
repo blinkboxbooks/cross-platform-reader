@@ -108,6 +108,10 @@ var Reader = (function (r) {
 			code: 19,
 			message: 'Unhandled touch event at given coordinates.'
 		},
+		NOTICE_INT_LINK: {
+			code: 20,
+			message: 'Internal link was clicked'
+		},
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
