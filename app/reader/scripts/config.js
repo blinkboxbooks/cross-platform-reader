@@ -51,7 +51,7 @@ var Reader = (function (r) {
 		transitionDuration: {
 			min: 0,
 			max: 1,
-			value: 0.2,
+			value: 0.3,
 			clear: function (value) {
 				value = Number(value) || 0;
 				if (value > r.preferences.transitionDuration.max) {
