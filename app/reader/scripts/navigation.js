@@ -233,10 +233,10 @@ var Reader = (function (r) {
 			if (chapter < bookChapters - 1) {
 			  defer.notify();
 			  Page.moveTo(
-			  	page + 1,
-			  	r.preferences.transitionDuration.value
+					page + 1,
+					r.preferences.transitionDuration.value
 			  ).then(function () {
-			  	Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+					Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
 			  });
 			} else {
 			  defer.reject(r.Event.END_OF_BOOK);
@@ -251,10 +251,10 @@ var Reader = (function (r) {
 			if (chapter > 0) {
 			  defer.notify();
 			  Page.moveTo(
-			  	page - 1,
-			  	r.preferences.transitionDuration.value
+					page - 1,
+					r.preferences.transitionDuration.value
 			  ).then(function () {
-			  	Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+					Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
 			  });
 			} else {
 			  defer.reject(r.Event.START_OF_BOOK);
