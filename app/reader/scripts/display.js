@@ -74,6 +74,18 @@ var Reader = (function (r) {
 		return loadInfo();
 	};
 
+	var _parseCSS = function(style){
+		var doc = document.implementation.createHTMLDocument(''),
+			styleElement = document.createElement('style');
+
+		styleElement.textContent = style;
+
+		// the style will only be parsed once it is added to a document
+		doc.body.appendChild(styleElement);
+
+		return styleElement.sheet.cssRules;
+	};
+
 	var _addPublisherStyles = function($head){
 		var links = [];
 		$head.filter('link[rel=stylesheet]').each(function(index, link){
@@ -83,7 +95,7 @@ var Reader = (function (r) {
 		});
 		return $.when.apply($, links).then(function(){
 			for(var i = 0, l = links.length; i < l; i++){
-				console.log(arguments[i]);
+				console.log(_parseCSS(arguments[i]));
 			}
 		});
 	};
