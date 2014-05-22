@@ -22,6 +22,11 @@ var Reader = (function (r) {
 		return r.setPreferences({preloadRange: value});
 	};
 
+	// <a name="setTransitionDuration"></a> Set transition duration (within bounds).
+	r.setTransitionDuration = function(value){
+		return r.setPreferences({transitionDuration: value});
+	};
+
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -105,6 +110,12 @@ var Reader = (function (r) {
 			// Updating preload range does not need any styles update nor a layout refresh.
 			if(args.hasOwnProperty('preloadRange')){
 				r.preferences.preloadRange.value = r.preferences.preloadRange.clear(args.preloadRange);
+			}
+
+			// Set transition duration (within bounds).
+			// Updating transition duration does not need any styles update nor a layout refresh.
+			if(args.hasOwnProperty('transitionDuration')){
+				r.preferences.transitionDuration.value = r.preferences.transitionDuration.clear(args.transitionDuration);
 			}
 
 			// Set line height if all conditions are met

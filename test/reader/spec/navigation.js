@@ -12,6 +12,9 @@ describe('Navigation', function() {
 		previousStatus = null,
 		$container = null,
 		defaultArgs = {
+			preferences: {
+				transitionDuration: 0
+			},
 			url: testBookUrl,
 			width: 400,
 			height: 600,
@@ -202,4 +205,106 @@ describe('Navigation', function() {
 			});
 		}
 	});
+
+	it('should navigate forwards and backwards with transitions', function(done){
+		var pageCount = 0;
+
+		var _commonTests = function(){
+			// expect status updates to be defined
+			expect(currentStatus.cfi).not.toBeNull();
+			expect(currentStatus.cfi.CFI).toBeDefined();
+			expect(currentStatus.cfi.preview).toBeDefined();
+			expect(currentStatus.cfi.chapter).toBeDefined();
+			expect(currentStatus.bookmarksInPage).toBeArray();
+			expect(currentStatus.bookmarks).toBeArray();
+			expect(currentStatus.page).toBeNumber();
+			expect(currentStatus.pages).toBeNumber();
+			expect(currentStatus.chapter).toBeNumber();
+			expect(currentStatus.chapters).toBeNumber();
+			expect(currentStatus.progress).toBeNumber();
+			expect(currentStatus.progress).toBe(READER.getProgress());
+
+			// expect the chapter label and preview to not be empty strings
+			expect(currentStatus.cfi.preview).toBeTruthy();
+			expect(currentStatus.cfi.chapter).toBeTruthy();
+
+			// expect progress to be valid
+			expect(currentStatus.progress).toBeGreaterOrEqualThan(0);
+			expect(currentStatus.progress).toBeLessOrEqualThan(100);
+
+			// expect no errors
+			expect(flags.hasErrors).toBe(false);
+		};
+
+		var _nextLoop = function(){
+			_commonTests();
+
+			if(previousStatus){
+				expect(currentStatus.progress).toBeGreaterOrEqualThan(previousStatus.progress);
+
+				// if we are in the same chapter, expect the page number to be increased
+				// else the chapter to be increased
+				if(currentStatus.chapter === previousStatus.chapter){
+					expect(currentStatus.page).toBe(previousStatus.page + 1);
+				} else {
+					expect(currentStatus.chapter).toBe(previousStatus.chapter + 1);
+				}
+			} else {
+				// expect on initialization to open chapter 0 and page 0
+				expect(currentStatus.page).toBe(0);
+				expect(currentStatus.chapter).toBe(0);
+			}
+
+			// Only check 10 pages with transitions enabled:
+			if(flags.hasNext && pageCount < 10){
+				pageCount++;
+				READER.next().then(_nextLoop);
+			} else {
+				// prepare to go backwards within the book
+				flags.hasPrev = true;
+				READER.prev().then(_prevLoop);
+			}
+		};
+
+		var _prevLoop = function(){
+			_commonTests();
+
+			expect(currentStatus.progress).toBeLessOrEqualThan(previousStatus.progress);
+
+			// if we are in the same chapter, expect the page number to be decreased
+			// else the chapter to be increased
+			if(currentStatus.chapter === previousStatus.chapter){
+				expect(currentStatus.page).toBe(previousStatus.page - 1);
+			} else {
+				expect(currentStatus.chapter).toBe(previousStatus.chapter - 1);
+			}
+
+			if(flags.hasPrev){
+				READER.prev().then(_prevLoop);
+			} else {
+				// we reached the beginning of the book again
+				expect(currentStatus.progress).toBe(0);
+
+				// end current test
+				done();
+			}
+		};
+
+		READER.init($.extend({
+				container: $container
+			}, defaultArgs, {
+				preferences: {
+					transitionDuration: 0.01
+				}
+			})).then(function(){
+
+				// expect on initialization to open chapter 0 and page 0
+				expect(currentStatus.page).toBe(0);
+				expect(currentStatus.chapter).toBe(0);
+
+				_nextLoop();
+			});
+
+	});
+
 });

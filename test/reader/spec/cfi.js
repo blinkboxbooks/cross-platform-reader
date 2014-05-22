@@ -11,6 +11,9 @@ describe('CFI', function() {
 		currentStatus = null,
 		cfis = [],
 		defaultArgs = {
+			preferences: {
+				transitionDuration: 0
+			},
 			url: testBookUrl,
 			width: 400,
 			height: 600,

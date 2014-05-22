@@ -48,6 +48,21 @@ var Reader = (function (r) {
 				return value;
 			}
 		},
+		transitionDuration: {
+			min: 0,
+			max: 1,
+			value: 0.3,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.transitionDuration.max) {
+					return r.preferences.transitionDuration.max;
+				}
+				if (value < r.preferences.transitionDuration.min) {
+					return r.preferences.transitionDuration.min;
+				}
+				return value;
+			}
+		},
 		lineHeight : {
 			rules: [],
 			min: 1.1,

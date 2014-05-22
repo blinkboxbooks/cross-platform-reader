@@ -16,6 +16,9 @@ describe('Bookmarks', function() {
 		bookmark = 'epubcfi(/6/10!/4/2[semiprologue]/2/14/1:0)',
 		currentStatus = null,
 		defaultArgs = {
+			preferences: {
+				transitionDuration: 0
+			},
 			url: testBookUrl,
 			width: 400,
 			height: 600,

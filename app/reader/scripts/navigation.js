@@ -59,13 +59,29 @@ var Reader = (function (r) {
 		}
 	};
 
+	r.getReaderOuterWidth = function () {
+		return Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
+	};
+
 	r.getReaderLeftPosition = function () {
 	  // Transform value is matrix(a, c, b, d, tx, ty)
 	  return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
 	};
 
-	r.setReaderLeftPosition = function (pos) {
-	  r.$reader.css('transform', 'translateX(' + pos + 'px)');
+	r.setReaderLeftPosition = function (pos, duration) {
+		var defer = $.Deferred();
+		if (duration) {
+			// This getter call seems to be necessary to ensure the transitionend event is called in some cases:
+			r.getReaderLeftPosition();
+			r.$reader.one('transitionend', defer.resolve);
+		} else {
+			defer.resolve();
+		}
+		r.$reader.css({
+			'transition-duration': (duration || 0) + 's',
+			transform: 'translateX(' + pos + 'px)'
+		});
+		return defer.promise();
 	};
 
 	// Return the page number in the actual chapter where it is an element.
@@ -88,13 +104,13 @@ var Reader = (function (r) {
 	r.returnPageElement = function(obj) {
     obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
 		var offset = obj.offset().left - r.$reader.offset().left;
-		return Math.floor((offset) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
+		return Math.floor((offset) / r.getReaderOuterWidth());
 	};
 
 	var _getColumnsNumber = function() {
 		var el = r.$reader[0];
 		// we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)
-		return Math.floor((el.scrollWidth - 1) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
+		return Math.floor((el.scrollWidth - 1) / r.getReaderOuterWidth());
 	};
 
 	// Refresh the content layout.
@@ -216,7 +232,12 @@ var Reader = (function (r) {
 			var defer = $.Deferred();
 			if (chapter < bookChapters - 1) {
 			  defer.notify();
-			  Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+			  Page.moveTo(
+					page + 1,
+					r.preferences.transitionDuration.value
+			  ).then(function () {
+					Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+			  });
 			} else {
 			  defer.reject(r.Event.END_OF_BOOK);
 			}
@@ -229,7 +250,12 @@ var Reader = (function (r) {
 			var defer = $.Deferred();
 			if (chapter > 0) {
 			  defer.notify();
-			  Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+			  Page.moveTo(
+					page - 1,
+					r.preferences.transitionDuration.value
+			  ).then(function () {
+					Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+			  });
 			} else {
 			  defer.reject(r.Event.START_OF_BOOK);
 			}
@@ -441,55 +467,64 @@ var Reader = (function (r) {
 		getByChapter: function() {
 			return pagesByChapter;
 		},
-		next: function() {
-			page = page + 1;
-			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
-			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
-			r.Navigation.updateCurrentCFI();
-			return loadImages().then(function (updatedImages) {
-				if (updatedImages.length) {
-					r.refreshLayout();
-				} else {
-					r.Navigation.updateProgress();
-					r.Bookmarks.display();
-				}
-			});
-		},
-		prev: function() {
-			page = page - 1;
-			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
-			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
-			r.Navigation.updateCurrentCFI();
-			r.$reader.css('opacity', 0);
-			return loadImages(true)
-				.progress(function () {
-					pagesByChapter = _getColumnsNumber();
-					r.CFI.goToCFI(_cfi.CFI, true);
-				})
-				.then(function () {
-					r.$reader.css('opacity', 1);
-					r.Navigation.updateProgress();
-					r.Bookmarks.display();
-				});
-		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
-		moveTo: function (p) {
-			if (p === 'LASTPAGE') {
-				// page is given as "LASTPAGE", jump to the last page of the chapter:
-				page = pagesByChapter;
-			} else if ($.type(p) === 'string') {
-				if (r.CFI.isValidCFI(p)) {
-					// page is given as CFI, jump to the page containing the CFI marker:
-					var pos = r.CFI.findCFIElement(p);
-					page = pos === -1 ? 0 : pos;
+		moveTo: function (p, duration) {
+			if ($.type(p) === 'string') {
+				if (p === 'LASTPAGE') {
+					// page is given as "LASTPAGE", jump to the last page of the chapter:
+					page = pagesByChapter;
 				} else {
-					// page is given as element id, jump to the page containing the element:
-					page = r.moveToAnchor(p);
+					if (r.CFI.isValidCFI(p)) {
+						// page is given as CFI, jump to the page containing the CFI marker:
+						var pos = r.CFI.findCFIElement(p);
+						page = pos === -1 ? 0 : pos;
+					} else {
+						// page is given as element id, jump to the page containing the element:
+						page = r.moveToAnchor(p);
+					}
 				}
 			} else {
 				page = p || 0;
 			}
-			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
+			return r.setReaderLeftPosition(-1 * r.getReaderOuterWidth() * page, duration);
+		},
+		next: function() {
+			return Page.moveTo(
+				page + 1,
+				r.preferences.transitionDuration.value
+			).then(function () {
+				r.Navigation.updateCurrentCFI();
+				return loadImages().then(function (updatedImages) {
+					if (updatedImages.length) {
+						r.refreshLayout();
+					} else {
+						r.Navigation.updateProgress();
+						r.Bookmarks.display();
+					}
+				});
+			});
+		},
+		prev: function() {
+			return Page.moveTo(
+				page - 1,
+				r.preferences.transitionDuration.value
+			).then(function () {
+				r.Navigation.updateCurrentCFI();
+				r.$reader.css({
+					'transition-duration': '0s',
+					opacity: 0
+				});
+				return loadImages(true)
+					.progress(function () {
+						pagesByChapter = _getColumnsNumber();
+						r.CFI.goToCFI(_cfi.CFI, true);
+					})
+					.then(function () {
+						r.Navigation.updateProgress();
+						r.Bookmarks.display();
+						r.$reader.css('opacity', 1);
+					});
+			});
 		},
 		load: function(p, fixed) {
 			var isLastPage = p === 'LASTPAGE',
