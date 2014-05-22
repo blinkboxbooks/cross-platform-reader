@@ -64,8 +64,8 @@ var Reader = (function (r) {
 	};
 
 	r.getReaderLeftPosition = function () {
-	  // Transform value is matrix(a, c, b, d, tx, ty)
-	  return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
+		// Transform value is matrix(a, c, b, d, tx, ty)
+		return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
 	};
 
 	r.setReaderLeftPosition = function (pos, duration) {
@@ -88,21 +88,21 @@ var Reader = (function (r) {
 	r.moveToAnchor = function (id) {
 		// Find the obj
 		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
-    if (obj.length === 0) {
-      return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
-    } else {
-      // Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
-      if (obj.children().length > 0) {
-        return r.returnPageElement(obj.children().first());
-      }
-      return r.returnPageElement(obj);
-    }
+		if (obj.length === 0) {
+			return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
+		} else {
+			// Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
+			if (obj.children().length > 0) {
+				return r.returnPageElement(obj.children().first());
+			}
+			return r.returnPageElement(obj);
+		}
 	};
 
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-    obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
 		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / r.getReaderOuterWidth());
 	};
@@ -231,15 +231,15 @@ var Reader = (function (r) {
 			}
 			var defer = $.Deferred();
 			if (chapter < bookChapters - 1) {
-			  defer.notify();
-			  Page.moveTo(
+				defer.notify();
+				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
-			  ).then(function () {
+				).then(function () {
 					Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
-			  });
+				});
 			} else {
-			  defer.reject(r.Event.END_OF_BOOK);
+				defer.reject(r.Event.END_OF_BOOK);
 			}
 			return defer.promise();
 		},
@@ -249,15 +249,15 @@ var Reader = (function (r) {
 			}
 			var defer = $.Deferred();
 			if (chapter > 0) {
-			  defer.notify();
-			  Page.moveTo(
+				defer.notify();
+				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
-			  ).then(function () {
+				).then(function () {
 					Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
-			  });
+				});
 			} else {
-			  defer.reject(r.Event.START_OF_BOOK);
+				defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
 		},
@@ -380,58 +380,58 @@ var Reader = (function (r) {
 	// Loads images in sequential order based on the current chapter position:
 	function loadImages(reverse, nearestSelector) {
 		// A list to collect the images to be loaded:
-	  var updatedImages = $(),
-	      // Main deferred object, will be resolved once all the required images have been loaded:
-	      mainDefer = $.Deferred(),
-	      // Promise which will be used to chain the sequential image loading:
-	      promise = $.Deferred().resolve().promise();
+		var updatedImages = $(),
+				// Main deferred object, will be resolved once all the required images have been loaded:
+				mainDefer = $.Deferred(),
+				// Promise which will be used to chain the sequential image loading:
+				promise = $.Deferred().resolve().promise();
 		getImagesToLoad(reverse, nearestSelector).each(function () {
-	    var el = this,
-	        dataSrc = el && el.getAttribute('data-src');
+			var el = this,
+					dataSrc = el && el.getAttribute('data-src');
 			// Ignore images that have no data-src (safeguard, they should not be in the collection):
-	    if (!dataSrc) {
-	      return;
-	    }
-	    // Chaining the promises so we only load images until the nearest pages are filled.
+			if (!dataSrc) {
+				return;
+			}
+			// Chaining the promises so we only load images until the nearest pages are filled.
 			// Since each loaded image can influence the page layout we have to load them sequentially:
-	    promise = promise.then(function () {
-		    // Check if the img element is within the preload range:
-	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
-	        var $el = $(el),
-		          defer = $.Deferred();
-		      $el.one('load', function () {
-			      // Remove all event handlers (load/error):
-			      $el.off();
-			      // Remove the placeholder class from the image element:
-			      $el.removeClass('cpr-placeholder');
-		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
-		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
-			        $el.addClass('cpr-center');
-		        }
-		        // Notify on each image load:
-		        mainDefer.notify({type: 'load.img', element: el});
-		        updatedImages = updatedImages.add(el);
-			      // Resolve the promise for the current image:
-		        defer.resolve();
-	        });
-		      $el.one('error', function () {
-			      // Remove all event handlers (load/error):
-			      $el.off();
-			      // Restore the data-src to allow reloading the failed image:
-			      el.setAttribute('data-src', el.getAttribute('src'));
-			      // Restore the original src with the placeholder image:
-			      el.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
-			      // Resolve the promise for the current image:
-	          defer.resolve();
-	        });
-	        // Start the image load by using the data-src for the actual img src:
-	        el.setAttribute('src', dataSrc);
-	        // Remove the obsolete data-src:
-	        el.removeAttribute('data-src');
-	        return defer.promise();
-	      }
-	    });
-	  });
+			promise = promise.then(function () {
+				// Check if the img element is within the preload range:
+				if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
+					var $el = $(el),
+							defer = $.Deferred();
+					$el.one('load', function () {
+						// Remove all event handlers (load/error):
+						$el.off();
+						// Remove the placeholder class from the image element:
+						$el.removeClass('cpr-placeholder');
+						// All images greater than 75% of the reader width will receive cpr-center class to center them:
+						if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
+							$el.addClass('cpr-center');
+						}
+						// Notify on each image load:
+						mainDefer.notify({type: 'load.img', element: el});
+						updatedImages = updatedImages.add(el);
+						// Resolve the promise for the current image:
+						defer.resolve();
+					});
+					$el.one('error', function () {
+						// Remove all event handlers (load/error):
+						$el.off();
+						// Restore the data-src to allow reloading the failed image:
+						el.setAttribute('data-src', el.getAttribute('src'));
+						// Restore the original src with the placeholder image:
+						el.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+						// Resolve the promise for the current image:
+						defer.resolve();
+					});
+					// Start the image load by using the data-src for the actual img src:
+					el.setAttribute('src', dataSrc);
+					// Remove the obsolete data-src:
+					el.removeAttribute('data-src');
+					return defer.promise();
+				}
+			});
+		});
 		// This method is called after all the required images have been loaded:
 		function resolveLoadImages() {
 			r.Filters.removeFilter(afterChapterDisplayFilter);
@@ -446,7 +446,7 @@ var Reader = (function (r) {
 		}
 		r.Filters.addFilter(r.Filters.HOOKS.AFTER_CHAPTER_DISPLAY, afterChapterDisplayFilter);
 		promise.then(resolveLoadImages);
-	  return mainDefer.promise();
+		return mainDefer.promise();
 	}
 
 	// ## Page API
@@ -528,7 +528,7 @@ var Reader = (function (r) {
 		},
 		load: function(p, fixed) {
 			var isLastPage = p === 'LASTPAGE',
-			    selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+					selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
 			Page.moveTo(p);
 			var promise = loadImages(isLastPage, selector)
 				.progress(function () {

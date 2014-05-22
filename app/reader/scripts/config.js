@@ -129,7 +129,7 @@ var Reader = (function (r) {
 				}
 
 				// Make sure bounds are respected...
-				for(var  i = 0; i < args.length; i++){
+				for(var i = 0; i < args.length; i++){
 					args[i] = args[i] < r.preferences.margin.min[i] ? r.preferences.margin.min[i] : args[i];
 					args[i] = args[i] > r.preferences.margin.max[i] ? r.preferences.margin.max[i] : args[i];
 				}
