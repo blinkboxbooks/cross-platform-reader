@@ -3350,7 +3350,7 @@ var Reader = (function (r) {
 		opfCFI: null,
 		// Variable that contains a partial CFI representing the DOM tree between the reader container and the body. It is different between clients and has to be constructed dynamically.
 		context: null,
-		// <a name="setUp"></a>  Initialises the CFI variables, should be called whenever we load a new chapter
+		// <a name="setUp"></a> Initialises the CFI variables, should be called whenever we load a new chapter
 		// `chapter` the current chapter
 		setUp: function (chapter) {
 			if (r.Book.$opf === null) {
@@ -3454,7 +3454,7 @@ var Reader = (function (r) {
 						preview: startTextNode.preview
 					};
 
-					var chapter =  r.CFI.getChapterFromCFI(result.CFI);
+					var chapter = r.CFI.getChapterFromCFI(result.CFI);
 					var sections = [];
 
 					var _parseItem = function(item){
@@ -3476,7 +3476,7 @@ var Reader = (function (r) {
 					}
 					if(sections.length){
 						if(sections.length > 1){
-							var currentPage =  r.Navigation.getPage();
+							var currentPage = r.Navigation.getPage();
 							// if more than one match, compare page numbers of different elements and identify where the current page is
 							for(var j = 0, l = sections.length; j < l; j++){
 								// get the anchor the url is pointing at
@@ -3697,7 +3697,7 @@ var Reader = (function (r) {
 		// Loops through all adjacent nodes to generate the preview, starting with the first text node.
 		var generatePreview = function () {
 			var $currentNode = $(textNode);
-			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text();  // prepend ellipses to previews which don't begin at the start of a sentence
+			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
 
 			generatePreview :
 			while (!hasDesiredLength(text)) {
@@ -3820,6 +3820,21 @@ var Reader = (function (r) {
 				return value;
 			}
 		},
+		transitionDuration: {
+			min: 0,
+			max: 1,
+			value: 0.3,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.transitionDuration.max) {
+					return r.preferences.transitionDuration.max;
+				}
+				if (value < r.preferences.transitionDuration.min) {
+					return r.preferences.transitionDuration.min;
+				}
+				return value;
+			}
+		},
 		lineHeight : {
 			rules: [],
 			min: 1.1,
@@ -3886,7 +3901,7 @@ var Reader = (function (r) {
 				}
 
 				// Make sure bounds are respected...
-				for(var  i = 0; i < args.length; i++){
+				for(var i = 0; i < args.length; i++){
 					args[i] = args[i] < r.preferences.margin.min[i] ? r.preferences.margin.min[i] : args[i];
 					args[i] = args[i] > r.preferences.margin.max[i] ? r.preferences.margin.max[i] : args[i];
 				}
@@ -4062,11 +4077,11 @@ var Reader = (function (r) {
 		// Save a reference for each style
 		var rules = r.$stylesheet[0].sheet.cssRules;
 		var i, l= rules.length, wrap_id = 'body', id = ' #' + r.$reader.attr('id');
-    var _checkSelectors = function(v) { if (rule.selectorText) { return rule.selectorText.indexOf(v) >= 0; }};
+		var _checkSelectors = function(v) { if (rule.selectorText) { return rule.selectorText.indexOf(v) >= 0; }};
 		for(i=0; i< l; i++){
 			var rule = rules[i];
-      var selectors = [id +' *', id+' span', id+' p', id+' em', id+' div', id+' strong', id+' a', id+' h1', id+' h2', id+' h3', id+' h4', id+' h5', id+' h6'];
-      if(selectors.every(_checkSelectors)){
+			var selectors = [id +' *', id+' span', id+' p', id+' em', id+' div', id+' strong', id+' a', id+' h1', id+' h2', id+' h3', id+' h4', id+' h5', id+' h6'];
+			if(selectors.every(_checkSelectors)){
 				r.preferences.lineHeight.rules.push({rule: rule.style, property: 'lineHeight'});
 				r.preferences.fontSize.rules.push({rule: rule.style, property: 'fontSize'});
 				r.preferences.fontFamily.rules.push({rule: rule.style, property: 'fontFamily'});
@@ -4092,7 +4107,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.44-127'
+				appversion: '0.1.45-129'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4280,7 +4295,7 @@ var Reader = (function (r) {
 					if (i !== 0) {
 						path_prefix += '/';
 					}
-					path_prefix  += pathComponents[i];
+					path_prefix += pathComponents[i];
 				}
 			}
 			// If the PATH is empty set its value with the path of the first element in the spine.
@@ -4385,7 +4400,7 @@ var Reader = (function (r) {
 			domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
 			prop = 'columnCount',
 			uc_prop = prop.charAt(0).toUpperCase() + prop.substr(1),
-			props   = (prop + ' ' + domPrefixes.join(uc_prop + ' ') + uc_prop).split(' ');
+			props = (prop + ' ' + domPrefixes.join(uc_prop + ' ') + uc_prop).split(' ');
 
 		for ( var i in props ) {
 			if ( elemStyle[ props[i] ] !== undefined ) {
@@ -4459,7 +4474,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.44-127'
+			'version': '0.1.45-129'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4844,6 +4859,11 @@ var Reader = (function (r) {
 		return r.setPreferences({preloadRange: value});
 	};
 
+	// <a name="setTransitionDuration"></a> Set transition duration (within bounds).
+	r.setTransitionDuration = function(value){
+		return r.setPreferences({transitionDuration: value});
+	};
+
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -4927,6 +4947,12 @@ var Reader = (function (r) {
 			// Updating preload range does not need any styles update nor a layout refresh.
 			if(args.hasOwnProperty('preloadRange')){
 				r.preferences.preloadRange.value = r.preferences.preloadRange.clear(args.preloadRange);
+			}
+
+			// Set transition duration (within bounds).
+			// Updating transition duration does not need any styles update nor a layout refresh.
+			if(args.hasOwnProperty('transitionDuration')){
+				r.preferences.transitionDuration.value = r.preferences.transitionDuration.clear(args.transitionDuration);
 			}
 
 			// Set line height if all conditions are met
@@ -5186,42 +5212,58 @@ var Reader = (function (r) {
 		}
 	};
 
-	r.getReaderLeftPosition = function () {
-	  // Transform value is matrix(a, c, b, d, tx, ty)
-	  return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
+	r.getReaderOuterWidth = function () {
+		return Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
 	};
 
-	r.setReaderLeftPosition = function (pos) {
-	  r.$reader.css('transform', 'translateX(' + pos + 'px)');
+	r.getReaderLeftPosition = function () {
+		// Transform value is matrix(a, c, b, d, tx, ty)
+		return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
+	};
+
+	r.setReaderLeftPosition = function (pos, duration) {
+		var defer = $.Deferred();
+		if (duration) {
+			// This getter call seems to be necessary to ensure the transitionend event is called in some cases:
+			r.getReaderLeftPosition();
+			r.$reader.one('transitionend', defer.resolve);
+		} else {
+			defer.resolve();
+		}
+		r.$reader.css({
+			'transition-duration': (duration || 0) + 's',
+			transform: 'translateX(' + pos + 'px)'
+		});
+		return defer.promise();
 	};
 
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
 		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
-    if (obj.length === 0) {
-      return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
-    } else {
-      // Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
-      if (obj.children().length > 0) {
-        return r.returnPageElement(obj.children().first());
-      }
-      return r.returnPageElement(obj);
-    }
+		if (obj.length === 0) {
+			return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
+		} else {
+			// Check if the element has children and send the first one. This is to avoid the problems with big elements, like a wrapper for all the chapter.
+			if (obj.children().length > 0) {
+				return r.returnPageElement(obj.children().first());
+			}
+			return r.returnPageElement(obj);
+		}
 	};
 
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-    obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
 		var offset = obj.offset().left - r.$reader.offset().left;
-		return Math.floor((offset) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
+		return Math.floor((offset) / r.getReaderOuterWidth());
 	};
 
 	var _getColumnsNumber = function() {
 		var el = r.$reader[0];
 		// we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)
-		return Math.floor((el.scrollWidth - 1) / Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding));
+		return Math.floor((el.scrollWidth - 1) / r.getReaderOuterWidth());
 	};
 
 	// Refresh the content layout.
@@ -5342,10 +5384,15 @@ var Reader = (function (r) {
 			}
 			var defer = $.Deferred();
 			if (chapter < bookChapters - 1) {
-			  defer.notify();
-			  Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+				defer.notify();
+				Page.moveTo(
+					page + 1,
+					r.preferences.transitionDuration.value
+				).then(function () {
+					Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+				});
 			} else {
-			  defer.reject(r.Event.END_OF_BOOK);
+				defer.reject(r.Event.END_OF_BOOK);
 			}
 			return defer.promise();
 		},
@@ -5355,10 +5402,15 @@ var Reader = (function (r) {
 			}
 			var defer = $.Deferred();
 			if (chapter > 0) {
-			  defer.notify();
-			  Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+				defer.notify();
+				Page.moveTo(
+					page - 1,
+					r.preferences.transitionDuration.value
+				).then(function () {
+					Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+				});
 			} else {
-			  defer.reject(r.Event.START_OF_BOOK);
+				defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
 		},
@@ -5481,58 +5533,58 @@ var Reader = (function (r) {
 	// Loads images in sequential order based on the current chapter position:
 	function loadImages(reverse, nearestSelector) {
 		// A list to collect the images to be loaded:
-	  var updatedImages = $(),
-	      // Main deferred object, will be resolved once all the required images have been loaded:
-	      mainDefer = $.Deferred(),
-	      // Promise which will be used to chain the sequential image loading:
-	      promise = $.Deferred().resolve().promise();
+		var updatedImages = $(),
+				// Main deferred object, will be resolved once all the required images have been loaded:
+				mainDefer = $.Deferred(),
+				// Promise which will be used to chain the sequential image loading:
+				promise = $.Deferred().resolve().promise();
 		getImagesToLoad(reverse, nearestSelector).each(function () {
-	    var el = this,
-	        dataSrc = el && el.getAttribute('data-src');
+			var el = this,
+					dataSrc = el && el.getAttribute('data-src');
 			// Ignore images that have no data-src (safeguard, they should not be in the collection):
-	    if (!dataSrc) {
-	      return;
-	    }
-	    // Chaining the promises so we only load images until the nearest pages are filled.
+			if (!dataSrc) {
+				return;
+			}
+			// Chaining the promises so we only load images until the nearest pages are filled.
 			// Since each loaded image can influence the page layout we have to load them sequentially:
-	    promise = promise.then(function () {
-		    // Check if the img element is within the preload range:
-	      if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
-	        var $el = $(el),
-		          defer = $.Deferred();
-		      $el.one('load', function () {
-			      // Remove all event handlers (load/error):
-			      $el.off();
-			      // Remove the placeholder class from the image element:
-			      $el.removeClass('cpr-placeholder');
-		        // All images greater than 75% of the reader width will receive cpr-center class to center them:
-		        if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
-			        $el.addClass('cpr-center');
-		        }
-		        // Notify on each image load:
-		        mainDefer.notify({type: 'load.img', element: el});
-		        updatedImages = updatedImages.add(el);
-			      // Resolve the promise for the current image:
-		        defer.resolve();
-	        });
-		      $el.one('error', function () {
-			      // Remove all event handlers (load/error):
-			      $el.off();
-			      // Restore the data-src to allow reloading the failed image:
-			      el.setAttribute('data-src', el.getAttribute('src'));
-			      // Restore the original src with the placeholder image:
-			      el.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
-			      // Resolve the promise for the current image:
-	          defer.resolve();
-	        });
-	        // Start the image load by using the data-src for the actual img src:
-	        el.setAttribute('src', dataSrc);
-	        // Remove the obsolete data-src:
-	        el.removeAttribute('data-src');
-	        return defer.promise();
-	      }
-	    });
-	  });
+			promise = promise.then(function () {
+				// Check if the img element is within the preload range:
+				if (Math.abs(r.returnPageElement(el) - r.Navigation.getPage()) <= r.preferences.preloadRange.value) {
+					var $el = $(el),
+							defer = $.Deferred();
+					$el.one('load', function () {
+						// Remove all event handlers (load/error):
+						$el.off();
+						// Remove the placeholder class from the image element:
+						$el.removeClass('cpr-placeholder');
+						// All images greater than 75% of the reader width will receive cpr-center class to center them:
+						if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
+							$el.addClass('cpr-center');
+						}
+						// Notify on each image load:
+						mainDefer.notify({type: 'load.img', element: el});
+						updatedImages = updatedImages.add(el);
+						// Resolve the promise for the current image:
+						defer.resolve();
+					});
+					$el.one('error', function () {
+						// Remove all event handlers (load/error):
+						$el.off();
+						// Restore the data-src to allow reloading the failed image:
+						el.setAttribute('data-src', el.getAttribute('src'));
+						// Restore the original src with the placeholder image:
+						el.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+						// Resolve the promise for the current image:
+						defer.resolve();
+					});
+					// Start the image load by using the data-src for the actual img src:
+					el.setAttribute('src', dataSrc);
+					// Remove the obsolete data-src:
+					el.removeAttribute('data-src');
+					return defer.promise();
+				}
+			});
+		});
 		// This method is called after all the required images have been loaded:
 		function resolveLoadImages() {
 			r.Filters.removeFilter(afterChapterDisplayFilter);
@@ -5547,7 +5599,7 @@ var Reader = (function (r) {
 		}
 		r.Filters.addFilter(r.Filters.HOOKS.AFTER_CHAPTER_DISPLAY, afterChapterDisplayFilter);
 		promise.then(resolveLoadImages);
-	  return mainDefer.promise();
+		return mainDefer.promise();
 	}
 
 	// ## Page API
@@ -5568,59 +5620,68 @@ var Reader = (function (r) {
 		getByChapter: function() {
 			return pagesByChapter;
 		},
-		next: function() {
-			page = page + 1;
-			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
-			r.setReaderLeftPosition(r.getReaderLeftPosition() - readerOuterWidth);
-			r.Navigation.updateCurrentCFI();
-			return loadImages().then(function (updatedImages) {
-				if (updatedImages.length) {
-					r.refreshLayout();
-				} else {
-					r.Navigation.updateProgress();
-					r.Bookmarks.display();
-				}
-			});
-		},
-		prev: function() {
-			page = page - 1;
-			var readerOuterWidth = Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding);
-			r.setReaderLeftPosition(r.getReaderLeftPosition() + readerOuterWidth);
-			r.Navigation.updateCurrentCFI();
-			r.$reader.css('opacity', 0);
-			return loadImages(true)
-				.progress(function () {
-					pagesByChapter = _getColumnsNumber();
-					r.CFI.goToCFI(_cfi.CFI, true);
-				})
-				.then(function () {
-					r.$reader.css('opacity', 1);
-					r.Navigation.updateProgress();
-					r.Bookmarks.display();
-				});
-		},
 		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
-		moveTo: function (p) {
-			if (p === 'LASTPAGE') {
-				// page is given as "LASTPAGE", jump to the last page of the chapter:
-				page = pagesByChapter;
-			} else if ($.type(p) === 'string') {
-				if (r.CFI.isValidCFI(p)) {
-					// page is given as CFI, jump to the page containing the CFI marker:
-					var pos = r.CFI.findCFIElement(p);
-					page = pos === -1 ? 0 : pos;
+		moveTo: function (p, duration) {
+			if ($.type(p) === 'string') {
+				if (p === 'LASTPAGE') {
+					// page is given as "LASTPAGE", jump to the last page of the chapter:
+					page = pagesByChapter;
 				} else {
-					// page is given as element id, jump to the page containing the element:
-					page = r.moveToAnchor(p);
+					if (r.CFI.isValidCFI(p)) {
+						// page is given as CFI, jump to the page containing the CFI marker:
+						var pos = r.CFI.findCFIElement(p);
+						page = pos === -1 ? 0 : pos;
+					} else {
+						// page is given as element id, jump to the page containing the element:
+						page = r.moveToAnchor(p);
+					}
 				}
 			} else {
 				page = p || 0;
 			}
-			r.setReaderLeftPosition(-1 * Math.floor(r.Layout.Reader.width + r.Layout.Reader.padding) * page);
+			return r.setReaderLeftPosition(-1 * r.getReaderOuterWidth() * page, duration);
+		},
+		next: function() {
+			return Page.moveTo(
+				page + 1,
+				r.preferences.transitionDuration.value
+			).then(function () {
+				r.Navigation.updateCurrentCFI();
+				return loadImages().then(function (updatedImages) {
+					if (updatedImages.length) {
+						r.refreshLayout();
+					} else {
+						r.Navigation.updateProgress();
+						r.Bookmarks.display();
+					}
+				});
+			});
+		},
+		prev: function() {
+			return Page.moveTo(
+				page - 1,
+				r.preferences.transitionDuration.value
+			).then(function () {
+				r.Navigation.updateCurrentCFI();
+				r.$reader.css({
+					'transition-duration': '0s',
+					opacity: 0
+				});
+				return loadImages(true)
+					.progress(function () {
+						pagesByChapter = _getColumnsNumber();
+						r.CFI.goToCFI(_cfi.CFI, true);
+					})
+					.then(function () {
+						r.Navigation.updateProgress();
+						r.Bookmarks.display();
+						r.$reader.css('opacity', 1);
+					});
+			});
 		},
 		load: function(p, fixed) {
 			var isLastPage = p === 'LASTPAGE',
-			    selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+					selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
 			Page.moveTo(p);
 			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
