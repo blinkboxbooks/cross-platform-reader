@@ -195,6 +195,8 @@ var Reader = (function (r) {
 			// External link, notify client about it
 			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
 		} else if (this.getAttribute('data-link-type') === 'internal') {
+			// Internal link, notify client about it
+			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
 			// Internal link
 			// Reduce the URL to the name file (remove anchors ids)
 			var url = this.getAttribute('href').split('#');
