@@ -13,7 +13,10 @@ var Reader = (function (r) {
 	// * `content` The content of the document
 	// * `mimetype` The MIME type of the given document
 	r.parse = function (content, mimetype) {
-		// Replace images and styles URLs.
+
+		if(typeof content !== 'string'){
+			return null;
+		}
 
 		switch (mimetype) {
 		case 'application/xhtml+xml':
@@ -22,8 +25,15 @@ var Reader = (function (r) {
 		default:
 			break;
 		}
+
+		var head = content.split(/<head[^>]*>/)[1].split('</head>')[0],
+			body = content.split(/<body[^>]*>/)[1].split('</body>')[0];
+
 		// Extract the contents of the body only thus ignoring any styles declared in head
-		return typeof content === 'string' ? $(content.split(/<body[^>]*>/)[1].split('</body>')[0]) : null;
+		return {
+			$head: $(head),
+			$body: $(body)
+		};
 	};
 
 	// Parses the content in application/xhtml+xml. Returns the parsed content.
