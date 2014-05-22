@@ -214,9 +214,7 @@ var Reader = (function (r) {
 		var links = content.getElementsByTagName('link');
 		for (var y = 0; y < links.length; y++) {
 			var href = links[y].getAttribute('href');
-			console.log(href);
 			href = _parseURL(href);
-			console.log(href);
 			links[y].setAttribute('href', href);
 		}
 		return content;
