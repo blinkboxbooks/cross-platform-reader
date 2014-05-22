@@ -42,6 +42,9 @@ describe('Formatting', function() {
 			hasErrors: false
 		},
 		defaultArgs = {
+			preferences: {
+				transitionDuration: 0
+			},
 			width: 200,
 			height: 300,
 			url: testBookUrl,
@@ -78,10 +81,7 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default font size', function(done) {
 			READER.init($.extend({
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 					expect($contents).toHaveCss({
@@ -94,11 +94,10 @@ describe('Formatting', function() {
 		it('should initialise the reader with the given font size', function(done) {
 			var value = 2;
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 					container: $container,
 					preferences: {
-						fontSize: value,
-						transitionDuration: 0
+						fontSize: value
 					}
 				}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -113,10 +112,7 @@ describe('Formatting', function() {
 			var value = 1.5, value2 = 2.5;
 
 			READER.init($.extend({
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 
@@ -140,11 +136,10 @@ describe('Formatting', function() {
 
 			var step = 0.1;
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					fontSize: 1,
-					transitionDuration: 0
+					fontSize: 1
 				}
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -165,11 +160,10 @@ describe('Formatting', function() {
 
 			var step = 0.1;
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					fontSize: 1,
-					transitionDuration: 0
+					fontSize: 1
 				}
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -188,10 +182,7 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default line height', function(done) {
 			READER.init($.extend({
-				container: $container,
-				preferences: {
-					transitionDuration: 0
-				}
+				container: $container
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				var fontSize = parseInt($contents.css('fontSize'));
@@ -206,11 +197,10 @@ describe('Formatting', function() {
 		it('should initialise the reader with the given line height', function(done) {
 			var value = 2;
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					lineHeight: value,
-					transitionDuration: 0
+					lineHeight: value
 				}
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -227,10 +217,7 @@ describe('Formatting', function() {
 
 			READER.init($.extend(
 				{
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				},
 				defaultArgs
 			)).then(function(){
@@ -257,11 +244,10 @@ describe('Formatting', function() {
 
 			var step = 0.1;
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					lineHeight: 2,
-					transitionDuration: 0
+					lineHeight: 2
 				}
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -281,11 +267,10 @@ describe('Formatting', function() {
 
 			var step = 0.1;
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					lineHeight: 2,
-					transitionDuration: 0
+					lineHeight: 2
 				}
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -305,10 +290,7 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default font family', function(done) {
 			READER.init($.extend({
-				container: $container,
-				preferences: {
-					transitionDuration: 0
-				}
+				container: $container
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
 				expect($contents).toHaveCss({
@@ -321,11 +303,10 @@ describe('Formatting', function() {
 		it('should initialise the reader with the given line height', function(done) {
 			var value = 'Helvetica';
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					fontFamily: value,
-					transitionDuration: 0
+					fontFamily: value
 				}
 			}, defaultArgs)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -341,10 +322,7 @@ describe('Formatting', function() {
 
 			READER.init($.extend(
 				{
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				},
 				defaultArgs
 			)).then(function(){
@@ -383,11 +361,10 @@ describe('Formatting', function() {
 		it('should initialise the reader with the given text align', function(done) {
 			var value = 'justify';
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					textAlign: value,
-					transitionDuration: 0
+					textAlign: value
 				}
 			}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -403,10 +380,7 @@ describe('Formatting', function() {
 
 			READER.init($.extend(
 				{
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				},
 				defaultArgs
 			)).then(function(){
@@ -434,10 +408,7 @@ describe('Formatting', function() {
 		it('should initialise the reader with the default text align', function(done) {
 			READER.init($.extend(
 				{
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				},
 				defaultArgs
 			)).then(function(){
@@ -455,11 +426,10 @@ describe('Formatting', function() {
 		it('should initialise the reader with a predefined theme', function(done) {
 			var value = 'dark';
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					theme: value,
-					transitionDuration: 0
+					theme: value
 				}
 			}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -480,11 +450,10 @@ describe('Formatting', function() {
 				color : 'rgb(10, 20, 30)'
 			};
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				preferences: {
-					theme: value,
-					transitionDuration: 0
+					theme: value
 				}
 			}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -503,10 +472,7 @@ describe('Formatting', function() {
 
 			READER.init($.extend(
 				{
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				},
 				defaultArgs
 			)).then(function(){
@@ -540,9 +506,6 @@ describe('Formatting', function() {
 		it('should initialise the reader with the default margins', function(done) {
 			READER.init($.extend({
 				container: $container,
-				preferences: {
-					transitionDuration: 0
-				},
 				width: 200,
 				height: 300
 			}, defaultArgs)).then(function(){
@@ -557,13 +520,12 @@ describe('Formatting', function() {
 		});
 
 		it('should initialise the reader with a predefined margin', function(done) {
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				width: 200,
 				height: 300,
 				preferences: {
-					margin: 'min',
-					transitionDuration: 0
+					margin: 'min'
 				}
 			}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();
@@ -579,13 +541,12 @@ describe('Formatting', function() {
 		it('should initialise the reader with the given margin', function(done) {
 			var value = [10,10,10,10];
 
-			READER.init($.extend({
+			READER.init($.extend(true, {
 				container: $container,
 				width: 200,
 				height: 300,
 				preferences: {
-					margin: value,
-					transitionDuration: 0
+					margin: value
 				}
 			}, defaultArgs)).then(function(){
 					var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();
@@ -603,10 +564,7 @@ describe('Formatting', function() {
 
 			READER.init($.extend(
 				{
-					container: $container,
-					preferences: {
-						transitionDuration: 0
-					}
+					container: $container
 				},
 				defaultArgs
 			)).then(function(){
