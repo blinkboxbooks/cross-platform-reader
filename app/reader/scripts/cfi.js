@@ -35,7 +35,7 @@ var Reader = (function (r) {
 		opfCFI: null,
 		// Variable that contains a partial CFI representing the DOM tree between the reader container and the body. It is different between clients and has to be constructed dynamically.
 		context: null,
-		// <a name="setUp"></a>  Initialises the CFI variables, should be called whenever we load a new chapter
+		// <a name="setUp"></a> Initialises the CFI variables, should be called whenever we load a new chapter
 		// `chapter` the current chapter
 		setUp: function (chapter) {
 			if (r.Book.$opf === null) {
@@ -139,7 +139,7 @@ var Reader = (function (r) {
 						preview: startTextNode.preview
 					};
 
-					var chapter =  r.CFI.getChapterFromCFI(result.CFI);
+					var chapter = r.CFI.getChapterFromCFI(result.CFI);
 					var sections = [];
 
 					var _parseItem = function(item){
@@ -161,7 +161,7 @@ var Reader = (function (r) {
 					}
 					if(sections.length){
 						if(sections.length > 1){
-							var currentPage =  r.Navigation.getPage();
+							var currentPage = r.Navigation.getPage();
 							// if more than one match, compare page numbers of different elements and identify where the current page is
 							for(var j = 0, l = sections.length; j < l; j++){
 								// get the anchor the url is pointing at
@@ -382,7 +382,7 @@ var Reader = (function (r) {
 		// Loops through all adjacent nodes to generate the preview, starting with the first text node.
 		var generatePreview = function () {
 			var $currentNode = $(textNode);
-			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text();  // prepend ellipses to previews which don't begin at the start of a sentence
+			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
 
 			generatePreview :
 			while (!hasDesiredLength(text)) {

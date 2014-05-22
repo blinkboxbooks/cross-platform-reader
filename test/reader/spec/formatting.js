@@ -216,9 +216,7 @@ describe('Formatting', function() {
 			var value = 1.5, value2 = 2.5;
 
 			READER.init($.extend(
-				{
-					container: $container
-				},
+				{container: $container},
 				defaultArgs
 			)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -321,9 +319,7 @@ describe('Formatting', function() {
 			var value = 'Times New Roman', value2 = 'Comic Sans';
 
 			READER.init($.extend(
-				{
-					container: $container
-				},
+				{container: $container},
 				defaultArgs
 			)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -379,9 +375,7 @@ describe('Formatting', function() {
 			var value = 'left', value2 = 'justify';
 
 			READER.init($.extend(
-				{
-					container: $container
-				},
+				{container: $container},
 				defaultArgs
 			)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -407,9 +401,7 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default text align', function(done) {
 			READER.init($.extend(
-				{
-					container: $container
-				},
+				{container: $container},
 				defaultArgs
 			)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -471,9 +463,7 @@ describe('Formatting', function() {
 			var value = 'sepia', value2 = 'light';
 
 			READER.init($.extend(
-				{
-					container: $container
-				},
+				{container: $container},
 				defaultArgs
 			)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').find('span, p, em, div, strong, a');
@@ -563,9 +553,7 @@ describe('Formatting', function() {
 			var value = 'max', value2 = 'min';
 
 			READER.init($.extend(
-				{
-					container: $container
-				},
+				{container: $container},
 				defaultArgs
 			)).then(function(){
 				var $contents = $container.find('iframe').contents().find('#cpr-reader').parent();

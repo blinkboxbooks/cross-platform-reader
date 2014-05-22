@@ -79,11 +79,11 @@ var Reader = (function (r) {
 		// Save a reference for each style
 		var rules = r.$stylesheet[0].sheet.cssRules;
 		var i, l= rules.length, wrap_id = 'body', id = ' #' + r.$reader.attr('id');
-    var _checkSelectors = function(v) { if (rule.selectorText) { return rule.selectorText.indexOf(v) >= 0; }};
+		var _checkSelectors = function(v) { if (rule.selectorText) { return rule.selectorText.indexOf(v) >= 0; }};
 		for(i=0; i< l; i++){
 			var rule = rules[i];
-      var selectors = [id +' *', id+' span', id+' p', id+' em', id+' div', id+' strong', id+' a', id+' h1', id+' h2', id+' h3', id+' h4', id+' h5', id+' h6'];
-      if(selectors.every(_checkSelectors)){
+			var selectors = [id +' *', id+' span', id+' p', id+' em', id+' div', id+' strong', id+' a', id+' h1', id+' h2', id+' h3', id+' h4', id+' h5', id+' h6'];
+			if(selectors.every(_checkSelectors)){
 				r.preferences.lineHeight.rules.push({rule: rule.style, property: 'lineHeight'});
 				r.preferences.fontSize.rules.push({rule: rule.style, property: 'fontSize'});
 				r.preferences.fontFamily.rules.push({rule: rule.style, property: 'fontFamily'});
@@ -297,7 +297,7 @@ var Reader = (function (r) {
 					if (i !== 0) {
 						path_prefix += '/';
 					}
-					path_prefix  += pathComponents[i];
+					path_prefix += pathComponents[i];
 				}
 			}
 			// If the PATH is empty set its value with the path of the first element in the spine.
@@ -402,7 +402,7 @@ var Reader = (function (r) {
 			domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
 			prop = 'columnCount',
 			uc_prop = prop.charAt(0).toUpperCase() + prop.substr(1),
-			props   = (prop + ' ' + domPrefixes.join(uc_prop + ' ') + uc_prop).split(' ');
+			props = (prop + ' ' + domPrefixes.join(uc_prop + ' ') + uc_prop).split(' ');
 
 		for ( var i in props ) {
 			if ( elemStyle[ props[i] ] !== undefined ) {
