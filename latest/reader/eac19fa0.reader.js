@@ -4092,7 +4092,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.43-125'
+				appversion: '0.1.44-126'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4178,6 +4178,8 @@ var Reader = (function (r) {
 			// External link, notify client about it
 			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
 		} else if (this.getAttribute('data-link-type') === 'internal') {
+			// Internal link, notify client about it
+			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
 			// Internal link
 			// Reduce the URL to the name file (remove anchors ids)
 			var url = this.getAttribute('href').split('#');
@@ -4457,7 +4459,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.43-125'
+			'version': '0.1.44-126'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4506,6 +4508,10 @@ var Reader = (function (r) {
 		UNHANDLED_TOUCH_EVENT: {
 			code: 19,
 			message: 'Unhandled touch event at given coordinates.'
+		},
+		NOTICE_INT_LINK: {
+			code: 20,
+			message: 'Internal link was clicked'
 		},
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
