@@ -27,7 +27,7 @@ var Reader = (function (r) {
 			r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
 			r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
 			r.Layout.Reader.columns = dimensions.columns;
-			r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
+			r.Layout.Reader.padding = dimensions.padding;
 
 			// avoid rounding errors, adjust the width of the reader to contain the columns + padding
 			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
@@ -51,7 +51,9 @@ var Reader = (function (r) {
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+				// This centers the column on single column view:
+				'padding-left': Math.floor(r.Layout.Reader.padding/4) + 'px'
 			});
 
 			r.$header.css({
