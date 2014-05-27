@@ -62,6 +62,9 @@ var Reader = (function (r) {
 		// Apply all user preferences
 		r.setPreferences(param.preferences);
 
+		// Set initial transition timing function:
+		r.$reader.css('transition-timing-function', r.preferences.transitionTimingFunction.value);
+
 		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
