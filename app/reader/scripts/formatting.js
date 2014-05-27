@@ -27,6 +27,11 @@ var Reader = (function (r) {
 		return r.setPreferences({transitionDuration: value});
 	};
 
+	// <a name="setTransitionDuration"></a> Set transition duration (within bounds).
+	r.setTransitionTimingFunction = function(value){
+		return r.setPreferences({transitionTimingFunction: value});
+	};
+
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -116,6 +121,12 @@ var Reader = (function (r) {
 			// Updating transition duration does not need any styles update nor a layout refresh.
 			if(args.hasOwnProperty('transitionDuration')){
 				r.preferences.transitionDuration.value = r.preferences.transitionDuration.clear(args.transitionDuration);
+			}
+
+			// Set transition timing function.
+			if(args.hasOwnProperty('transitionTimingFunction')){
+				r.preferences.transitionTimingFunction.value = args.transitionTimingFunction;
+				r.$reader.css('transition-timing-function', args.transitionTimingFunction);
 			}
 
 			// Set line height if all conditions are met

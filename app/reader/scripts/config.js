@@ -63,6 +63,9 @@ var Reader = (function (r) {
 				return value;
 			}
 		},
+		transitionTimingFunction: {
+			value: 'ease-in-out'
+		},
 		lineHeight : {
 			rules: [],
 			min: 1.1,
