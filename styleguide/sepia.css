@@ -1,0 +1,15 @@
+body {
+    background: #ede7d5;
+    color: #181818;
+}
+
+blockquote{
+    border-left-color: #181818;
+}
+:link * {
+    color: #09f;
+}
+
+img, svg, svg * {
+    border-color: #777;
+}
