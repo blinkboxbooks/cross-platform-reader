@@ -30,7 +30,9 @@ var Reader = (function (r) {
 			r.Layout.Reader.padding = dimensions.padding;
 
 			// avoid rounding errors, adjust the width of the reader to contain the columns + padding
-			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2),
+					// columnAdjust adjusts the Reader padding depending on the column number and gap:
+					columnAdjust = dimensions.columns > 1 ? 0 : Math.floor(r.Layout.Reader.padding / 4);
 			r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 			// Apply new size
@@ -53,7 +55,7 @@ var Reader = (function (r) {
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				// This centers the column on single column view:
-				'padding-left': Math.floor(r.Layout.Reader.padding/4) + 'px'
+				'padding-left': columnAdjust + 'px'
 			});
 
 			r.$header.css({
@@ -61,7 +63,8 @@ var Reader = (function (r) {
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
+				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
+				'padding-left': columnAdjust + 'px'
 			});
 
 			r.$footer.css({
@@ -69,7 +72,8 @@ var Reader = (function (r) {
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
+				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
+				'padding-left': columnAdjust + 'px'
 			});
 
 			_resizeImages();
