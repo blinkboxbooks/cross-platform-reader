@@ -70,9 +70,14 @@ var Reader = (function (r) {
 
 	r.setReaderLeftPosition = function (pos, duration) {
 		var defer = $.Deferred();
+		// Force any previous transition to finish.
+		// Calling the r.getReaderLeftPosition() getter also seems to be necessary
+		// for the next transitionend event in some cases (e.g. the transition unit tests).
+		r.$reader.css({
+			'transition-duration': '0s',
+			transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
+		}).trigger('transitionend');
 		if (duration) {
-			// This getter call seems to be necessary to ensure the transitionend event is called in some cases:
-			r.getReaderLeftPosition();
 			r.$reader.one('transitionend', defer.resolve);
 		} else {
 			defer.resolve();
