@@ -3835,6 +3835,9 @@ var Reader = (function (r) {
 				return value;
 			}
 		},
+		transitionTimingFunction: {
+			value: 'ease-in-out'
+		},
 		lineHeight : {
 			rules: [],
 			min: 1.1,
@@ -4060,6 +4063,9 @@ var Reader = (function (r) {
 		// Apply all user preferences
 		r.setPreferences(param.preferences);
 
+		// Set initial transition timing function:
+		r.$reader.css('transition-timing-function', r.preferences.transitionTimingFunction.value);
+
 		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
@@ -4107,7 +4113,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.45-130'
+				appversion: '0.1.46-131'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4474,7 +4480,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.45-130'
+			'version': '0.1.46-131'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4864,6 +4870,11 @@ var Reader = (function (r) {
 		return r.setPreferences({transitionDuration: value});
 	};
 
+	// <a name="setTransitionDuration"></a> Set transition duration (within bounds).
+	r.setTransitionTimingFunction = function(value){
+		return r.setPreferences({transitionTimingFunction: value});
+	};
+
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -4953,6 +4964,12 @@ var Reader = (function (r) {
 			// Updating transition duration does not need any styles update nor a layout refresh.
 			if(args.hasOwnProperty('transitionDuration')){
 				r.preferences.transitionDuration.value = r.preferences.transitionDuration.clear(args.transitionDuration);
+			}
+
+			// Set transition timing function.
+			if(args.hasOwnProperty('transitionTimingFunction')){
+				r.preferences.transitionTimingFunction.value = args.transitionTimingFunction;
+				r.$reader.css('transition-timing-function', args.transitionTimingFunction);
 			}
 
 			// Set line height if all conditions are met
@@ -5046,10 +5063,12 @@ var Reader = (function (r) {
 			r.Layout.Reader.width = r.Layout.Container.width - Math.floor(r.preferences.margin.value[1]*r.Layout.Container.width/100) - Math.floor(r.preferences.margin.value[3]*r.Layout.Container.width/100);
 			r.Layout.Reader.height = r.Layout.Container.height - Math.floor(r.preferences.margin.value[0]*r.Layout.Container.height/100) - Math.floor(r.preferences.margin.value[2]*r.Layout.Container.height/100);
 			r.Layout.Reader.columns = dimensions.columns;
-			r.Layout.Reader.padding = dimensions.columns > 1 ? dimensions.padding : 0; // only set padding on multi-column layout
+			r.Layout.Reader.padding = dimensions.padding;
 
 			// avoid rounding errors, adjust the width of the reader to contain the columns + padding
-			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2),
+					// columnAdjust adjusts the Reader padding depending on the column number and gap:
+					columnAdjust = dimensions.columns > 1 ? 0 : Math.floor(r.Layout.Reader.padding / 4);
 			r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 			// Apply new size
@@ -5070,7 +5089,9 @@ var Reader = (function (r) {
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
+				// This centers the column on single column view:
+				'padding-left': columnAdjust + 'px'
 			});
 
 			r.$header.css({
@@ -5078,7 +5099,8 @@ var Reader = (function (r) {
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
+				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
+				'padding-left': columnAdjust + 'px'
 			});
 
 			r.$footer.css({
@@ -5086,7 +5108,8 @@ var Reader = (function (r) {
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
+				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
+				'padding-left': columnAdjust + 'px'
 			});
 
 			_resizeImages();
@@ -5223,9 +5246,14 @@ var Reader = (function (r) {
 
 	r.setReaderLeftPosition = function (pos, duration) {
 		var defer = $.Deferred();
+		// Force any previous transition to finish.
+		// Calling the r.getReaderLeftPosition() getter also seems to be necessary
+		// for the next transitionend event in some cases (e.g. the transition unit tests).
+		r.$reader.css({
+			'transition-duration': '0s',
+			transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
+		}).trigger('transitionend');
 		if (duration) {
-			// This getter call seems to be necessary to ensure the transitionend event is called in some cases:
-			r.getReaderLeftPosition();
 			r.$reader.one('transitionend', defer.resolve);
 		} else {
 			defer.resolve();
