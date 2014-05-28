@@ -234,7 +234,7 @@ var Reader = (function (r) {
 				if ($nextNode[0].nodeType === 3 && $nextNode[0].length > 1) {
 					cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
 					cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
-					r.CFI.addOneWordToCFI(cfi, $nextNode, marker);
+					r.CFI.addOneWordToCFI(cfi, $nextNode, marker, true);
 				} else {
 					$nextNode.before($(marker));
 				}
@@ -243,7 +243,7 @@ var Reader = (function (r) {
 			return false;
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
-		addOneWordToCFI : function (cfi, el, marker) {
+		addOneWordToCFI : function (cfi, el, marker, force) {
 			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
@@ -256,7 +256,7 @@ var Reader = (function (r) {
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
-				if(!r.CFI.addOneNodeToCFI(cfi, el, marker)){
+				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
 					EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, _classBlacklist);
