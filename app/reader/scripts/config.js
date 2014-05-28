@@ -75,7 +75,7 @@ var Reader = (function (r) {
 			applyRules: function(){
 				for(i = 0; i< r.preferences.lineHeight.rules.length; i++){
 					rule = r.preferences.lineHeight.rules[i];
-					rule.rule[rule.property] = r.preferences.lineHeight.value + 'em';
+					rule.rule[rule.property] = r.preferences.lineHeight.value;
 				}
 			}
 		},
@@ -88,7 +88,7 @@ var Reader = (function (r) {
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontSize.rules.length; i++){
 					rule = r.preferences.fontSize.rules[i];
-					rule.rule[rule.property] = (r.preferences.fontSize.value * 18) + 'px';
+					rule.rule[rule.property] = r.preferences.fontSize.value + 'rem';
 				}
 			}
 		},
