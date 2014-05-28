@@ -410,8 +410,13 @@ var Reader = (function (r) {
 						// Remove the placeholder class from the image element:
 						$el.removeClass('cpr-placeholder');
 						// All images greater than 75% of the reader width will receive cpr-img-large class to center them:
-						if (el.width > 3/4*(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2)) {
+						var columnWidth = r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2;
+						if (el.width > 3/4*columnWidth) {
 							$el.addClass('cpr-img-large');
+						} else  if(el.width > 1/4*columnWidth){
+							$el.addClass('cpr-img-medium');
+						} else {
+							$el.addClass('cpr-img-small');
 						}
 						// Notify on each image load:
 						mainDefer.notify({type: 'load.img', element: el});
