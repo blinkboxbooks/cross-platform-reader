@@ -132,8 +132,12 @@ var Reader = (function (r) {
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
 		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			r.Navigation.loadPage(a);
-			return true;
+			// If the anchor points to another chapter part, reload the chapter,
+			// else simply go to the page with the given anchor:
+			if (!/^CHAPTER-PART/.test(a)) {
+				r.Navigation.loadPage(a);
+				return true;
+			}
 		}
 		// Check the table of contents...
 		for (var i=0; i<r.Book.toc.length; i++) {
@@ -142,7 +146,7 @@ var Reader = (function (r) {
 
 		var _load = function(j,a){
 			r.Notify.event(r.Event.LOADING_STARTED);
-			r.loadAnchor.apply(r, [j,a]).always(function clickLoadComplete(){
+			r.loadChapter(j,a).always(function clickLoadComplete(){
 				r.Notify.event(r.Event.LOADING_COMPLETE);
 			}).then(
 				function clickLoadSuccess(){
@@ -217,7 +221,7 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: content, page and mimetype
 	// * `callback` Function to be called after the function's logic
 	var displayContent = function(param) {
-		if (!param) { param = []; }
+		if (!param) { param = {}; }
 		// Take the params values
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
@@ -225,7 +229,7 @@ var Reader = (function (r) {
 		r.$header.text(r.Book.title); // TODO Do not polute the reader object.
 
 		// Parse the content according its mime-type and apply all filters attached to display content
-		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype));
+		content = r.Filters.applyFilters(r.Filters.HOOKS.BEFORE_CHAPTER_DISPLAY, r.parse(content, mimetype, param));
 
 		r.$reader.html(content);
 
@@ -355,24 +359,26 @@ var Reader = (function (r) {
 		return defer.promise();
 	};
 
-	// Load a chapter and go to the page pointed by the anchor value.
-	r.loadAnchor = function(c,a){
-		return r.loadChapter(c).then(function onLoadChapterSuccess(){
-			return r.Navigation.loadPage(a);
-		});
-	};
-
 	// Load a chapter with the index from the spine of this chapter
 	r.loadChapter = function(chapterNumber, page) {
-		var defer = $.Deferred();
+		var defer = $.Deferred(),
+				chapterUrl;
+
+		// Check if the PATH is in the href value from the spine...
+		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
+			chapterUrl = r.Book.spine[chapterNumber].href;
+		} else {
+			// If it is not, add it and load the chapter
+			chapterUrl = r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href;
+		}
 
 		r.CFI.setUp(chapterNumber);
 		r.Navigation.setChapter(chapterNumber);
 		r.$reader.css('opacity', 0);
 
 		// success handler for load chapter
-		var loadChapterSuccess = function(data){
-			displayContent({content: data}).then(function(){
+		function loadChapterSuccess(data){
+			displayContent({content: data, page: page, url: chapterUrl}).then(function(){
 
 				r.Navigation.setNumberOfPages();
 
@@ -384,15 +390,9 @@ var Reader = (function (r) {
 					r.Navigation.loadPage(page).then(defer.resolve);
 				}
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
-		};
-
-		// Check if the PATH is in the href value from the spine...
-		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
-			loadFile(r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
-		} else {
-			// If it is not, add it and load the chapter
-			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
+
+		loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {
 			r.$reader.css('opacity', 1);

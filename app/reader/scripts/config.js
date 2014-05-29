@@ -32,6 +32,9 @@ var Reader = (function (r) {
 	// User-set preferences that are related to the display options.
 	var i, rule;
 	r.preferences = {
+		maxChapterElements: {
+			value: 200
+		},
 		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
 		preloadRange: {
 			min: 1,
