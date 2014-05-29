@@ -87,7 +87,7 @@ var Reader = (function (r) {
 		// Calculate 95% of the width and height of the column.
 		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 		var height = Math.floor(r.Layout.Reader.height);
-		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
+		return location.protocol + absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
 	};
 
 	// add data attributes to anchors
@@ -137,8 +137,7 @@ var Reader = (function (r) {
 
 	// Modify SVG images URL and put it in a new IMG element.
 	var _parseSVG = function(content){
-		// Array slice is required to map the live nodelist to an array
-		var svg = Array.prototype.slice.call(content.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'svg'), 0);
+		var svg = content.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'svg');
 
 		if (svg.length === 0) { // Just in case the tags are not in the NS format
 			svg = content.getElementsByTagName('svg');
@@ -157,13 +156,7 @@ var Reader = (function (r) {
 				if (img) {
 					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-						url = _parseURL(url);
-						// Replace the svg tag if it is an image and show it in a normal IMG tag (compatible with SVG image format)
-						var newImg = document.createElement('img');
-						newImg.setAttribute('src', url);
-						var parentNode = svg[j].parentNode;
-						parentNode.insertBefore(newImg,svg[j]);
-						parentNode.removeChild(svg[j]);
+						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
 					}
 				}
 			}
