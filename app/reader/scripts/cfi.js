@@ -336,10 +336,16 @@ var Reader = (function (r) {
 			textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
 		}
 
+		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
+		if($(textNode).parents('svg').length){
+			textNode = $(textNode).parents('svg')[0];
+			offset = 0;
+		}
+
 		var findLeafNode = function (el) {
 			var $el = $(el);
 			/* Return a non-empty textNode or null */
-			if (el === null || !el.childNodes || el.childNodes.length === 0) {
+			if (el === null || el.nodeName === 'svg' || !el.childNodes || el.childNodes.length === 0) {
 				return el;
 			}
 			/* Return the element if it only has one child and it is in the blacklist */
