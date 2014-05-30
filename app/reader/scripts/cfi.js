@@ -204,6 +204,10 @@ var Reader = (function (r) {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
 					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
+					// in case the cfi targets an svg child, target the svg element itself
+					if($node.parents('svg').length){
+						$node = $node.parents('svg');
+					}
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
@@ -225,7 +229,7 @@ var Reader = (function (r) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
-			while ($nextNode && $nextNode.contents().length){
+			while ($nextNode && !$nextNode.is('svg') && $nextNode.contents().length){
 				$nextNode = $nextNode.contents().first();
 			}
 
