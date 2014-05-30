@@ -107,6 +107,7 @@ var Reader = (function (r) {
 				textAlign: 'text-align',
 				fontStyle: 'font-style',
 				fontWeight: 'font-weight',
+				fontSize: 'font-size',
 				textDecoration: 'text-decoration',
 				textIndent: 'text-indent',
 				textTransform: 'text-transform',
@@ -121,7 +122,8 @@ var Reader = (function (r) {
 				paddingRight: 'padding-right',
 				paddingBottom: 'padding-bottom',
 				display: 'display',
-				border: 'border'
+				border: 'border',
+				float: 'float'
 			};
 			for(i = 0, l = links.length; i < l; i++){
 				var rules = _parseCSS(arguments[i]).cssRules;
@@ -129,7 +131,18 @@ var Reader = (function (r) {
 					if(rules[j].style){
 						var cssText = '';
 						for(var key in whitelist){
-							cssText += rules[j].style[key] ? ';' + whitelist[key] + ':' + rules[j].style[key] : '';
+							if(rules[j].style[key]){
+								// convert px font-size to rem, todo: convert other sizes?
+								if(key === 'fontSize'){
+									var size = rules[j].style[key];
+									if(size.indexOf('px') !== -1){
+										size = parseFloat(size) / 18 + 'rem';
+									}
+									cssText += ';' + whitelist[key] + ':' + size;
+								} else {
+									cssText += ';' + whitelist[key] + ':' + rules[j].style[key];
+								}
+							}
 						}
 						if(cssText){
 							sheet.addRule(rules[j].selectorText, cssText);
