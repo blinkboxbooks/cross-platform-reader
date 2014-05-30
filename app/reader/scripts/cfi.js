@@ -7,7 +7,7 @@
 var Reader = (function (r) {
 	// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 	// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-	var _classBlacklist = ['bookmark', 'cpr-marker'];
+	var _classBlacklist = ['bookmark', 'cpr-marker', 'cpr-subchapter-link'];
 
 	// The **CFI** object exposes methods to handle CFIs. it is **not** intended to be exposed to the client directly.
 	//

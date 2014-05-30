@@ -62,14 +62,14 @@ var Reader = (function (r) {
 			children.slice(maxElements * (part + 1)).remove();
 			if (part || reverse) {
 				// Add a link to the previous part:
-				$('<a id="cpr-subchapter-prev"></a>')
+				$('<a id="cpr-subchapter-prev" class="cpr-subchapter-link"></a>')
 					.prop('href', url + prefix + (part - 1 * sign) + suffix + lastPageSuffix)
 					.wrap(document.createElement(nodeName)).parent()
 					.prependTo(parent);
 			}
 			if (part || !reverse) {
 				// Add a link to the next part:
-				$('<a id="cpr-subchapter-next"></a>')
+				$('<a id="cpr-subchapter-next" class="cpr-subchapter-link"></a>')
 					.prop('href', url + prefix + (part + 1 * sign) + suffix)
 					.wrap(document.createElement(nodeName))
 					.parent()
