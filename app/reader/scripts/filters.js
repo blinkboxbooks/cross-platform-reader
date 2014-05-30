@@ -87,7 +87,15 @@ var Reader = (function (r) {
 		// Calculate 95% of the width and height of the column.
 		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 		var height = Math.floor(r.Layout.Reader.height);
-		return location.protocol + absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
+
+		// if url starts with protocol agnostic url, add protocol to avoid Chrome bug
+		// if the url is not absolute, add the window location
+		if(absoluteUrl.indexOf('//') === 0){
+			absoluteUrl = location.protocol + absoluteUrl;
+		} else if(absoluteUrl.indexOf('/') === 0){
+			absoluteUrl = location.protocol + '//' + location.host + absoluteUrl;
+		}
+		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
 	};
 
 	// add data attributes to anchors
