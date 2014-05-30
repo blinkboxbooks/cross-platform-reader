@@ -150,8 +150,9 @@ var Reader = (function (r) {
 		var i, l= rules.length;
 		for(i=0; i< l; i++){
 			var rule = rules[i];
-			if(rule.selectorText === 'body'){
+			if(rule.selectorText === 'html'){
 				r.preferences.fontSize.rules.push({rule: rule.style, property: 'fontSize'});
+			} else if(rule.selectorText === 'body'){
 				r.preferences.lineHeight.rules.push({rule: rule.style, property: 'lineHeight'});
 				r.preferences.fontFamily.rules.push({rule: rule.style, property: 'fontFamily'});
 				r.preferences.textAlign.rules.push({rule: rule.style, property: 'textAlign'});
