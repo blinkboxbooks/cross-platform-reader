@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>bookdata.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="book.html">
+                book.js
+              </a>
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>bookdata.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-comment">/* jshint unused: true */</span>
+<span class="hljs-comment">/* exported Reader */</span>
+<span class="hljs-comment">/* globals $ */</span>
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>This is a private array of bookmarks for the current book. The data is organised based on chapters.
+Ex: <code>_bookmarks[1]</code> contains an array of bookmarks from the first chapter.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _bookmarks = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>The <strong>Bookmarks</strong> object exposes methods to allow the user to manage their bookmarks.</p>
+<ul>
+<li><a href="#getBookmarks"><code>getBookmarks</code></a></li>
+<li><a href="#setBookmarks"><code>setBookmarks</code></a></li>
+<li><a href="#removeBookmark"><code>removeBookmark</code></a></li>
+<li><code>goToBookmark</code></li>
+<li><code>reset</code></li>
+<li><a href="#display"><code>display</code></a></li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.Bookmarks = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><a name="getBookmarks"></a> Public getter function.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		getBookmarks: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">return</span> _bookmarks;
+		},
+		getVisibleBookmarks: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">var</span> bookmarks = [];
+			$(<span class="hljs-string">'.bookmark[data-cfi]'</span>, r.$iframe.contents()).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(index, el)</span>{</span>
+				<span class="hljs-keyword">if</span>(r.returnPageElement(el) === r.Navigation.getPage()){
+					bookmarks.push($(el).attr(<span class="hljs-string">'data-cfi'</span>));
+				}
+			});
+			<span class="hljs-keyword">return</span> bookmarks;
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p><a name="setBookmarks"></a>This function will set the bookmarks based on the chapter they appear in.
+<code>val</code> is an array of cfi-s representing the current book’s bookmarks.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		setBookmarks: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(val, noMarker)</span>{</span>
+			<span class="hljs-keyword">if</span>($.isArray(val)){
+				$.each(_bookmarks, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, el)</span>{</span>
+					<span class="hljs-keyword">if</span>($.isArray(el)){
+						$.each(el, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(index, cfi)</span>{</span>
+							r.Bookmarks.removeBookmark(cfi);
+						});
+					}
+				});
+				_bookmarks = [];
+				$.each(val, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(i, element)</span>{</span>
+					r.Bookmarks.setBookmark(element, noMarker);
+				});
+			}
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p><a name="setBookmark"></a>This function saves a bookmark in the appropriate location, based on the chapter it appears in, and returns the cfi object associated with it.</p>
+<ul>
+<li><code>cfi</code> (optional) the cfi to save as a bookmark, otherwise the current page’s cfi will be used.</li>
+<li><code>noMarker</code> (optional) flag to indicate the bookmark does not require a marker inserted into the DOM.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		setBookmark: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cfi, noMarker)</span>{</span>
+			<span class="hljs-keyword">var</span> cfiObj = <span class="hljs-literal">null</span>;
+			<span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span>(cfi) === <span class="hljs-string">'undefined'</span>){
+				cfiObj = r.Navigation.getCurrentCFI();
+				<span class="hljs-keyword">if</span>($.type(cfiObj) === <span class="hljs-string">'object'</span>){
+					cfi = cfiObj.CFI;
+				} <span class="hljs-keyword">else</span> {
+					r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: cfiObj, call: <span class="hljs-string">'setBookmark'</span>}));
+					<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+				}
+			}
+
+			<span class="hljs-keyword">var</span> index = r.CFI.getChapterFromCFI(cfi);
+			<span class="hljs-keyword">if</span>(index !== -<span class="hljs-number">1</span>){
+				<span class="hljs-keyword">if</span>(!$.isArray(_bookmarks[index])){
+					_bookmarks[index] = [];
+				}
+				<span class="hljs-keyword">if</span>($.inArray(cfi, _bookmarks[index]) === -<span class="hljs-number">1</span>){
+					_bookmarks[index].push(cfi);
+					<span class="hljs-keyword">if</span>(!noMarker &amp;&amp; index === r.Navigation.getChapter()){
+						r.CFI.setCFI(cfi);
+						r.Bookmarks.display();
+					}
+					<span class="hljs-keyword">return</span> cfiObj !== <span class="hljs-literal">null</span> ? <span class="hljs-built_in">JSON</span>.stringify(cfiObj) : cfi;
+				}
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>bookmark exists</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.Notify.error($.extend({}, r.Event.ERR_BOOKMARK_EXISTS, {details: cfi, call: <span class="hljs-string">'setBookmark'</span>}));
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p><a name="removeBookmark"></a>This function will remove a bookmark from the book and any associated DOM elements.</p>
+<ul>
+<li><code>cfi</code> (required) the CFI of the bookmark to remove.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		removeBookmark: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cfi)</span>{</span>
+			<span class="hljs-keyword">var</span> chapter = r.CFI.getChapterFromCFI(cfi);
+			<span class="hljs-keyword">if</span>(chapter !== -<span class="hljs-number">1</span>){
+				<span class="hljs-keyword">var</span> index = $.inArray(cfi, _bookmarks[chapter]);
+				<span class="hljs-keyword">if</span>($.isArray(_bookmarks[chapter]) &amp;&amp; index !== -<span class="hljs-number">1</span>){
+					_bookmarks[chapter][index] = <span class="hljs-literal">null</span>;
+
+					<span class="hljs-keyword">var</span> $marker = $(<span class="hljs-string">'*[data-cfi="'</span> + cfi + <span class="hljs-string">'"]'</span>, r.$iframe.contents());
+					<span class="hljs-keyword">if</span>($marker.length){
+						<span class="hljs-keyword">var</span> $parent = $marker.parent();
+						$marker.remove();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>this restates the DOM to the previous structure
+todo do not alter the DOM in the first place</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>						$parent[<span class="hljs-number">0</span>].normalize();
+					}
+
+					r.Bookmarks.display();
+					<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+				}
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>cannot remove bookmark</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.Notify.error({}, $.extend(r.Event.ERR_BOOKMARK_REMOVE, {details: cfi, call: <span class="hljs-string">'removeBookmark'</span>}));
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+		},
+		goToBookmark: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cfi)</span>{</span>
+			<span class="hljs-keyword">return</span> r.CFI.goToCFI(cfi);
+		},
+		reset: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			_bookmarks = [];
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p><a name="display"></a>This function refreshes the bookmark UI. If a bookmark is visible on the current page, it will display the bookmark UI. Ignores mobile readers.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		display: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+			<span class="hljs-keyword">var</span> isVisible = <span class="hljs-literal">false</span>;
+			$(<span class="hljs-string">'.bookmark'</span>, r.$iframe.contents()).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(index, el)</span>{</span>
+				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
+				<span class="hljs-keyword">if</span> (isVisible) {
+					<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+				}
+			});
+			<span class="hljs-keyword">if</span> (r.mobile) {
+				<span class="hljs-keyword">return</span> isVisible;
+			}
+			<span class="hljs-keyword">if</span>(isVisible){
+				$(<span class="hljs-string">'#cpr-bookmark-ui'</span>, r.$iframe.contents()).show();
+				<span class="hljs-keyword">return</span> isVisible;
+			} <span class="hljs-keyword">else</span> {
+				$(<span class="hljs-string">'#cpr-bookmark-ui'</span>, r.$iframe.contents()).hide();
+			}
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Debug flag, used to log various events for debugging purposes</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _debug = <span class="hljs-literal">false</span>;
+	r.Debug = {
+		enable: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">enableDebug</span><span class="hljs-params">()</span>{</span>
+			_debug = <span class="hljs-literal">true</span>;
+		},
+		disable: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">disableDebug</span><span class="hljs-params">()</span>{</span>
+			_debug = <span class="hljs-literal">false</span>;
+		},
+		log: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">logDebug</span><span class="hljs-params">(s)</span>{</span>
+			<span class="hljs-keyword">if</span>(_debug){
+				console.warn(s);
+			}
+		}
+	};
+
+	<span class="hljs-keyword">return</span> r;
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

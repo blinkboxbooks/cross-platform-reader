@@ -3519,6 +3519,10 @@ var Reader = (function (r) {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
 					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
+					// in case the cfi targets an svg child, target the svg element itself
+					if($node.parents('svg').length){
+						$node = $node.parents('svg');
+					}
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
@@ -3540,7 +3544,7 @@ var Reader = (function (r) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
-			while ($nextNode && $nextNode.contents().length){
+			while ($nextNode && !$nextNode.is('svg') && $nextNode.contents().length){
 				$nextNode = $nextNode.contents().first();
 			}
 
@@ -3651,10 +3655,16 @@ var Reader = (function (r) {
 			textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
 		}
 
+		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
+		if($(textNode).parents('svg').length){
+			textNode = $(textNode).parents('svg')[0];
+			offset = 0;
+		}
+
 		var findLeafNode = function (el) {
 			var $el = $(el);
 			/* Return a non-empty textNode or null */
-			if (el === null || !el.childNodes || el.childNodes.length === 0) {
+			if (el === null || el.nodeName === 'svg' || !el.childNodes || el.childNodes.length === 0) {
 				return el;
 			}
 			/* Return the element if it only has one child and it is in the blacklist */
@@ -4110,7 +4120,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.47-133'
+				appversion: '0.1.48-134'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4477,7 +4487,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.47-133'
+			'version': '0.1.48-134'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4705,6 +4715,14 @@ var Reader = (function (r) {
 		// Calculate 95% of the width and height of the column.
 		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 		var height = Math.floor(r.Layout.Reader.height);
+
+		// if url starts with protocol agnostic url, add protocol to avoid Chrome bug
+		// if the url is not absolute, add the window location
+		if(absoluteUrl.indexOf('//') === 0){
+			absoluteUrl = location.protocol + absoluteUrl;
+		} else if(absoluteUrl.indexOf('/') === 0){
+			absoluteUrl = location.protocol + '//' + location.host + absoluteUrl;
+		}
 		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
 	};
 
@@ -4756,6 +4774,7 @@ var Reader = (function (r) {
 	// Modify SVG images URL and put it in a new IMG element.
 	var _parseSVG = function(content){
 		var svg = content.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'svg');
+
 		if (svg.length === 0) { // Just in case the tags are not in the NS format
 			svg = content.getElementsByTagName('svg');
 		}
@@ -4773,15 +4792,7 @@ var Reader = (function (r) {
 				if (img) {
 					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-						url = _parseURL(url);
-						// Replace the svg tag if it is an image and show it in a normal IMG tag (compatible with SVG image format)
-						var newImg = document.createElement('img');
-						newImg.setAttribute('src', url);
-						// TODO Firefox max-width fix
-						// newImg.style.maxWidth = 95 / 100 * Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px';
-						var parentNode = svg[j].parentNode;
-						parentNode.insertBefore(newImg,svg[j]);
-						parentNode.removeChild(svg[j]);
+						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
 					}
 				}
 			}
