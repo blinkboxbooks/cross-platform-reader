@@ -204,6 +204,10 @@ var Reader = (function (r) {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
 					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
+					// in case the cfi targets an svg child, target the svg element itself
+					if($node.parents('svg').length){
+						$node = $node.parents('svg');
+					}
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
@@ -225,7 +229,7 @@ var Reader = (function (r) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
-			while ($nextNode && $nextNode.contents().length){
+			while ($nextNode && !$nextNode.is('svg') && $nextNode.contents().length){
 				$nextNode = $nextNode.contents().first();
 			}
 
@@ -336,10 +340,16 @@ var Reader = (function (r) {
 			textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
 		}
 
+		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
+		if($(textNode).parents('svg').length){
+			textNode = $(textNode).parents('svg')[0];
+			offset = 0;
+		}
+
 		var findLeafNode = function (el) {
 			var $el = $(el);
 			/* Return a non-empty textNode or null */
-			if (el === null || !el.childNodes || el.childNodes.length === 0) {
+			if (el === null || el.nodeName === 'svg' || !el.childNodes || el.childNodes.length === 0) {
 				return el;
 			}
 			/* Return the element if it only has one child and it is in the blacklist */
