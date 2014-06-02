@@ -150,8 +150,14 @@ img, svg, svg * {
   max-height: 100%;
 
   &.cpr-img-large {
-    display: block;
+    display: inline-block;
     margin: 0.5rem auto;
+    &:first-child{
+      margin-top:0;
+    }
+    &:last-child{
+      margin-bottom:0;
+    }
   }
 
   &.cpr-img-medium{
