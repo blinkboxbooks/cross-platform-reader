@@ -344,7 +344,7 @@ var Reader = (function (r) {
 			var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
 			if(typeof(bookmarks) !== 'undefined'){
 				$.each(bookmarks, function(index, bookmark){
-					r.Navigation.setCFI(bookmark);
+					r.Navigation.setCFI(bookmark, true);
 				});
 			}
 		});

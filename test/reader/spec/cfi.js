@@ -123,7 +123,6 @@ describe('CFI', function() {
 
 			expect(cfi).toEqual(currentStatus.cfi.CFI);
 			expect(marker).toExist();
-			expect(marker).toMatch('span.bookmark');
 			expect(Reader.returnPageElement(marker)).toBe(currentStatus.page);
 
 			if(flags.hasNext){

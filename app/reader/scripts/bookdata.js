@@ -24,7 +24,7 @@ var Reader = (function (r) {
 		},
 		getVisibleBookmarks: function(){
 			var bookmarks = [];
-			$('.bookmark[data-cfi]', r.$iframe.contents()).each(function(index, el){
+			$('[data-bookmark][data-cfi]', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					bookmarks.push($(el).attr('data-cfi'));
 				}
@@ -73,7 +73,7 @@ var Reader = (function (r) {
 				if($.inArray(cfi, _bookmarks[index]) === -1){
 					_bookmarks[index].push(cfi);
 					if(!noMarker && index === r.Navigation.getChapter()){
-						r.CFI.setCFI(cfi);
+						r.CFI.setCFI(cfi, true);
 						r.Bookmarks.display();
 					}
 					return cfiObj !== null ? JSON.stringify(cfiObj) : cfi;
@@ -92,14 +92,18 @@ var Reader = (function (r) {
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter][index] = null;
 
-					var $marker = $('*[data-cfi="' + cfi + '"]', r.$iframe.contents());
+					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
-						var $parent = $marker.parent();
-						$marker.remove();
+						if($marker.hasClass('cpr-marker')){
+							var $parent = $marker.parent();
+							$marker.remove();
 
-						// this restates the DOM to the previous structure
-						// todo do not alter the DOM in the first place
-						$parent[0].normalize();
+							// this restates the DOM to the previous structure
+							// todo do not alter the DOM in the first place
+							$parent[0].normalize();
+						} else {
+							$marker.removeAttr('data-bookmark').removeAttr('data-cfi')
+						}
 					}
 
 					r.Bookmarks.display();
@@ -107,7 +111,7 @@ var Reader = (function (r) {
 				}
 			}
 			// cannot remove bookmark
-			r.Notify.error({}, $.extend(r.Event.ERR_BOOKMARK_REMOVE, {details: cfi, call: 'removeBookmark'}));
+			r.Notify.error($.extend({}, r.Event.ERR_BOOKMARK_REMOVE, {details: cfi, call: 'removeBookmark'}));
 			return false;
 		},
 		goToBookmark: function(cfi){
@@ -119,7 +123,7 @@ var Reader = (function (r) {
 		// <a name="display"></a>This function refreshes the bookmark UI. If a bookmark is visible on the current page, it will display the bookmark UI. Ignores mobile readers.
 		display: function(){
 			var isVisible = false;
-			$('.bookmark', r.$iframe.contents()).each(function(index, el){
+			$('[data-bookmark]', r.$iframe.contents()).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
