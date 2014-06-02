@@ -156,20 +156,21 @@ var Reader = (function (r) {
 			for(i = 0, l = links.length; i < l; i++){
 				var rules = _parseCSS(arguments[i]).cssRules;
 				for(j = 0, k = rules.length; j < k; j++){
-					if(rules[j].style){
+					var rule = rules[j];
+					if(rule.style){
 						var cssText = '';
 						for(var key in whitelist){
-							if(rules[j].style[key]){
+							if(rule.style[key]){
 								// convert px font-size to rem, todo: convert other sizes?
 								if(key === 'fontSize'){
-									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rules[j].style[key]) + 'rem';
+									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
 								} else {
-									cssText += ';' + whitelist[key] + ':' + rules[j].style[key];
+									cssText += ';' + whitelist[key] + ':' + rule.style[key];
 								}
 							}
 						}
-						if(cssText){
-							sheet.insertRule(rules[j].selectorText + '{' + cssText + '}', sheet.cssRules.length);
+						if(cssText && rule.selectorText && rule.selectorText.indexOf('html') === -1 && rule.selectorText.indexOf('body') === -1){
+							sheet.insertRule(rule.selectorText + '{' + cssText + '}', sheet.cssRules.length);
 						}
 					}
 				}
