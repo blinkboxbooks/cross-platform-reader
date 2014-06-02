@@ -86,6 +86,34 @@ var Reader = (function (r) {
 		return styleElement.sheet;
 	};
 
+	// based on http://websemantics.co.uk/resources/font_size_conversion_chart/
+	var _fontSizes = {
+		'x-small': 0.555, // 10px
+		'small': 0.7222, // 13px
+		'medium': 0.89, // 16 px
+		'large': 1, // 18 px
+		'x-large': 1.333, // 24px
+		'xx-large': 1.777, // 32px
+		'smaller': 'smaller',
+		'larger': 'larger'
+	}
+
+	/*
+	* Will convert a font size css declaration to rems
+	* */
+	var _parseFontSize = function(size){
+		if(size.indexOf('px') !== -1){
+			return parseFloat(size) / 18;
+		} else if(size.indexOf('small') !== -1 || size.indexOf('large') !== -1){
+			return _fontSizes[size] || '';
+		} else if(size.indexOf('em') !== -1){
+			return parseFloat(size);
+		} else {
+			// if font-size unit is not recognised, return default
+			return 1;
+		}
+	};
+
 	var _addPublisherStyles = function($head){
 		var links = [];
 		$head.filter('link[href$=".css"]').each(function(index, link){
@@ -134,11 +162,7 @@ var Reader = (function (r) {
 							if(rules[j].style[key]){
 								// convert px font-size to rem, todo: convert other sizes?
 								if(key === 'fontSize'){
-									var size = rules[j].style[key];
-									if(size.indexOf('px') !== -1){
-										size = parseFloat(size) / 18 + 'rem';
-									}
-									cssText += ';' + whitelist[key] + ':' + size;
+									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rules[j].style[key]) + 'rem';
 								} else {
 									cssText += ';' + whitelist[key] + ':' + rules[j].style[key];
 								}
