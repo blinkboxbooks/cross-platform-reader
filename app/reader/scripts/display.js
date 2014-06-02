@@ -96,7 +96,7 @@ var Reader = (function (r) {
 		'xx-large': 1.777, // 32px
 		'smaller': 'smaller',
 		'larger': 'larger'
-	}
+	};
 
 	/*
 	* Will convert a font size css declaration to rems
