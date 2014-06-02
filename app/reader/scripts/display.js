@@ -88,7 +88,7 @@ var Reader = (function (r) {
 
 	var _addPublisherStyles = function($head){
 		var links = [];
-		$head.filter('link[rel=stylesheet]').each(function(index, link){
+		$head.filter('link[href$=".css"]').each(function(index, link){
 			links.push($.ajax({
 				url: link.href
 			}));
