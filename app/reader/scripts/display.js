@@ -143,9 +143,10 @@ var Reader = (function (r) {
 									cssText += ';' + whitelist[key] + ':' + rules[j].style[key];
 								}
 							}
+							cssText = rules[j].selectorText + '{' + cssText + '}';
 						}
 						if(cssText){
-							sheet.addRule(rules[j].selectorText, cssText);
+							sheet.insertRule(cssText, sheet.cssRules.length);
 						}
 					}
 				}
