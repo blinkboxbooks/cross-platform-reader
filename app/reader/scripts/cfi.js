@@ -24,6 +24,7 @@ var Reader = (function (r) {
 	// * [`updateContext`](#updateContext)
 	// * [`addContext`](#addContext)
 	// * [`removeContext`](#removeContext)
+	// * [`normalizeChapterPartCFI`](#normalizeChapterPartCFI)
 	// * [`addOneNodeToCFI`](#addOneNodeToCFI)
 	// * [`getChapterFromCFI`](#getChapterFromCFI)
 	//
@@ -99,6 +100,29 @@ var Reader = (function (r) {
 			return completeCFI;
 		},
 
+		// <a name="normalizeChapterPartCFI"></a> This function normalizes CFI parts to account for chapters which have been split up into multiple parts.
+		normalizeChapterPartCFI: function (completeCFI, remove) {
+			// Check if the chapter has been split up into multiple parts:
+			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
+			if (prevChapterPartMarker.length) {
+				// Get the CFI path for the first non-removed element:
+				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], _classBlacklist);
+				var chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, chapterMarkerCFI);
+				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
+				if (completeCFI.indexOf(chapterMarkerCompleteCFI.substr(0, chapterMarkerCompleteCFI.length - 2)) === 0) {
+					var removedElements = prevChapterPartMarker.attr('data-removed-elements'),
+						markerCFIParts = chapterMarkerCompleteCFI.split('/'),
+						completeCFIParts = completeCFI.split('/'),
+					// The incorrect path value, as it doesn't account for the removed elements:
+						elPathValue = Number(completeCFIParts[markerCFIParts.length - 1]);
+					// Update the path value with the number of removed elements * 2 (CFI elements always have an even index):
+					completeCFIParts[markerCFIParts.length - 1] = elPathValue + (removedElements * 2 * (remove ? -1 : 1));
+					return completeCFIParts.join('/');
+				}
+			}
+			return completeCFI;
+		},
+
 		// <a name="getCFIObject"></a> Return the current position's CFI and a preview of the current text.
 		getCFIObject: function() {
 			// The reader context would not normally be updated anymore, but this is a workaround to the web-app, when they move the reader in the DOM and the context changes. Until that is fixed, we must update the context all the time.
@@ -133,6 +157,9 @@ var Reader = (function (r) {
 						}
 						completeCFI = completeCFI.replace(/:\d+/, ':' + offset);
 					}
+
+					// Account for chapters that have been split up into multiple parts:
+					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI);
 
 					var result = {
 						CFI: r.CFI.removeContext(completeCFI),
@@ -203,6 +230,10 @@ var Reader = (function (r) {
 				try {
 					var marker = '<span class="'+ (markerClass ? markerClass : 'bookmark') +'" data-cfi="' + cfi + '"></span>';
 					cfi = r.CFI.addContext(cfi);
+
+					// Account for chapters that have been split up into multiple parts:
+					cfi = r.CFI.normalizeChapterPartCFI(cfi, true);
+
 					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element

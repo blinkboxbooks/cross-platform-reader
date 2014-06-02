@@ -353,11 +353,17 @@ var Reader = (function (r) {
 		isLastPageAnchor: function (anchor) {
 			return /LASTPAGE$/.test(anchor);
 		},
+		// Returns the link to the next chapter part:
 		getPrevChapterPart: function () {
-			return r.$reader.find('#cpr-subchapter-prev').attr('href');
+			return r.$reader.find('#cpr-subchapter-prev a').attr('href');
 		},
+		// Returns the link to the previous chapter part:
 		getNextChapterPart: function () {
-			return r.$reader.find('#cpr-subchapter-next').attr('href');
+			return r.$reader.find('#cpr-subchapter-next a').attr('href');
+		},
+		// Returns the number of removed elements from previous chapter parts:
+		getPrevChapterPartMarker: function () {
+			return r.$reader.find('#cpr-subchapter-prev');
 		}
 	};
 
