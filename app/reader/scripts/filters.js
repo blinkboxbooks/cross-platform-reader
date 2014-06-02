@@ -210,11 +210,22 @@ var Reader = (function (r) {
 		return result;
 	};
 
+	var _parseCSSLinks = function(content){
+		var links = content.getElementsByTagName('link');
+		for (var y = 0; y < links.length; y++) {
+			var href = links[y].getAttribute('href');
+			href = _parseURL(href);
+			links[y].setAttribute('href', href);
+		}
+		return content;
+	};
+
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseCSSLinks);
 
 	r.Filters = $.extend({HOOKS: HOOKS}, filters);
 

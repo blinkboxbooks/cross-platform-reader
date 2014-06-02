@@ -84,11 +84,11 @@ var Reader = (function (r) {
 			min: 0.5,
 			max: 15,
 			unit: 0.1,
-			value: 1.125,
+			value: 1,
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontSize.rules.length; i++){
 					rule = r.preferences.fontSize.rules[i];
-					rule.rule[rule.property] = r.preferences.fontSize.value + 'rem';
+					rule.rule[rule.property] = r.preferences.fontSize.value * 18 + 'px';
 				}
 			}
 		},
