@@ -356,7 +356,7 @@ var Reader = (function (r) {
 		isLastPageAnchor: function (anchor) {
 			return /cpr-lastpage/.test(anchor);
 		},
-		getChapterPartAnchorPrefix: function (anchor) {
+		getChapterPartAnchorPrefix: function () {
 			return 'cpr-part';
 		},
 		isChapterPartAnchor: function (anchor) {
