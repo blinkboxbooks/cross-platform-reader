@@ -134,7 +134,7 @@ var Reader = (function (r) {
 		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
 			// If the anchor points to another chapter part, reload the chapter,
 			// else simply go to the page with the given anchor:
-			if (!/^CHAPTER-PART/.test(a)) {
+			if (!r.Navigation.isChapterPartAnchor(a)) {
 				r.Navigation.loadPage(a);
 				return true;
 			}

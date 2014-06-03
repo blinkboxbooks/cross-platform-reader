@@ -271,7 +271,7 @@ var Reader = (function (r) {
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {
-						loadPromise = Chapter.load(Chapter.prev(), 'LASTPAGE');
+						loadPromise = Chapter.load(Chapter.prev(), r.Navigation.getLastPageAnchorName());
 					}
 					loadPromise.then(defer.resolve, defer.reject);
 				});
@@ -350,8 +350,17 @@ var Reader = (function (r) {
 			r.Navigation.updateProgress();
 			r.Bookmarks.display();
 		},
+		getLastPageAnchorName: function () {
+			return 'LASTPAGE';
+		},
 		isLastPageAnchor: function (anchor) {
 			return /LASTPAGE$/.test(anchor);
+		},
+		getChapterPartAnchorPrefix: function (anchor) {
+			return 'CHAPTER-PART';
+		},
+		isChapterPartAnchor: function (anchor) {
+			return /^CHAPTER-PART/.test(anchor);
 		},
 		// Returns the link to the next chapter part:
 		getPrevChapterPart: function () {

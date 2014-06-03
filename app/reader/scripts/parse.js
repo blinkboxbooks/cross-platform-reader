@@ -37,58 +37,50 @@ var Reader = (function (r) {
 				// Find the parent element of the repeating elements which exceed the max chapter elements:
 				parent = $(doc).find(':nth-child(0n+' + (maxElements + 1) + ')').parent(),
 				children = parent.children(),
-				prefix = '#CHAPTER-PART-',
-				reverse = false,
-				sign = +1,
-				suffix = '',
-				lastPageSuffix = '-LASTPAGE',
-				part,
+				parts = Math.ceil(children.length / maxElements),
+				part = 0,
+				prefix = '#' + r.Navigation.getChapterPartAnchorPrefix() + '-',
+				lastPageSuffix = '-' + r.Navigation.getLastPageAnchorName(),
 				nodeName;
 		if (parent.length) {
 			// The nodeName of the next/prev link-wrapper, a div unless the parent is a list:
 			nodeName = /^(ul|ol)$/i.test(parent.prop('nodeName')) ? 'li' : 'div';
-			if (/(^CHAPTER-PART-\d+-REVERSE)|(^LASTPAGE$)/.test(page)) {
-				// Reverse mode (starting a chapter from the last page):
-				children = $(children.get().reverse());
-				reverse = true;
-				sign = -1;
-				suffix = '-REVERSE';
-			}
-			// Get the current part from the page anchor:
-			part = /^CHAPTER-PART-/.test(page) && Number(String(page).split('-')[2]) || 0;
-			if (!part) {
-				if (r.CFI.isValidCFI(page)) {
-					// Get the element path component of the cfi:
-					// e.g. for epubcfi(/6/8!/4[body01]/2/402/2/1:0) get 4[body01]/2/402/2/1:0
-					$.map((page.split('!')[1] || '').slice(1, -1).split('/'), function (value) {
-						// Check if the CFI is found on a later chapter part by dividing the highest
-						// branch count through the maxelements * 2 (CFI elements always have an even index):
-						var newPart = Math.floor(parseInt(value, 10) / (maxElements * 2));
-						if (newPart) {
-							part = newPart;
-						}
-					});
-				}
+			if (r.Navigation.isChapterPartAnchor(page)) {
+				// Get the current part from the page anchor:
+				part = Number(String(page).split('-')[2]) || 0;
+			} else if (r.Navigation.isLastPageAnchor(page)) {
+				part = parts - 1;
+			} else if (r.CFI.isValidCFI(page)) {
+				// Get the element path component of the cfi:
+				// e.g. for epubcfi(/6/8!/4[body01]/2/402/2/1:0) get 4[body01]/2/402/2/1:0
+				$.map((page.split('!')[1] || '').slice(1, -1).split('/'), function (value) {
+					// Check if the CFI is found on a later chapter part by dividing the highest
+					// branch count through the maxelements * 2 (CFI elements always have an even index):
+					var newPart = Math.floor(parseInt(value, 10) / (maxElements * 2));
+					if (newPart) {
+						part = newPart;
+					}
+				});
 			}
 			// Remove all elements up to the current part:
 			children.slice(0, maxElements * part).remove();
 			// Remove all elements after current part:
 			children.slice(maxElements * (part + 1)).remove();
-			if (part || reverse) {
+			if (part) {
 				// Add a link to the previous part:
 				$(document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-prev')
 					.addClass('cpr-subchapter-link')
-					.append($('<a></a>').prop('href', url + prefix + (part - 1 * sign) + suffix + lastPageSuffix))
-					.attr('data-removed-elements', reverse ? children.length - maxElements * (part + 1) : maxElements * part)
+					.append($('<a></a>').prop('href', url + prefix + (part - 1) + lastPageSuffix))
+					.attr('data-removed-elements', maxElements * part)
 					.prependTo(parent);
 			}
-			if (part || !reverse) {
+			if (part < parts - 1) {
 				// Add a link to the next part:
 				$(document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-next')
 					.addClass('cpr-subchapter-link')
-					.append($('<a></a>').prop('href', url + prefix + (part + 1 * sign) + suffix))
+					.append($('<a></a>').prop('href', url + prefix + (part + 1)))
 					.appendTo(parent);
 			}
 		}
