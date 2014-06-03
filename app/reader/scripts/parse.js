@@ -36,14 +36,23 @@ var Reader = (function (r) {
 				maxElements = r.preferences.maxChapterElements.value,
 				// Find the parent element of the repeating elements which exceed the max chapter elements:
 				parent = $(doc).find(':nth-child(0n+' + (maxElements + 1) + ')').first().parent(),
-				children = parent.children(),
-				parts = Math.ceil(children.length / maxElements),
-				part = 0,
-				prefix = r.Navigation.getChapterPartAnchorPrefix() + '-',
-				lastPageSuffix = '-' + r.Navigation.getLastPageAnchorName(),
+				children,
+				parts,
+				part,
+				prefix,
+				lastPageSuffix,
 				nodeName,
 				index;
 		if (parent.length) {
+			children = parent.children();
+			// The number of parts to split this chapter into:
+			parts = Math.ceil(children.length / maxElements);
+			// By default, start with the first part (zero-indexed):
+			part = 0;
+			// The prefix to identify anchors to chapter parts:
+			prefix = r.Navigation.getChapterPartAnchorPrefix() + '-';
+			// The suffix to identify last page positions:
+			lastPageSuffix = '-' + r.Navigation.getLastPageAnchorName();
 			// The nodeName of the next/prev link-wrapper, a div unless the parent is a list:
 			nodeName = /^(ul|ol)$/i.test(parent.prop('nodeName')) ? 'li' : 'div';
 			if (r.Navigation.isChapterPartAnchor(page)) {
