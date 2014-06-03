@@ -39,7 +39,7 @@ var Reader = (function (r) {
 				children = parent.children(),
 				parts = Math.ceil(children.length / maxElements),
 				part = 0,
-				prefix = '#' + r.Navigation.getChapterPartAnchorPrefix() + '-',
+				prefix = r.Navigation.getChapterPartAnchorPrefix() + '-',
 				lastPageSuffix = '-' + r.Navigation.getLastPageAnchorName(),
 				nodeName;
 		if (parent.length) {
@@ -47,7 +47,7 @@ var Reader = (function (r) {
 			nodeName = /^(ul|ol)$/i.test(parent.prop('nodeName')) ? 'li' : 'div';
 			if (r.Navigation.isChapterPartAnchor(page)) {
 				// Get the current part from the page anchor:
-				part = Number(String(page).split('-')[2]) || 0;
+				part = Number(String(page).replace(prefix, '').replace(lastPageSuffix, '')) || 0;
 			} else if (r.Navigation.isLastPageAnchor(page)) {
 				part = parts - 1;
 			} else if (r.CFI.isValidCFI(page)) {
@@ -71,7 +71,7 @@ var Reader = (function (r) {
 				$(document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-prev')
 					.addClass('cpr-subchapter-link')
-					.append($('<a></a>').prop('href', url + prefix + (part - 1) + lastPageSuffix))
+					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
 					.attr('data-removed-elements', maxElements * part)
 					.prependTo(parent);
 			}
@@ -80,7 +80,7 @@ var Reader = (function (r) {
 				$(document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-next')
 					.addClass('cpr-subchapter-link')
-					.append($('<a></a>').prop('href', url + prefix + (part + 1)))
+					.append($('<a></a>').prop('href', url + '#' + prefix + (part + 1)))
 					.appendTo(parent);
 			}
 		}
