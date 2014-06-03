@@ -35,7 +35,7 @@ var Reader = (function (r) {
 				url = options.url.split('/').slice(-1)[0].split('#')[0],
 				maxElements = r.preferences.maxChapterElements.value,
 				// Find the parent element of the repeating elements which exceed the max chapter elements:
-				parent = $(doc).find(':nth-child(0n+' + (maxElements + 1) + ')').parent(),
+				parent = $(doc).find(':nth-child(0n+' + (maxElements + 1) + ')').first().parent(),
 				children = parent.children(),
 				parts = Math.ceil(children.length / maxElements),
 				part = 0,
