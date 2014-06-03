@@ -106,17 +106,19 @@ var Reader = (function (r) {
 			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
 			if (prevChapterPartMarker.length) {
 				// Get the CFI path for the first non-removed element:
-				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], _classBlacklist);
-				var chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, chapterMarkerCFI);
-				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
-				if (completeCFI.indexOf(chapterMarkerCompleteCFI.substr(0, chapterMarkerCompleteCFI.length - 2)) === 0) {
-					var removedElements = prevChapterPartMarker.attr('data-removed-elements'),
+				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], _classBlacklist),
+						chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, chapterMarkerCFI),
 						markerCFIParts = chapterMarkerCompleteCFI.split('/'),
-						completeCFIParts = completeCFI.split('/'),
-					// The incorrect path value, as it doesn't account for the removed elements:
-						elPathValue = Number(completeCFIParts[markerCFIParts.length - 1]);
+						completeCFIParts = completeCFI.split('/');
+				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
+				if (markerCFIParts.slice(0, -1).join('/') === completeCFIParts.slice(0, markerCFIParts.length - 1).join('/')) {
+					var removedElements = prevChapterPartMarker.attr('data-removed-elements'),
+							// The incorrect path value, as it doesn't account for the removed elements:
+							elPathValue = parseInt(completeCFIParts[markerCFIParts.length - 1], 10),
+							// Get the optional path suffix like any ids:
+							pathSuffix = completeCFIParts[markerCFIParts.length - 1].slice(String(elPathValue).length);
 					// Update the path value with the number of removed elements * 2 (CFI elements always have an even index):
-					completeCFIParts[markerCFIParts.length - 1] = elPathValue + (removedElements * 2 * (remove ? -1 : 1));
+					completeCFIParts[markerCFIParts.length - 1] = (elPathValue + (removedElements * 2 * (remove ? -1 : 1))) + pathSuffix;
 					return completeCFIParts.join('/');
 				}
 			}
