@@ -56,8 +56,8 @@ var Reader = (function (r) {
 				$.map((page.split('!')[1] || '').slice(1, -1).split('/'), function (value) {
 					// Check if the CFI is found on a later chapter part by dividing the highest
 					// branch count through the maxelements * 2 (CFI elements always have an even index):
-					var newPart = Math.floor(parseInt(value, 10) / (maxElements * 2));
-					if (newPart) {
+					var newPart = Math.floor((parseInt(value, 10) - 1) / (maxElements * 2));
+					if (newPart > 0) {
 						part = newPart;
 					}
 				});
