@@ -87,6 +87,14 @@ var Reader = (function (r) {
 		// Calculate 95% of the width and height of the column.
 		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 		var height = Math.floor(r.Layout.Reader.height);
+
+		// if url starts with protocol agnostic url, add protocol to avoid Chrome bug
+		// if the url is not absolute, add the window location
+		if(absoluteUrl.indexOf('//') === 0){
+			absoluteUrl = location.protocol + absoluteUrl;
+		} else if(absoluteUrl.indexOf('/') === 0){
+			absoluteUrl = location.protocol + '//' + location.host + absoluteUrl;
+		}
 		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
 	};
 
@@ -138,6 +146,7 @@ var Reader = (function (r) {
 	// Modify SVG images URL and put it in a new IMG element.
 	var _parseSVG = function(content){
 		var svg = content.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'svg');
+
 		if (svg.length === 0) { // Just in case the tags are not in the NS format
 			svg = content.getElementsByTagName('svg');
 		}
@@ -155,15 +164,7 @@ var Reader = (function (r) {
 				if (img) {
 					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
-						url = _parseURL(url);
-						// Replace the svg tag if it is an image and show it in a normal IMG tag (compatible with SVG image format)
-						var newImg = document.createElement('img');
-						newImg.setAttribute('src', url);
-						// TODO Firefox max-width fix
-						// newImg.style.maxWidth = 95 / 100 * Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2) + 'px';
-						var parentNode = svg[j].parentNode;
-						parentNode.insertBefore(newImg,svg[j]);
-						parentNode.removeChild(svg[j]);
+						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
 					}
 				}
 			}
@@ -209,11 +210,22 @@ var Reader = (function (r) {
 		return result;
 	};
 
+	var _parseCSSLinks = function(content){
+		var links = content.getElementsByTagName('link');
+		for (var y = 0; y < links.length; y++) {
+			var href = links[y].getAttribute('href');
+			href = _parseURL(href);
+			links[y].setAttribute('href', href);
+		}
+		return content;
+	};
+
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
+	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseCSSLinks);
 
 	r.Filters = $.extend({HOOKS: HOOKS}, filters);
 

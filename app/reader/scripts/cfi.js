@@ -237,6 +237,10 @@ var Reader = (function (r) {
 					cfi = r.CFI.normalizeChapterPartCFI(cfi, true);
 
 					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfi, r.$iframe.contents()[0], _classBlacklist));
+					// in case the cfi targets an svg child, target the svg element itself
+					if($node.parents('svg').length){
+						$node = $node.parents('svg');
+					}
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.before($(marker));
@@ -258,7 +262,7 @@ var Reader = (function (r) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
-			while ($nextNode && $nextNode.contents().length){
+			while ($nextNode && !$nextNode.is('svg') && $nextNode.contents().length){
 				$nextNode = $nextNode.contents().first();
 			}
 
@@ -267,7 +271,7 @@ var Reader = (function (r) {
 				if ($nextNode[0].nodeType === 3 && $nextNode[0].length > 1) {
 					cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
 					cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
-					r.CFI.addOneWordToCFI(cfi, $nextNode, marker);
+					r.CFI.addOneWordToCFI(cfi, $nextNode, marker, true);
 				} else {
 					$nextNode.before($(marker));
 				}
@@ -276,7 +280,7 @@ var Reader = (function (r) {
 			return false;
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
-		addOneWordToCFI : function (cfi, el, marker) {
+		addOneWordToCFI : function (cfi, el, marker, force) {
 			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
@@ -289,7 +293,7 @@ var Reader = (function (r) {
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
-				if(!r.CFI.addOneNodeToCFI(cfi, el, marker)){
+				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
 					EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, _classBlacklist);
@@ -369,10 +373,16 @@ var Reader = (function (r) {
 			textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
 		}
 
+		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
+		if($(textNode).parents('svg').length){
+			textNode = $(textNode).parents('svg')[0];
+			offset = 0;
+		}
+
 		var findLeafNode = function (el) {
 			var $el = $(el);
 			/* Return a non-empty textNode or null */
-			if (el === null || !el.childNodes || el.childNodes.length === 0) {
+			if (el === null || el.nodeName === 'svg' || !el.childNodes || el.childNodes.length === 0) {
 				return el;
 			}
 			/* Return the element if it only has one child and it is in the blacklist */

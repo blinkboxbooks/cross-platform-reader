@@ -90,7 +90,7 @@ var Reader = (function (r) {
 			applyRules: function(){
 				for(i = 0; i< r.preferences.lineHeight.rules.length; i++){
 					rule = r.preferences.lineHeight.rules[i];
-					rule.rule[rule.property] = r.preferences.lineHeight.value + 'em';
+					rule.rule[rule.property] = r.preferences.lineHeight.value;
 				}
 			}
 		},
@@ -99,11 +99,11 @@ var Reader = (function (r) {
 			min: 0.5,
 			max: 15,
 			unit: 0.1,
-			value: 1.125,
+			value: 1,
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontSize.rules.length; i++){
 					rule = r.preferences.fontSize.rules[i];
-					rule.rule[rule.property] = (r.preferences.fontSize.value * 18) + 'px';
+					rule.rule[rule.property] = r.preferences.fontSize.value * 18 + 'px';
 				}
 			}
 		},

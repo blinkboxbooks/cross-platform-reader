@@ -14,7 +14,10 @@ var Reader = (function (r) {
 	// * `mimetype` The MIME type of the given document
 	// * `options` addtional options containing the url of the file and the page to load
 	r.parse = function (content, mimetype, options) {
-		// Replace images and styles URLs.
+
+		if(typeof content !== 'string'){
+			return null;
+		}
 
 		switch (mimetype) {
 		case 'application/xhtml+xml':
@@ -23,8 +26,15 @@ var Reader = (function (r) {
 		default:
 			break;
 		}
+
+		var head = content.split(/<head[^>]*>/)[1].split('</head>')[0],
+			body = content.split(/<body[^>]*>/)[1].split('</body>')[0];
+
 		// Extract the contents of the body only thus ignoring any styles declared in head
-		return typeof content === 'string' ? $(content.split(/<body[^>]*>/)[1].split('</body>')[0]) : null;
+		return {
+			$head: $(head),
+			$body: $(body)
+		};
 	};
 
 	// Function to divide large chapters with many repeating elements into several parts:
