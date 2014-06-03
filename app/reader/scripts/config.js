@@ -33,7 +33,19 @@ var Reader = (function (r) {
 	var i, rule;
 	r.preferences = {
 		maxChapterElements: {
-			value: 200
+			min: 100,
+			max: 10000,
+			value: 200,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.maxChapterElements.max) {
+					return r.preferences.maxChapterElements.max;
+				}
+				if (value < r.preferences.maxChapterElements.min) {
+					return r.preferences.maxChapterElements.min;
+				}
+				return value;
+			}
 		},
 		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
 		preloadRange: {
