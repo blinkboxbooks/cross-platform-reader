@@ -351,16 +351,16 @@ var Reader = (function (r) {
 			r.Bookmarks.display();
 		},
 		getLastPageAnchorName: function () {
-			return 'LASTPAGE';
+			return 'cpr-lastpage';
 		},
 		isLastPageAnchor: function (anchor) {
-			return /LASTPAGE$/.test(anchor);
+			return /cpr-lastpage/.test(anchor);
 		},
 		getChapterPartAnchorPrefix: function (anchor) {
-			return 'CHAPTER-PART';
+			return 'cpr-part';
 		},
 		isChapterPartAnchor: function (anchor) {
-			return /^CHAPTER-PART/.test(anchor);
+			return /^cpr-part/.test(anchor);
 		},
 		// Returns the link to the next chapter part:
 		getPrevChapterPart: function () {
