@@ -41,7 +41,8 @@ var Reader = (function (r) {
 				part = 0,
 				prefix = r.Navigation.getChapterPartAnchorPrefix() + '-',
 				lastPageSuffix = '-' + r.Navigation.getLastPageAnchorName(),
-				nodeName;
+				nodeName,
+				index;
 		if (parent.length) {
 			// The nodeName of the next/prev link-wrapper, a div unless the parent is a list:
 			nodeName = /^(ul|ol)$/i.test(parent.prop('nodeName')) ? 'li' : 'div';
@@ -49,6 +50,7 @@ var Reader = (function (r) {
 				// Get the current part from the page anchor:
 				part = Number(String(page).replace(prefix, '').replace(lastPageSuffix, '')) || 0;
 			} else if (r.Navigation.isLastPageAnchor(page)) {
+				// Anchor points to the last page in the chapter, so select the last part:
 				part = parts - 1;
 			} else if (r.CFI.isValidCFI(page)) {
 				// Get the element path component of the cfi:
@@ -61,6 +63,12 @@ var Reader = (function (r) {
 						part = newPart;
 					}
 				});
+			} else if ($.type(page) === 'string') {
+				// Handle page anchors:
+				index = $(doc).find('#' + page).closest(children).index();
+				if (index >= maxElements) {
+					part = Math.floor(index / maxElements);
+				}
 			}
 			// Remove all elements up to the current part:
 			children.slice(0, maxElements * part).remove();
