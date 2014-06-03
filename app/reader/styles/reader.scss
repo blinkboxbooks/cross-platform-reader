@@ -109,13 +109,7 @@ body {
       }
     }
     .cpr-subchapter-link {
-      a:after {
-        content: '\u2026'
-      }
-    }
-    #cpr-subchapter-prev,
-    #cpr-subchapter-next{
-      margin: 0 0 1em;
+      display: none;
     }
   }
 }
