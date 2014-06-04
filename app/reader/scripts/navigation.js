@@ -409,9 +409,10 @@ var Reader = (function (r) {
 		// nearestSelector is the selector for the element identifying the current position,
 		// e.g. a CFI marker as data attribute selector or an element id to identify an anchor in the current document:
 		var nearestElement = nearestSelector && $(nearestSelector, r.$reader)[0],
+				imgSelector = 'img.cpr-placeholder',
 				// Both jQuery and the DOM selector API will return matching elements in DOM order.
 				// Using this information, we combine the img selector with the nearestSelector:
-				selector = nearestElement ? 'img.cpr-placeholder,' + nearestSelector : 'img.cpr-placeholder',
+				selector = nearestElement ? imgSelector + ',' + nearestSelector : imgSelector,
 				// As a result, we will get a collection of elements with the CFI marker or anchor in the middle:
 				images = $(selector, r.$reader),
 				sortedImages,
@@ -430,8 +431,11 @@ var Reader = (function (r) {
 		// Retrieve the index of the position element in the collection:
 		nearestIndex = images.index(nearestElement);
 		sortedImages = [];
-		// Build a new collection without the position element,
-		// starting with the images closest to the position element index:
+		// Add the position element itself if it's matching the img selector:
+		if ($(nearestElement).is(imgSelector)) {
+			sortedImages.push(nearestElement);
+		}
+		// Add to the new collection starting with the images closest to the position element index:
 		for (i = 1; sortedImages.length < images.length - 1; i++) {
 			// Add the previous image before the position element:
 			el = images[nearestIndex - i];
