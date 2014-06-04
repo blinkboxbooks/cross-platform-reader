@@ -199,6 +199,7 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, isBookmark) { // Add an element to a CFI point
+			console.info('isBookmark', isBookmark);
 			if($((isBookmark ? '[data-bookmark]' : '')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
 				try {
 					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
@@ -209,10 +210,11 @@ var Reader = (function (r) {
 					}
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
-							$node.attr('data-bookmark', '').attr('data-cfi', cfi);
+							$node.attr('data-cfi', cfi);
+							isBookmark && $node.attr('data-bookmark', '');
 						}
 						if ($node[0].nodeType === 3) { // inject into the text node
-							r.CFI.addOneWordToCFI(cfi, $node, marker);
+							r.CFI.addOneWordToCFI(cfi, $node, marker, isBookmark);
 						}
 					}
 					return $node;
@@ -224,7 +226,7 @@ var Reader = (function (r) {
 			}
 		},
 		// <a name="addOneNodeToCFI"></a> Helper function that moves the CFI to the next node. This is required to avoid a bug in some browsers that displays the current CFI on the previous page.
-		addOneNodeToCFI : function (cfi, el, marker) {
+		addOneNodeToCFI : function (cfi, el, marker, isBookmark) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
@@ -238,20 +240,21 @@ var Reader = (function (r) {
 						cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
 						cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
 						// the cfi library builds a complete cfi so we must remove the context before proceeding
-						r.CFI.addOneWordToCFI(r.CFI.removeContext(cfi), $nextNode, marker, true);
+						r.CFI.addOneWordToCFI(r.CFI.removeContext(cfi), $nextNode, marker, isBookmark, true);
 					} else {
 						// the text node is not large enought to have a marker injected, need to prepend it
 						$nextNode.before(marker);
 					}
 				} else {
-					$nextNode.attr('data-bookmark', '').attr('data-cfi', cfi);
+					$nextNode.attr('data-cfi', cfi);
+					isBookmark && $nextNode.attr('data-bookmark', '');
 				}
 				return true;
 			}
 			return false;
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
-		addOneWordToCFI : function (cfi, el, marker, force) {
+		addOneWordToCFI : function (cfi, el, marker, isBookmark, force) {
 			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
@@ -264,7 +267,7 @@ var Reader = (function (r) {
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
-				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker)){
+				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
 					EPUBcfi.Interpreter.injectElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], marker, _classBlacklist);
