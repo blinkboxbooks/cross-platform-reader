@@ -235,7 +235,7 @@ var Reader = (function (r) {
 				return Page.next();
 			}
 			var defer = $.Deferred(),
-					chapterPartUrl = r.Navigation.getNextChapterPart(),
+					chapterPartUrl = r.Navigation.getNextChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter < bookChapters - 1) {
 				defer.notify();
@@ -260,7 +260,7 @@ var Reader = (function (r) {
 				return Page.prev();
 			}
 			var defer = $.Deferred(),
-					chapterPartUrl = r.Navigation.getPrevChapterPart(),
+					chapterPartUrl = r.Navigation.getPrevChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter > 0) {
 				defer.notify();
@@ -362,17 +362,45 @@ var Reader = (function (r) {
 		isChapterPartAnchor: function (anchor) {
 			return /^cpr-part/.test(anchor);
 		},
-		// Returns the link to the next chapter part:
-		getPrevChapterPart: function () {
-			return r.$reader.find('#cpr-subchapter-prev a').attr('href');
-		},
-		// Returns the link to the previous chapter part:
-		getNextChapterPart: function () {
-			return r.$reader.find('#cpr-subchapter-next a').attr('href');
-		},
 		// Returns the number of removed elements from previous chapter parts:
 		getPrevChapterPartMarker: function () {
 			return r.$reader.find('#cpr-subchapter-prev');
+		},
+		// Returns the number of removed elements from previous chapter parts:
+		getNextChapterPartMarker: function () {
+			return r.$reader.find('#cpr-subchapter-next');
+		},
+		// Returns the link to the next chapter part:
+		getPrevChapterPartUrl: function () {
+			return r.Navigation.getPrevChapterPartMarker().find('a').attr('href');
+		},
+		// Returns the link to the previous chapter part:
+		getNextChapterPartUrl: function () {
+			return r.Navigation.getNextChapterPartMarker().find('a').attr('href');
+		},
+		getCurrentChapterPart: function () {
+			var marker = r.Navigation.getPrevChapterPartMarker();
+			return marker.length && Number(marker.attr('data-chapter-part'));
+		},
+		hasChapterParts: function () {
+			return !!(r.Navigation.getPrevChapterPartMarker().length || r.Navigation.getNextChapterPartMarker().length);
+		},
+		getChapterPartFromCFI: function (cfi) {
+			var maxElements = r.preferences.maxChapterElements.value,
+					part = 0;
+			// Get the element path component of the cfi:
+			// e.g. for epubcfi(/6/8!/4[body01]/2/402/2/1:0) get 4[body01]/2/402/2/1:0
+			$.each((cfi.split('!')[1] || '').slice(1, -1).split('/'), function (key, value) {
+				// Check if the CFI is found on a later chapter part by dividing the highest
+				// branch count through the maxelements * 2 (CFI elements always have an even index):
+				var newPart = Math.floor((parseInt(value, 10) - 1) / (maxElements * 2));
+				if (newPart > 0) {
+					part = newPart;
+					// Break out of the $.each loop:
+					return false;
+				}
+			});
+			return part;
 		}
 	};
 

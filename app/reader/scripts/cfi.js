@@ -112,7 +112,7 @@ var Reader = (function (r) {
 						completeCFIParts = completeCFI.split('/');
 				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
 				if (markerCFIParts.slice(0, -1).join('/') === completeCFIParts.slice(0, markerCFIParts.length - 1).join('/')) {
-					var removedElements = prevChapterPartMarker.attr('data-removed-elements'),
+					var removedElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value,
 							// The incorrect path value, as it doesn't account for the removed elements:
 							elPathValue = parseInt(completeCFIParts[markerCFIParts.length - 1], 10),
 							// Get the optional path suffix like any ids:
@@ -324,7 +324,7 @@ var Reader = (function (r) {
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
-				if(r.Navigation.getChapter() === chapter){
+				if (r.Navigation.getChapter() === chapter && (!r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi))) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
 						r.CFI.setCFI(cfi);
 					}

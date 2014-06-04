@@ -72,16 +72,7 @@ var Reader = (function (r) {
 				// Anchor points to the last page in the chapter, so select the last part:
 				part = parts - 1;
 			} else if (r.CFI.isValidCFI(page)) {
-				// Get the element path component of the cfi:
-				// e.g. for epubcfi(/6/8!/4[body01]/2/402/2/1:0) get 4[body01]/2/402/2/1:0
-				$.map((page.split('!')[1] || '').slice(1, -1).split('/'), function (value) {
-					// Check if the CFI is found on a later chapter part by dividing the highest
-					// branch count through the maxelements * 2 (CFI elements always have an even index):
-					var newPart = Math.floor((parseInt(value, 10) - 1) / (maxElements * 2));
-					if (newPart > 0) {
-						part = newPart;
-					}
-				});
+				part = r.Navigation.getChapterPartFromCFI(page);
 			} else if ($.type(page) === 'string') {
 				// Handle page anchors:
 				index = $(doc).find('#' + page).closest(children).index();
@@ -99,7 +90,7 @@ var Reader = (function (r) {
 					.prop('id', 'cpr-subchapter-prev')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
-					.attr('data-removed-elements', maxElements * part)
+					.attr('data-chapter-part', part)
 					.prependTo(parent);
 			}
 			if (part < parts - 1) {
