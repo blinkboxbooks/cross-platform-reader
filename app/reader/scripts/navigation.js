@@ -76,9 +76,9 @@ var Reader = (function (r) {
 		r.$reader.css({
 			'transition-duration': '0s',
 			transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
-		}).trigger('transitionend');
+		}).trigger(r.support.transitionend);
 		if (duration) {
-			r.$reader.one('transitionend', defer.resolve);
+			r.$reader.one(r.support.transitionend, defer.resolve);
 		} else {
 			defer.resolve();
 		}

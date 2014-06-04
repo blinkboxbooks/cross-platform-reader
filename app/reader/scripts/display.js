@@ -65,6 +65,10 @@ var Reader = (function (r) {
 		// Set initial transition timing function:
 		r.$reader.css('transition-timing-function', r.preferences.transitionTimingFunction.value);
 
+		r.support = {
+			transitionend: _getTransitionEndProperty()
+		};
+
 		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
@@ -73,6 +77,22 @@ var Reader = (function (r) {
 		// Start the party.
 		return loadInfo();
 	};
+
+	function _getTransitionEndProperty() {
+		var element= document.createElement('div');
+		if (element.style.webkitTransition !== undefined) {
+			return 'webkitTransitionEnd';
+		}
+		if (element.style.MozTransition !== undefined) {
+			return 'transitionend';
+		}
+		if (element.style.OTransition !== undefined) {
+			return 'otransitionend';
+		}
+		if (element.style.transition !== undefined) {
+			return 'transitionend';
+		}
+	}
 
 	var _parseCSS = function(style){
 		var doc = document.implementation.createHTMLDocument(''),
