@@ -342,7 +342,7 @@ var Reader = (function (r) {
 
 			// Add all bookmarks for this chapter.
 			var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
-			if(typeof(bookmarks) !== 'undefined'){
+			if(bookmarks){
 				$.each(bookmarks, function(index, bookmark){
 					r.Navigation.setCFI(bookmark, true);
 				});
