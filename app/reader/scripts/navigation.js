@@ -280,11 +280,11 @@ var Reader = (function (r) {
 			}
 			return defer.promise();
 		},
-		setCFI: function(cfi){
+		setCFI: function(cfi, isBookmark){
 			if (!cfi) {
 				cfi = r.CFI.getCFIObject();
 			}
-			r.CFI.setCFI(cfi);
+			r.CFI.setCFI(cfi, isBookmark);
 		},
 		reset: function(){
 			bookChapters = 0;
