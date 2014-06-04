@@ -102,7 +102,7 @@ var Reader = (function (r) {
 							// todo do not alter the DOM in the first place
 							$parent[0].normalize();
 						} else {
-							$marker.removeAttr('data-bookmark').removeAttr('data-cfi');
+							$marker.removeAttr('data-bookmark');
 						}
 					}
 

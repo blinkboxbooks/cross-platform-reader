@@ -199,7 +199,6 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, isBookmark) { // Add an element to a CFI point
-			console.info('isBookmark', isBookmark);
 			if($((isBookmark ? '[data-bookmark]' : '')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
 				try {
 					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
@@ -211,7 +210,9 @@ var Reader = (function (r) {
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.attr('data-cfi', cfi);
-							isBookmark && $node.attr('data-bookmark', '');
+							if(isBookmark){
+								$node.attr('data-bookmark', '');
+							}
 						}
 						if ($node[0].nodeType === 3) { // inject into the text node
 							r.CFI.addOneWordToCFI(cfi, $node, marker, isBookmark);
@@ -247,7 +248,9 @@ var Reader = (function (r) {
 					}
 				} else {
 					$nextNode.attr('data-cfi', cfi);
-					isBookmark && $nextNode.attr('data-bookmark', '');
+					if(isBookmark){
+						$nextNode.attr('data-bookmark', '');
+					}
 				}
 				return true;
 			}
