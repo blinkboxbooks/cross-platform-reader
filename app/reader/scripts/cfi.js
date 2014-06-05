@@ -379,8 +379,15 @@ var Reader = (function (r) {
 		if (!r.$reader.has(textNode).length) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			/* TextNode is the first node that contains text, otherwise get the first child node. */
-			textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
+			var $firstElementInViewport = r.$reader.find(':not(:has(*))').filter(function(){
+				return $(this).offset().left >= 0;
+			}).first();
+
+			if($firstElementInViewport.length){
+				textNode = $firstElementInViewport[0];
+			} else {
+				textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
+			}
 		}
 
 		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
