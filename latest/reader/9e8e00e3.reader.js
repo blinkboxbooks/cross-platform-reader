@@ -3326,7 +3326,7 @@ var Reader = (function (r) {
 var Reader = (function (r) {
 	// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 	// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-	var _classBlacklist = ['cpr-marker'];
+	var _classBlacklist = ['cpr-marker', 'cpr-subchapter-link'];
 
 	// The **CFI** object exposes methods to handle CFIs. it is **not** intended to be exposed to the client directly.
 	//
@@ -3343,6 +3343,7 @@ var Reader = (function (r) {
 	// * [`updateContext`](#updateContext)
 	// * [`addContext`](#addContext)
 	// * [`removeContext`](#removeContext)
+	// * [`normalizeChapterPartCFI`](#normalizeChapterPartCFI)
 	// * [`addOneNodeToCFI`](#addOneNodeToCFI)
 	// * [`getChapterFromCFI`](#getChapterFromCFI)
 	//
@@ -3418,6 +3419,31 @@ var Reader = (function (r) {
 			return completeCFI;
 		},
 
+		// <a name="normalizeChapterPartCFI"></a> This function normalizes CFI parts to account for chapters which have been split up into multiple parts.
+		normalizeChapterPartCFI: function (completeCFI, remove) {
+			// Check if the chapter has been split up into multiple parts:
+			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
+			if (prevChapterPartMarker.length) {
+				// Get the CFI path for the first non-removed element:
+				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], _classBlacklist),
+						chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, chapterMarkerCFI),
+						markerCFIParts = chapterMarkerCompleteCFI.split('/'),
+						completeCFIParts = completeCFI.split('/');
+				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
+				if (markerCFIParts.slice(0, -1).join('/') === completeCFIParts.slice(0, markerCFIParts.length - 1).join('/')) {
+					var removedElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value,
+							// The incorrect path value, as it doesn't account for the removed elements:
+							elPathValue = parseInt(completeCFIParts[markerCFIParts.length - 1], 10),
+							// Get the optional path suffix like any ids:
+							pathSuffix = completeCFIParts[markerCFIParts.length - 1].slice(String(elPathValue).length);
+					// Update the path value with the number of removed elements * 2 (CFI elements always have an even index):
+					completeCFIParts[markerCFIParts.length - 1] = (elPathValue + (removedElements * 2 * (remove ? -1 : 1))) + pathSuffix;
+					return completeCFIParts.join('/');
+				}
+			}
+			return completeCFI;
+		},
+
 		// <a name="getCFIObject"></a> Return the current position's CFI and a preview of the current text.
 		getCFIObject: function() {
 			// The reader context would not normally be updated anymore, but this is a workaround to the web-app, when they move the reader in the DOM and the context changes. Until that is fixed, we must update the context all the time.
@@ -3452,6 +3478,9 @@ var Reader = (function (r) {
 						}
 						completeCFI = completeCFI.replace(/:\d+/, ':' + offset);
 					}
+
+					// Account for chapters that have been split up into multiple parts:
+					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI);
 
 					var result = {
 						CFI: r.CFI.removeContext(completeCFI),
@@ -3521,7 +3550,11 @@ var Reader = (function (r) {
 			if($((isBookmark ? '[data-bookmark]' : '')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
 				try {
 					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], _classBlacklist));
+					var cfiInContext = r.CFI.addContext(cfi);
+					// Account for chapters that have been split up into multiple parts:
+					cfiInContext = r.CFI.normalizeChapterPartCFI(cfiInContext, true);
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfiInContext, r.$iframe.contents()[0], _classBlacklist));
+
 					// in case the cfi targets an svg child, target the svg element itself
 					if($node.parents('svg').length){
 						$node = $node.parents('svg');
@@ -3610,7 +3643,7 @@ var Reader = (function (r) {
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
-				if(r.Navigation.getChapter() === chapter){
+				if (r.Navigation.getChapter() === chapter && (!r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi))) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
 						r.CFI.setCFI(cfi);
 					}
@@ -3828,6 +3861,21 @@ var Reader = (function (r) {
 	// User-set preferences that are related to the display options.
 	var i, rule;
 	r.preferences = {
+		maxChapterElements: {
+			min: 100,
+			max: 10000,
+			value: 200,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.maxChapterElements.max) {
+					return r.preferences.maxChapterElements.max;
+				}
+				if (value < r.preferences.maxChapterElements.min) {
+					return r.preferences.maxChapterElements.min;
+				}
+				return value;
+			}
+		},
 		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
 		preloadRange: {
 			min: 1,
@@ -4204,7 +4252,7 @@ var Reader = (function (r) {
 	};
 
 	var _addStyles= function(){
-		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px}#cpr-header{color:#fff;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px}.cpr-placeholder{visibility:hidden;width:1px;height:1px}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:Arial;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin-bottom:1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:.5rem auto}img.cpr-img-large:first-child,svg .cpr-img-large:first-child,svg.cpr-img-large:first-child{margin-top:0}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{float:left;margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}';
+		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px}#cpr-header{color:#fff;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px}.cpr-placeholder{visibility:hidden;width:1px;height:1px}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:Arial;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin-bottom:1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:.5rem auto}img.cpr-img-large:first-child,svg .cpr-img-large:first-child,svg.cpr-img-large:first-child{margin-top:0}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{float:left;margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}';
 
 		var $style = $('<style>' + styles + '</style>').appendTo(r.$head);
 
@@ -4242,7 +4290,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.52-138'
+				appversion: '0.1.53-139'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4262,8 +4310,12 @@ var Reader = (function (r) {
 		// Link is in the actual chapter.
 		var chapter = r.Navigation.getChapter();
 		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			r.Navigation.loadPage(a);
-			return true;
+			// If the anchor points to another chapter part, reload the chapter,
+			// else simply go to the page with the given anchor:
+			if (!r.Navigation.isChapterPartAnchor(a)) {
+				r.Navigation.loadPage(a);
+				return true;
+			}
 		}
 		// Check the table of contents...
 		for (var i=0; i<r.Book.toc.length; i++) {
@@ -4272,7 +4324,7 @@ var Reader = (function (r) {
 
 		var _load = function(j,a){
 			r.Notify.event(r.Event.LOADING_STARTED);
-			r.loadAnchor.apply(r, [j,a]).always(function clickLoadComplete(){
+			r.loadChapter(j,a).always(function clickLoadComplete(){
 				r.Notify.event(r.Event.LOADING_COMPLETE);
 			}).then(
 				function clickLoadSuccess(){
@@ -4347,7 +4399,7 @@ var Reader = (function (r) {
 	// * `param` Contains the parameters: content, page and mimetype
 	// * `callback` Function to be called after the function's logic
 	var displayContent = function(param) {
-		if (!param) { param = []; }
+		if (!param) { param = {}; }
 		// Take the params values
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
 		var mimetype = (param.hasOwnProperty('mimetype')) ? param.mimetype : 'application/xhtml+xml';
@@ -4355,8 +4407,7 @@ var Reader = (function (r) {
 		r.$header.text(r.Book.title); // TODO Do not polute the reader object.
 
 		// Parse the content according its mime-type and apply all filters attached to display content
-
-		var result = r.parse(content, mimetype);
+		var result = r.parse(content, mimetype, param);
 
 		return _addPublisherStyles(result.$head).then(function(){
 
@@ -4489,24 +4540,26 @@ var Reader = (function (r) {
 		return defer.promise();
 	};
 
-	// Load a chapter and go to the page pointed by the anchor value.
-	r.loadAnchor = function(c,a){
-		return r.loadChapter(c).then(function onLoadChapterSuccess(){
-			return r.Navigation.loadPage(a);
-		});
-	};
-
 	// Load a chapter with the index from the spine of this chapter
 	r.loadChapter = function(chapterNumber, page) {
-		var defer = $.Deferred();
+		var defer = $.Deferred(),
+				chapterUrl;
+
+		// Check if the PATH is in the href value from the spine...
+		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
+			chapterUrl = r.Book.spine[chapterNumber].href;
+		} else {
+			// If it is not, add it and load the chapter
+			chapterUrl = r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href;
+		}
 
 		r.CFI.setUp(chapterNumber);
 		r.Navigation.setChapter(chapterNumber);
 		r.$reader.css('opacity', 0);
 
 		// success handler for load chapter
-		var loadChapterSuccess = function(data){
-			displayContent({content: data}).then(function(){
+		function loadChapterSuccess(data){
+			displayContent({content: data, page: page, url: chapterUrl}).then(function(){
 
 				r.Navigation.setNumberOfPages();
 
@@ -4518,15 +4571,9 @@ var Reader = (function (r) {
 					r.Navigation.loadPage(page).then(defer.resolve);
 				}
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
-		};
-
-		// Check if the PATH is in the href value from the spine...
-		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
-			loadFile(r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
-		} else {
-			// If it is not, add it and load the chapter
-			loadFile(r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href).then(loadChapterSuccess, defer.reject);
 		}
+
+		loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {
 			r.$reader.css('opacity', 1);
@@ -4613,7 +4660,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.52-138'
+			'version': '0.1.53-139'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4993,6 +5040,10 @@ var Reader = (function (r) {
 
 // The **Formatting** options available to the user.
 //
+// * [`setMaxChapterElements`](#setMaxChapterElements)
+// * [`setPreloadRange`](#setPreloadRange)
+// * [`setTransitionDuration`](#setTransitionDuration)
+// * [`setTransitionTimingFunction`](#setTransitionTimingFunction)
 // * [`setLineHeight`](#setLineHeight)
 // * [`increaseLineHeight`](#increaseLineHeight)
 // * [`decreaseLineHeight`](#decreaseLineHeight)
@@ -5005,6 +5056,11 @@ var Reader = (function (r) {
 // * [`setTheme`](#setTheme)
 
 var Reader = (function (r) {
+	// <a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).
+	r.setMaxChapterElements = function(value){
+		return r.setPreferences({maxChapterElements: value});
+	};
+
 	// <a name="setPreloadRange"></a> Set preload range (within bounds).
 	r.setPreloadRange = function(value){
 		return r.setPreferences({preloadRange: value});
@@ -5098,6 +5154,13 @@ var Reader = (function (r) {
 	r.setPreferences = function(args){
 		if(typeof args === 'object'){
 			var value, updated = false;
+
+			// Set max chapter elements (within bounds).
+			// Updating max chapter elements does not need any styles update nor a layout refresh,
+			// as it will only take effect on the next chapter load.
+			if(args.hasOwnProperty('maxChapterElements')){
+				r.preferences.maxChapterElements.value = r.preferences.maxChapterElements.clear(args.maxChapterElements);
+			}
 
 			// Set preload range (within bounds).
 			// Updating preload range does not need any styles update nor a layout refresh.
@@ -5542,7 +5605,7 @@ var Reader = (function (r) {
 				// URL is in the Spine and it has a chapter number.
 				if (r.Book.spine[j].href.indexOf(u) !== -1) {
 					r.Navigation.setChapter(j);
-					return r.loadAnchor(j,a);
+					return r.loadChapter(j,a);
 				}
 			}
 
@@ -5555,14 +5618,21 @@ var Reader = (function (r) {
 			if (page < pagesByChapter) {
 				return Page.next();
 			}
-			var defer = $.Deferred();
-			if (chapter < bookChapters - 1) {
+			var defer = $.Deferred(),
+					chapterPartUrl = r.Navigation.getNextChapterPartUrl(),
+					loadPromise;
+			if (chapterPartUrl || chapter < bookChapters - 1) {
 				defer.notify();
 				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+					if (chapterPartUrl) {
+						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
+					} else {
+						loadPromise = Chapter.load(Chapter.next());
+					}
+					loadPromise.then(defer.resolve, defer.reject);
 				});
 			} else {
 				defer.reject(r.Event.END_OF_BOOK);
@@ -5573,14 +5643,21 @@ var Reader = (function (r) {
 			if (page > 0) {
 				return Page.prev();
 			}
-			var defer = $.Deferred();
-			if (chapter > 0) {
+			var defer = $.Deferred(),
+					chapterPartUrl = r.Navigation.getPrevChapterPartUrl(),
+					loadPromise;
+			if (chapterPartUrl || chapter > 0) {
 				defer.notify();
 				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+					if (chapterPartUrl) {
+						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
+					} else {
+						loadPromise = Chapter.load(Chapter.prev(), r.Navigation.getLastPageAnchorName());
+					}
+					loadPromise.then(defer.resolve, defer.reject);
 				});
 			} else {
 				defer.reject(r.Event.START_OF_BOOK);
@@ -5656,6 +5733,58 @@ var Reader = (function (r) {
 			r.Navigation.updateCurrentCFI();
 			r.Navigation.updateProgress();
 			r.Bookmarks.display();
+		},
+		getLastPageAnchorName: function () {
+			return 'cpr-lastpage';
+		},
+		isLastPageAnchor: function (anchor) {
+			return /cpr-lastpage/.test(anchor);
+		},
+		getChapterPartAnchorPrefix: function () {
+			return 'cpr-part';
+		},
+		isChapterPartAnchor: function (anchor) {
+			return /^cpr-part/.test(anchor);
+		},
+		// Returns the number of removed elements from previous chapter parts:
+		getPrevChapterPartMarker: function () {
+			return r.$reader.find('#cpr-subchapter-prev');
+		},
+		// Returns the number of removed elements from previous chapter parts:
+		getNextChapterPartMarker: function () {
+			return r.$reader.find('#cpr-subchapter-next');
+		},
+		// Returns the link to the next chapter part:
+		getPrevChapterPartUrl: function () {
+			return r.Navigation.getPrevChapterPartMarker().find('a').attr('href');
+		},
+		// Returns the link to the previous chapter part:
+		getNextChapterPartUrl: function () {
+			return r.Navigation.getNextChapterPartMarker().find('a').attr('href');
+		},
+		getCurrentChapterPart: function () {
+			var marker = r.Navigation.getPrevChapterPartMarker();
+			return marker.length && Number(marker.attr('data-chapter-part'));
+		},
+		hasChapterParts: function () {
+			return !!(r.Navigation.getPrevChapterPartMarker().length || r.Navigation.getNextChapterPartMarker().length);
+		},
+		getChapterPartFromCFI: function (cfi) {
+			var maxElements = r.preferences.maxChapterElements.value,
+					part = 0;
+			// Get the element path component of the cfi:
+			// e.g. for epubcfi(/6/8!/4[body01]/2/402/2/1:0) get 4[body01]/2/402/2/1:0
+			$.each((cfi.split('!')[1] || '').slice(1, -1).split('/'), function (key, value) {
+				// Check if the CFI is found on a later chapter part by dividing the highest
+				// branch count through the maxelements * 2 (CFI elements always have an even index):
+				var newPart = Math.floor((parseInt(value, 10) - 1) / (maxElements * 2));
+				if (newPart > 0) {
+					part = newPart;
+					// Break out of the $.each loop:
+					return false;
+				}
+			});
+			return part;
 		}
 	};
 
@@ -5802,11 +5931,11 @@ var Reader = (function (r) {
 		getByChapter: function() {
 			return pagesByChapter;
 		},
-		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
+		// Moves to the page given as index, epubcfi, anchor or special last page anchor:
 		moveTo: function (p, duration) {
 			if ($.type(p) === 'string') {
-				if (p === 'LASTPAGE') {
-					// page is given as "LASTPAGE", jump to the last page of the chapter:
+				if (r.Navigation.isLastPageAnchor(p)) {
+					// jump to the last page of the chapter:
 					page = pagesByChapter;
 				} else {
 					if (r.CFI.isValidCFI(p)) {
@@ -5862,7 +5991,7 @@ var Reader = (function (r) {
 			});
 		},
 		load: function(p, fixed) {
-			var isLastPage = p === 'LASTPAGE',
+			var isLastPage = r.Navigation.isLastPageAnchor(p),
 					selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
 			Page.moveTo(p);
 			var promise = loadImages(isLastPage, selector)
@@ -5930,7 +6059,8 @@ var Reader = (function (r) {
 	//
 	// * `content` The content of the document
 	// * `mimetype` The MIME type of the given document
-	r.parse = function (content, mimetype) {
+	// * `options` addtional options containing the url of the file and the page to load
+	r.parse = function (content, mimetype, options) {
 
 		if(typeof content !== 'string'){
 			return null;
@@ -5938,7 +6068,7 @@ var Reader = (function (r) {
 
 		switch (mimetype) {
 		case 'application/xhtml+xml':
-			content = parseXHTML(content);
+			content = parseXHTML(content, options);
 			break;
 		default:
 			break;
@@ -5954,10 +6084,78 @@ var Reader = (function (r) {
 		};
 	};
 
+	// Function to divide large chapters with many repeating elements into several parts:
+	function chapterDivide(doc, options) {
+		options = options || {};
+		var page = options.page,
+				// Only use the basename without anchor for the url:
+				url = options.url.split('/').slice(-1)[0].split('#')[0],
+				maxElements = r.preferences.maxChapterElements.value,
+				// Find the parent element of the repeating elements which exceed the max chapter elements:
+				parent = $(doc).find(':nth-child(0n+' + (maxElements + 1) + ')').first().parent(),
+				children,
+				parts,
+				part,
+				prefix,
+				lastPageSuffix,
+				nodeName,
+				index;
+		if (parent.length) {
+			children = parent.children();
+			// The number of parts to split this chapter into:
+			parts = Math.ceil(children.length / maxElements);
+			// By default, start with the first part (zero-indexed):
+			part = 0;
+			// The prefix to identify anchors to chapter parts:
+			prefix = r.Navigation.getChapterPartAnchorPrefix() + '-';
+			// The suffix to identify last page positions:
+			lastPageSuffix = '-' + r.Navigation.getLastPageAnchorName();
+			// The nodeName of the next/prev link-wrapper, a div unless the parent is a list:
+			nodeName = /^(ul|ol)$/i.test(parent.prop('nodeName')) ? 'li' : 'div';
+			if (r.Navigation.isChapterPartAnchor(page)) {
+				// Get the current part from the page anchor:
+				part = Number(String(page).replace(prefix, '').replace(lastPageSuffix, '')) || 0;
+			} else if (r.Navigation.isLastPageAnchor(page)) {
+				// Anchor points to the last page in the chapter, so select the last part:
+				part = parts - 1;
+			} else if (r.CFI.isValidCFI(page)) {
+				part = r.Navigation.getChapterPartFromCFI(page);
+			} else if ($.type(page) === 'string') {
+				// Handle page anchors:
+				index = $(doc).find('#' + page).closest(children).index();
+				if (index >= maxElements) {
+					part = Math.floor(index / maxElements);
+				}
+			}
+			// Remove all elements up to the current part:
+			children.slice(0, maxElements * part).remove();
+			// Remove all elements after current part:
+			children.slice(maxElements * (part + 1)).remove();
+			if (part) {
+				// Add a link to the previous part:
+				$(document.createElement(nodeName))
+					.prop('id', 'cpr-subchapter-prev')
+					.addClass('cpr-subchapter-link')
+					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
+					.attr('data-chapter-part', part)
+					.prependTo(parent);
+			}
+			if (part < parts - 1) {
+				// Add a link to the next part:
+				$(document.createElement(nodeName))
+					.prop('id', 'cpr-subchapter-next')
+					.addClass('cpr-subchapter-link')
+					.append($('<a></a>').prop('href', url + '#' + prefix + (part + 1)))
+					.appendTo(parent);
+			}
+		}
+	}
+
 	// Parses the content in application/xhtml+xml. Returns the parsed content.
 	//
 	// * `content` The content of the document
-	var parseXHTML = function (content) {
+	// * `options` addtional options containing the url of the file and the page to load
+	var parseXHTML = function (content, options) {
 		var parser = new DOMParser();
 		if (content.indexOf('<!-- livereload snippet -->') !== -1) {
 			// Delete livereload script tags (added by grunt to html files)
@@ -5976,6 +6174,11 @@ var Reader = (function (r) {
 		var prefixes = [];
 		// Get all elements in any namespace.
 		var elements = object.getElementsByTagNameNS('*', '*');
+
+		if (elements.length > r.preferences.maxChapterElements.value) {
+			// divide large chapters into subchapters:
+			chapterDivide(object, options);
+		}
 
 		var html = '<!DOCTYPE html>\n<html>' + object.documentElement.innerHTML + '</html>';
 		// Remove the prefix in those that have.
