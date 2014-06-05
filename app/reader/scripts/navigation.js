@@ -524,10 +524,7 @@ var Reader = (function (r) {
 				r.preferences.transitionDuration.value
 			).then(function () {
 				r.Navigation.updateCurrentCFI();
-				r.$reader.css({
-					'transition-duration': '0s',
-					opacity: 0
-				});
+				r.setReaderOpacity(0);
 				return loadImages(true)
 					.progress(function () {
 						pagesByChapter = _getColumnsNumber();
@@ -536,7 +533,7 @@ var Reader = (function (r) {
 					.then(function () {
 						r.Navigation.updateProgress();
 						r.Bookmarks.display();
-						r.$reader.css('opacity', 1);
+						r.setReaderOpacity(1);
 					});
 			});
 		},

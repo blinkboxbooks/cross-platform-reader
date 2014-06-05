@@ -497,7 +497,7 @@ var Reader = (function (r) {
 
 		r.CFI.setUp(chapterNumber);
 		r.Navigation.setChapter(chapterNumber);
-		r.$reader.css('opacity', 0);
+		r.setReaderOpacity(0);
 
 		// success handler for load chapter
 		var loadChapterSuccess = function(data){
@@ -524,7 +524,10 @@ var Reader = (function (r) {
 		}
 
 		return defer.promise().then(function () {
-			r.$reader.css('opacity', 1);
+			// setReaderOpacity returns a promise, but we don't rely on the fade in
+			// and the transitionend event does not seem to be fired on the Huddle,
+			// so we don't return this promise:
+			r.setReaderOpacity(1, r.preferences.transitionDuration.value);
 		});
 	};
 
