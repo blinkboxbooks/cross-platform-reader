@@ -5,6 +5,10 @@
 
 // The **Formatting** options available to the user.
 //
+// * [`setMaxChapterElements`](#setMaxChapterElements)
+// * [`setPreloadRange`](#setPreloadRange)
+// * [`setTransitionDuration`](#setTransitionDuration)
+// * [`setTransitionTimingFunction`](#setTransitionTimingFunction)
 // * [`setLineHeight`](#setLineHeight)
 // * [`increaseLineHeight`](#increaseLineHeight)
 // * [`decreaseLineHeight`](#decreaseLineHeight)
@@ -17,6 +21,11 @@
 // * [`setTheme`](#setTheme)
 
 var Reader = (function (r) {
+	// <a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).
+	r.setMaxChapterElements = function(value){
+		return r.setPreferences({maxChapterElements: value});
+	};
+
 	// <a name="setPreloadRange"></a> Set preload range (within bounds).
 	r.setPreloadRange = function(value){
 		return r.setPreferences({preloadRange: value});
@@ -110,6 +119,13 @@ var Reader = (function (r) {
 	r.setPreferences = function(args){
 		if(typeof args === 'object'){
 			var value, updated = false;
+
+			// Set max chapter elements (within bounds).
+			// Updating max chapter elements does not need any styles update nor a layout refresh,
+			// as it will only take effect on the next chapter load.
+			if(args.hasOwnProperty('maxChapterElements')){
+				r.preferences.maxChapterElements.value = r.preferences.maxChapterElements.clear(args.maxChapterElements);
+			}
 
 			// Set preload range (within bounds).
 			// Updating preload range does not need any styles update nor a layout refresh.

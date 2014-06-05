@@ -221,7 +221,7 @@ var Reader = (function (r) {
 				// URL is in the Spine and it has a chapter number.
 				if (r.Book.spine[j].href.indexOf(u) !== -1) {
 					r.Navigation.setChapter(j);
-					return r.loadAnchor(j,a);
+					return r.loadChapter(j,a);
 				}
 			}
 
@@ -234,14 +234,21 @@ var Reader = (function (r) {
 			if (page < pagesByChapter) {
 				return Page.next();
 			}
-			var defer = $.Deferred();
-			if (chapter < bookChapters - 1) {
+			var defer = $.Deferred(),
+					chapterPartUrl = r.Navigation.getNextChapterPartUrl(),
+					loadPromise;
+			if (chapterPartUrl || chapter < bookChapters - 1) {
 				defer.notify();
 				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					Chapter.load(Chapter.next()).then(defer.resolve, defer.reject);
+					if (chapterPartUrl) {
+						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
+					} else {
+						loadPromise = Chapter.load(Chapter.next());
+					}
+					loadPromise.then(defer.resolve, defer.reject);
 				});
 			} else {
 				defer.reject(r.Event.END_OF_BOOK);
@@ -252,14 +259,21 @@ var Reader = (function (r) {
 			if (page > 0) {
 				return Page.prev();
 			}
-			var defer = $.Deferred();
-			if (chapter > 0) {
+			var defer = $.Deferred(),
+					chapterPartUrl = r.Navigation.getPrevChapterPartUrl(),
+					loadPromise;
+			if (chapterPartUrl || chapter > 0) {
 				defer.notify();
 				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					Chapter.load(Chapter.prev(), 'LASTPAGE').then(defer.resolve, defer.reject);
+					if (chapterPartUrl) {
+						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
+					} else {
+						loadPromise = Chapter.load(Chapter.prev(), r.Navigation.getLastPageAnchorName());
+					}
+					loadPromise.then(defer.resolve, defer.reject);
 				});
 			} else {
 				defer.reject(r.Event.START_OF_BOOK);
@@ -335,6 +349,58 @@ var Reader = (function (r) {
 			r.Navigation.updateCurrentCFI();
 			r.Navigation.updateProgress();
 			r.Bookmarks.display();
+		},
+		getLastPageAnchorName: function () {
+			return 'cpr-lastpage';
+		},
+		isLastPageAnchor: function (anchor) {
+			return /cpr-lastpage/.test(anchor);
+		},
+		getChapterPartAnchorPrefix: function () {
+			return 'cpr-part';
+		},
+		isChapterPartAnchor: function (anchor) {
+			return /^cpr-part/.test(anchor);
+		},
+		// Returns the number of removed elements from previous chapter parts:
+		getPrevChapterPartMarker: function () {
+			return r.$reader.find('#cpr-subchapter-prev');
+		},
+		// Returns the number of removed elements from previous chapter parts:
+		getNextChapterPartMarker: function () {
+			return r.$reader.find('#cpr-subchapter-next');
+		},
+		// Returns the link to the next chapter part:
+		getPrevChapterPartUrl: function () {
+			return r.Navigation.getPrevChapterPartMarker().find('a').attr('href');
+		},
+		// Returns the link to the previous chapter part:
+		getNextChapterPartUrl: function () {
+			return r.Navigation.getNextChapterPartMarker().find('a').attr('href');
+		},
+		getCurrentChapterPart: function () {
+			var marker = r.Navigation.getPrevChapterPartMarker();
+			return marker.length && Number(marker.attr('data-chapter-part'));
+		},
+		hasChapterParts: function () {
+			return !!(r.Navigation.getPrevChapterPartMarker().length || r.Navigation.getNextChapterPartMarker().length);
+		},
+		getChapterPartFromCFI: function (cfi) {
+			var maxElements = r.preferences.maxChapterElements.value,
+					part = 0;
+			// Get the element path component of the cfi:
+			// e.g. for epubcfi(/6/8!/4[body01]/2/402/2/1:0) get 4[body01]/2/402/2/1:0
+			$.each((cfi.split('!')[1] || '').slice(1, -1).split('/'), function (key, value) {
+				// Check if the CFI is found on a later chapter part by dividing the highest
+				// branch count through the maxelements * 2 (CFI elements always have an even index):
+				var newPart = Math.floor((parseInt(value, 10) - 1) / (maxElements * 2));
+				if (newPart > 0) {
+					part = newPart;
+					// Break out of the $.each loop:
+					return false;
+				}
+			});
+			return part;
 		}
 	};
 
@@ -481,11 +547,11 @@ var Reader = (function (r) {
 		getByChapter: function() {
 			return pagesByChapter;
 		},
-		// Moves to the page given as index, epubcfi, anchor or special page "LASTPAGE":
+		// Moves to the page given as index, epubcfi, anchor or special last page anchor:
 		moveTo: function (p, duration) {
 			if ($.type(p) === 'string') {
-				if (p === 'LASTPAGE') {
-					// page is given as "LASTPAGE", jump to the last page of the chapter:
+				if (r.Navigation.isLastPageAnchor(p)) {
+					// jump to the last page of the chapter:
 					page = pagesByChapter;
 				} else {
 					if (r.CFI.isValidCFI(p)) {
@@ -541,7 +607,7 @@ var Reader = (function (r) {
 			});
 		},
 		load: function(p, fixed) {
-			var isLastPage = p === 'LASTPAGE',
+			var isLastPage = r.Navigation.isLastPageAnchor(p),
 					selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
 			Page.moveTo(p);
 			var promise = loadImages(isLastPage, selector)

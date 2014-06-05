@@ -7,7 +7,7 @@
 var Reader = (function (r) {
 	// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 	// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-	var _classBlacklist = ['cpr-marker'];
+	var _classBlacklist = ['cpr-marker', 'cpr-subchapter-link'];
 
 	// The **CFI** object exposes methods to handle CFIs. it is **not** intended to be exposed to the client directly.
 	//
@@ -24,6 +24,7 @@ var Reader = (function (r) {
 	// * [`updateContext`](#updateContext)
 	// * [`addContext`](#addContext)
 	// * [`removeContext`](#removeContext)
+	// * [`normalizeChapterPartCFI`](#normalizeChapterPartCFI)
 	// * [`addOneNodeToCFI`](#addOneNodeToCFI)
 	// * [`getChapterFromCFI`](#getChapterFromCFI)
 	//
@@ -99,6 +100,31 @@ var Reader = (function (r) {
 			return completeCFI;
 		},
 
+		// <a name="normalizeChapterPartCFI"></a> This function normalizes CFI parts to account for chapters which have been split up into multiple parts.
+		normalizeChapterPartCFI: function (completeCFI, remove) {
+			// Check if the chapter has been split up into multiple parts:
+			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
+			if (prevChapterPartMarker.length) {
+				// Get the CFI path for the first non-removed element:
+				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], _classBlacklist),
+						chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, chapterMarkerCFI),
+						markerCFIParts = chapterMarkerCompleteCFI.split('/'),
+						completeCFIParts = completeCFI.split('/');
+				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
+				if (markerCFIParts.slice(0, -1).join('/') === completeCFIParts.slice(0, markerCFIParts.length - 1).join('/')) {
+					var removedElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value,
+							// The incorrect path value, as it doesn't account for the removed elements:
+							elPathValue = parseInt(completeCFIParts[markerCFIParts.length - 1], 10),
+							// Get the optional path suffix like any ids:
+							pathSuffix = completeCFIParts[markerCFIParts.length - 1].slice(String(elPathValue).length);
+					// Update the path value with the number of removed elements * 2 (CFI elements always have an even index):
+					completeCFIParts[markerCFIParts.length - 1] = (elPathValue + (removedElements * 2 * (remove ? -1 : 1))) + pathSuffix;
+					return completeCFIParts.join('/');
+				}
+			}
+			return completeCFI;
+		},
+
 		// <a name="getCFIObject"></a> Return the current position's CFI and a preview of the current text.
 		getCFIObject: function() {
 			// The reader context would not normally be updated anymore, but this is a workaround to the web-app, when they move the reader in the DOM and the context changes. Until that is fixed, we must update the context all the time.
@@ -133,6 +159,9 @@ var Reader = (function (r) {
 						}
 						completeCFI = completeCFI.replace(/:\d+/, ':' + offset);
 					}
+
+					// Account for chapters that have been split up into multiple parts:
+					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI);
 
 					var result = {
 						CFI: r.CFI.removeContext(completeCFI),
@@ -202,7 +231,11 @@ var Reader = (function (r) {
 			if($((isBookmark ? '[data-bookmark]' : '')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
 				try {
 					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], _classBlacklist));
+					var cfiInContext = r.CFI.addContext(cfi);
+					// Account for chapters that have been split up into multiple parts:
+					cfiInContext = r.CFI.normalizeChapterPartCFI(cfiInContext, true);
+					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfiInContext, r.$iframe.contents()[0], _classBlacklist));
+
 					// in case the cfi targets an svg child, target the svg element itself
 					if($node.parents('svg').length){
 						$node = $node.parents('svg');
@@ -291,7 +324,7 @@ var Reader = (function (r) {
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
-				if(r.Navigation.getChapter() === chapter){
+				if (r.Navigation.getChapter() === chapter && (!r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi))) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
 						r.CFI.setCFI(cfi);
 					}

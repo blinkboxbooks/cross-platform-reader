@@ -158,6 +158,9 @@ img, svg, svg * {
     &:last-child{
       margin-bottom:0;
     }
+    .cpr-subchapter-link {
+      display: none;
+    }
   }
 
   &.cpr-img-medium{
