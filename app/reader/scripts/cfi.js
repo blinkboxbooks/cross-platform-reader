@@ -330,7 +330,7 @@ var Reader = (function (r) {
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
-				if (r.Navigation.getChapter() === chapter && (!r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi))) {
+				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
 						r.CFI.setCFI(cfi);
 					}
@@ -385,7 +385,7 @@ var Reader = (function (r) {
 		if (!r.$reader.has(textNode).length) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			var $firstElementInViewport = r.$reader.find(':not(:has(*))').filter(function(){
+			var $firstElementInViewport = r.$reader.find(':not(:has(*)):not(.'+_classBlacklist.join(',.')+')').filter(function(){
 				return $(this).offset().left >= 0;
 			}).first();
 
