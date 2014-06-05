@@ -401,6 +401,9 @@ var Reader = (function (r) {
 				}
 			});
 			return part;
+		},
+		isCFIInCurrentChapterPart: function (cfi) {
+			return !r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi);
 		}
 	};
 

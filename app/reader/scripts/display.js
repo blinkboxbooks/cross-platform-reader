@@ -367,7 +367,10 @@ var Reader = (function (r) {
 			var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
 			if(bookmarks){
 				$.each(bookmarks, function(index, bookmark){
-					r.Navigation.setCFI(bookmark, true);
+					// Ignore bookmarks not part of the current chapter part:
+					if (bookmark && r.Navigation.isCFIInCurrentChapterPart(bookmark)) {
+						r.Navigation.setCFI(bookmark, true);
+					}
 				});
 			}
 		});
