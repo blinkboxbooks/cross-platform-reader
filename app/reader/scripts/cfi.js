@@ -274,7 +274,9 @@ var Reader = (function (r) {
 						cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
 						cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
 						// the cfi library builds a complete cfi so we must remove the context before proceeding
-						r.CFI.addOneWordToCFI(r.CFI.removeContext(cfi), $nextNode, marker, isBookmark, true);
+						var completeCFI = r.CFI.normalizeChapterPartCFI(cfi);
+						completeCFI = r.CFI.removeContext(completeCFI);
+						r.CFI.addOneWordToCFI(completeCFI, $nextNode, marker, isBookmark, true);
 					} else {
 						// the text node is not large enought to have a marker injected, need to prepend it
 						$nextNode.before(marker);
@@ -299,14 +301,18 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				EPUBcfi.Interpreter.injectElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], marker, _classBlacklist);
+				var completeCFI = r.CFI.addContext(cfi);
+				completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
+				EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
 				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					EPUBcfi.Interpreter.injectElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], marker, _classBlacklist);
+					var completeCFI = r.CFI.addContext(cfi);
+					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
+					EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
 				}
 			}
 		},
