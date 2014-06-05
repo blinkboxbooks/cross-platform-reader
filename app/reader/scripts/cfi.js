@@ -293,7 +293,7 @@ var Reader = (function (r) {
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
 		addOneWordToCFI : function (cfi, el, marker, isBookmark, force) {
-			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
+			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10), completeCFI;
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
 			});
@@ -301,7 +301,7 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				var completeCFI = r.CFI.addContext(cfi);
+				completeCFI = r.CFI.addContext(cfi);
 				completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
 				EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
 			} else {
@@ -310,7 +310,7 @@ var Reader = (function (r) {
 				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					var completeCFI = r.CFI.addContext(cfi);
+					completeCFI = r.CFI.addContext(cfi);
 					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
 					EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
 				}
