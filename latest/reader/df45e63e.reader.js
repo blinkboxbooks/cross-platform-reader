@@ -3593,7 +3593,9 @@ var Reader = (function (r) {
 						cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
 						cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
 						// the cfi library builds a complete cfi so we must remove the context before proceeding
-						r.CFI.addOneWordToCFI(r.CFI.removeContext(cfi), $nextNode, marker, isBookmark, true);
+						var completeCFI = r.CFI.normalizeChapterPartCFI(cfi);
+						completeCFI = r.CFI.removeContext(completeCFI);
+						r.CFI.addOneWordToCFI(completeCFI, $nextNode, marker, isBookmark, true);
 					} else {
 						// the text node is not large enought to have a marker injected, need to prepend it
 						$nextNode.before(marker);
@@ -3610,7 +3612,7 @@ var Reader = (function (r) {
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
 		addOneWordToCFI : function (cfi, el, marker, isBookmark, force) {
-			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
+			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10), completeCFI;
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
 			});
@@ -3618,14 +3620,18 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				EPUBcfi.Interpreter.injectElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], marker, _classBlacklist);
+				completeCFI = r.CFI.addContext(cfi);
+				completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
+				EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
 				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					EPUBcfi.Interpreter.injectElement(r.CFI.addContext(cfi), r.$iframe.contents()[0], marker, _classBlacklist);
+					completeCFI = r.CFI.addContext(cfi);
+					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
+					EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
 				}
 			}
 		},
@@ -3643,7 +3649,7 @@ var Reader = (function (r) {
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
-				if (r.Navigation.getChapter() === chapter && (!r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi))) {
+				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
 						r.CFI.setCFI(cfi);
 					}
@@ -3698,8 +3704,15 @@ var Reader = (function (r) {
 		if (!r.$reader.has(textNode).length) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			/* TextNode is the first node that contains text, otherwise get the first child node. */
-			textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
+			var $firstElementInViewport = r.$reader.find(':not(:has(*)):not(.'+_classBlacklist.join(',.')+')').filter(function(){
+				return $(this).offset().left >= 0;
+			}).first();
+
+			if($firstElementInViewport.length){
+				textNode = $firstElementInViewport[0];
+			} else {
+				textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
+			}
 		}
 
 		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
@@ -4310,7 +4323,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.54-140'
+				appversion: '0.1.55-141'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4440,7 +4453,10 @@ var Reader = (function (r) {
 			var bookmarks = r.Bookmarks.getBookmarks()[r.Navigation.getChapter()];
 			if(bookmarks){
 				$.each(bookmarks, function(index, bookmark){
-					r.Navigation.setCFI(bookmark, true);
+					// Ignore bookmarks not part of the current chapter part:
+					if (bookmark && r.Navigation.isCFIInCurrentChapterPart(bookmark)) {
+						r.Navigation.setCFI(bookmark, true);
+					}
 				});
 			}
 		});
@@ -4683,7 +4699,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.54-140'
+			'version': '0.1.55-141'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5812,6 +5828,9 @@ var Reader = (function (r) {
 				}
 			});
 			return part;
+		},
+		isCFIInCurrentChapterPart: function (cfi) {
+			return !r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi);
 		}
 	};
 
