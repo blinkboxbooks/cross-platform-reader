@@ -42,6 +42,8 @@ var Reader = (function (r) {
 			});
 
 			r.$reader.css({
+				// Position absolute fixes a layout issue on the Huddle:
+				position: 'absolute',
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
 				'column-width': columnWidth + 'px',
@@ -50,6 +52,8 @@ var Reader = (function (r) {
 			});
 
 			r.$container.css({
+				// Position relative is required to set the reader to position absolute:
+				position: 'relative',
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',

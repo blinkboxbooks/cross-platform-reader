@@ -65,6 +65,10 @@ var Reader = (function (r) {
 		// Set initial transition timing function:
 		r.$reader.css('transition-timing-function', r.preferences.transitionTimingFunction.value);
 
+		r.support = {
+			transitionend: _getTransitionEndProperty()
+		};
+
 		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
@@ -73,6 +77,22 @@ var Reader = (function (r) {
 		// Start the party.
 		return loadInfo();
 	};
+
+	function _getTransitionEndProperty() {
+		var element= document.createElement('div');
+		if (element.style.webkitTransition !== undefined) {
+			return 'webkitTransitionEnd';
+		}
+		if (element.style.MozTransition !== undefined) {
+			return 'transitionend';
+		}
+		if (element.style.OTransition !== undefined) {
+			return 'otransitionend';
+		}
+		if (element.style.transition !== undefined) {
+			return 'transitionend';
+		}
+	}
 
 	var _parseCSS = function(style){
 		var doc = document.implementation.createHTMLDocument(''),
@@ -482,7 +502,7 @@ var Reader = (function (r) {
 
 		r.CFI.setUp(chapterNumber);
 		r.Navigation.setChapter(chapterNumber);
-		r.$reader.css('opacity', 0);
+		r.setReaderOpacity(0);
 
 		// success handler for load chapter
 		function loadChapterSuccess(data){
@@ -503,7 +523,10 @@ var Reader = (function (r) {
 		loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {
-			r.$reader.css('opacity', 1);
+			// setReaderOpacity returns a promise, but we don't rely on the fade in
+			// and the transitionend event does not seem to be fired on the Huddle,
+			// so we don't return this promise:
+			r.setReaderOpacity(1, r.preferences.transitionDuration.value);
 		});
 	};
 

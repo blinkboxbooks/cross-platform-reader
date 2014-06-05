@@ -76,9 +76,9 @@ var Reader = (function (r) {
 		r.$reader.css({
 			'transition-duration': '0s',
 			transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
-		}).trigger('transitionend');
+		}).trigger(r.support.transitionend);
 		if (duration) {
-			r.$reader.one('transitionend', defer.resolve);
+			r.$reader.one(r.support.transitionend, defer.resolve);
 		} else {
 			defer.resolve();
 		}
@@ -590,10 +590,7 @@ var Reader = (function (r) {
 				r.preferences.transitionDuration.value
 			).then(function () {
 				r.Navigation.updateCurrentCFI();
-				r.$reader.css({
-					'transition-duration': '0s',
-					opacity: 0
-				});
+				r.setReaderOpacity(0);
 				return loadImages(true)
 					.progress(function () {
 						pagesByChapter = _getColumnsNumber();
@@ -602,7 +599,7 @@ var Reader = (function (r) {
 					.then(function () {
 						r.Navigation.updateProgress();
 						r.Bookmarks.display();
-						r.$reader.css('opacity', 1);
+						r.setReaderOpacity(1);
 					});
 			});
 		},
