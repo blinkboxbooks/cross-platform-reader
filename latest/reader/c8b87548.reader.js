@@ -4138,6 +4138,10 @@ var Reader = (function (r) {
 		// Set initial transition timing function:
 		r.$reader.css('transition-timing-function', r.preferences.transitionTimingFunction.value);
 
+		r.support = {
+			transitionend: _getTransitionEndProperty()
+		};
+
 		r.Layout.resizeContainer(param);
 
 		// Enable bugsense reporting
@@ -4146,6 +4150,22 @@ var Reader = (function (r) {
 		// Start the party.
 		return loadInfo();
 	};
+
+	function _getTransitionEndProperty() {
+		var element= document.createElement('div');
+		if (element.style.webkitTransition !== undefined) {
+			return 'webkitTransitionEnd';
+		}
+		if (element.style.MozTransition !== undefined) {
+			return 'transitionend';
+		}
+		if (element.style.OTransition !== undefined) {
+			return 'otransitionend';
+		}
+		if (element.style.transition !== undefined) {
+			return 'transitionend';
+		}
+	}
 
 	var _parseCSS = function(style){
 		var doc = document.implementation.createHTMLDocument(''),
@@ -4290,7 +4310,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.53-139'
+				appversion: '0.1.54-140'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4555,7 +4575,7 @@ var Reader = (function (r) {
 
 		r.CFI.setUp(chapterNumber);
 		r.Navigation.setChapter(chapterNumber);
-		r.$reader.css('opacity', 0);
+		r.setReaderOpacity(0);
 
 		// success handler for load chapter
 		function loadChapterSuccess(data){
@@ -4576,7 +4596,10 @@ var Reader = (function (r) {
 		loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {
-			r.$reader.css('opacity', 1);
+			// setReaderOpacity returns a promise, but we don't rely on the fade in
+			// and the transitionend event does not seem to be fired on the Huddle,
+			// so we don't return this promise:
+			r.setReaderOpacity(1, r.preferences.transitionDuration.value);
 		});
 	};
 
@@ -4660,7 +4683,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.53-139'
+			'version': '0.1.54-140'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5286,6 +5309,8 @@ var Reader = (function (r) {
 			});
 
 			r.$reader.css({
+				// Position absolute fixes a layout issue on the Huddle:
+				position: 'absolute',
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
 				'column-width': columnWidth + 'px',
@@ -5294,6 +5319,8 @@ var Reader = (function (r) {
 			});
 
 			r.$container.css({
+				// Position relative is required to set the reader to position absolute:
+				position: 'relative',
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
 				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
@@ -5460,9 +5487,9 @@ var Reader = (function (r) {
 		r.$reader.css({
 			'transition-duration': '0s',
 			transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
-		}).trigger('transitionend');
+		}).trigger(r.support.transitionend);
 		if (duration) {
-			r.$reader.one('transitionend', defer.resolve);
+			r.$reader.one(r.support.transitionend, defer.resolve);
 		} else {
 			defer.resolve();
 		}
@@ -5974,10 +6001,7 @@ var Reader = (function (r) {
 				r.preferences.transitionDuration.value
 			).then(function () {
 				r.Navigation.updateCurrentCFI();
-				r.$reader.css({
-					'transition-duration': '0s',
-					opacity: 0
-				});
+				r.setReaderOpacity(0);
 				return loadImages(true)
 					.progress(function () {
 						pagesByChapter = _getColumnsNumber();
@@ -5986,7 +6010,7 @@ var Reader = (function (r) {
 					.then(function () {
 						r.Navigation.updateProgress();
 						r.Bookmarks.display();
-						r.$reader.css('opacity', 1);
+						r.setReaderOpacity(1);
 					});
 			});
 		},
@@ -6222,6 +6246,20 @@ var Reader = (function (r) {
 	r.showHeaderAndFooter = function(){
 		r.$header.css({visibility: 'visible'});
 		r.$footer.css({visibility: 'visible'});
+	};
+
+	r.setReaderOpacity = function (opacity, duration) {
+		var defer = $.Deferred();
+		if (duration) {
+			r.$reader.one(r.support.transitionend, defer.resolve);
+		} else {
+			defer.resolve();
+		}
+		r.$reader.css({
+			'transition-duration': (duration || 0) + 's',
+			opacity: opacity
+		});
+		return defer.promise();
 	};
 
 	return r;
