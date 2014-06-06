@@ -151,10 +151,7 @@ img, svg, svg * {
 
   &.cpr-img-large {
     display: inline-block;
-    margin: 0.5rem auto;
-    &:first-child{
-      margin-top:0;
-    }
+    margin: 0 auto 0.5rem;
     &:last-child{
       margin-bottom:0;
     }
