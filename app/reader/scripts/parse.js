@@ -91,6 +91,8 @@ var Reader = (function (r) {
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
 					.attr('data-chapter-part', part)
+					.attr('data-chapter-parts', parts)
+					.attr('data-chapter-parts-elements', children.length)
 					.prependTo(parent);
 			}
 			if (part < parts - 1) {
@@ -99,6 +101,9 @@ var Reader = (function (r) {
 					.prop('id', 'cpr-subchapter-next')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part + 1)))
+					// Add the number of parts and elements if they're not already added to the prev node:
+					.attr('data-chapter-parts', part ? undefined : parts)
+					.attr('data-chapter-parts-elements', part ? undefined : children.length)
 					.appendTo(parent);
 			}
 		}
