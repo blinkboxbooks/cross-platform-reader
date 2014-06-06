@@ -4341,7 +4341,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.56-142'
+				appversion: '0.1.57-143'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4717,7 +4717,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.56-142'
+			'version': '0.1.57-143'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5745,6 +5745,7 @@ var Reader = (function (r) {
 		},
 		updateProgress: function(){
 			var i = 0;
+
 			// Update total number of words in the book, if not already done.
 			if(_totalWordCount === -1 && r.Book.spine.length){
 				_totalWordCount = 0;
@@ -5759,8 +5760,8 @@ var Reader = (function (r) {
 				currentWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
 			}
 
-			// Estimate red word count from current chapter. To avoid 0 based indexes and adding +1
-			currentWordCount += r.Book.spine.length && r.Book.spine[chapter].linear ? r.Book.spine[chapter].wordCount * (page+1) / (pagesByChapter+1) : 0;
+			// Estimate read word count from current chapter:
+			currentWordCount += r.Book.spine.length && r.Book.spine[chapter].linear ? r.Book.spine[chapter].wordCount * r.Navigation.getChapterReadFactor() : 0;
 
 			// Calculate progress.
 			var progress = Math.floor(currentWordCount / _totalWordCount * 100);
@@ -5815,6 +5816,13 @@ var Reader = (function (r) {
 		getNextChapterPartMarker: function () {
 			return r.$reader.find('#cpr-subchapter-next');
 		},
+		// Returns a collection of the available chapter part markers:
+		getChapterPartMarkers: function () {
+			return r.Navigation.getPrevChapterPartMarker().add(r.Navigation.getNextChapterPartMarker());
+		},
+		hasChapterParts: function () {
+			return !!r.Navigation.getChapterPartMarkers().length;
+		},
 		// Returns the link to the next chapter part:
 		getPrevChapterPartUrl: function () {
 			return r.Navigation.getPrevChapterPartMarker().find('a').attr('href');
@@ -5823,13 +5831,14 @@ var Reader = (function (r) {
 		getNextChapterPartUrl: function () {
 			return r.Navigation.getNextChapterPartMarker().find('a').attr('href');
 		},
+		// Returns the zero based index of the current chapter part:
 		getCurrentChapterPart: function () {
-			var marker = r.Navigation.getPrevChapterPartMarker();
-			return marker.length && Number(marker.attr('data-chapter-part'));
+			return Number(r.Navigation.getChapterPartMarkers().attr('data-chapter-part')) || 0;
 		},
-		hasChapterParts: function () {
-			return !!(r.Navigation.getPrevChapterPartMarker().length || r.Navigation.getNextChapterPartMarker().length);
+		getNumberOfChapterParts: function () {
+			return Number(r.Navigation.getChapterPartMarkers().attr('data-chapter-parts'));
 		},
+		// Returns the chapter part based on the given CFI:
 		getChapterPartFromCFI: function (cfi) {
 			var maxElements = r.preferences.maxChapterElements.value,
 					part = 0;
@@ -5847,8 +5856,25 @@ var Reader = (function (r) {
 			});
 			return part;
 		},
+		// Returns true if the given CFI can be found in the current chapter part:
 		isCFIInCurrentChapterPart: function (cfi) {
 			return !r.Navigation.hasChapterParts() || r.Navigation.getCurrentChapterPart() === r.Navigation.getChapterPartFromCFI(cfi);
+		},
+		// Calculate how much of the current chapter has been read:
+		getChapterReadFactor: function () {
+			// Add one to page and pagesByChapter to account for 0 based indices:
+			var factor = (page+1) / (pagesByChapter+1);
+			if (r.Navigation.hasChapterParts()) {
+				return (function chapterPartReadFactor(factor) {
+					var maxElements = r.preferences.maxChapterElements.value,
+							currentPart = r.Navigation.getCurrentChapterPart(),
+							totalElements = r.Navigation.getChapterPartMarkers().attr('data-chapter-parts-elements'),
+							readElements = r.preferences.maxChapterElements.value * currentPart,
+							chapterElements = currentPart + 1 === r.Navigation.getNumberOfChapterParts() ? totalElements - readElements : maxElements;
+					return (readElements + chapterElements * factor) / totalElements;
+				}(factor));
+			}
+			return factor;
 		}
 	};
 
@@ -6199,6 +6225,8 @@ var Reader = (function (r) {
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
 					.attr('data-chapter-part', part)
+					.attr('data-chapter-parts', parts)
+					.attr('data-chapter-parts-elements', children.length)
 					.prependTo(parent);
 			}
 			if (part < parts - 1) {
@@ -6207,6 +6235,9 @@ var Reader = (function (r) {
 					.prop('id', 'cpr-subchapter-next')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part + 1)))
+					// Add the number of parts and elements if they're not already added to the prev node:
+					.attr('data-chapter-parts', part ? undefined : parts)
+					.attr('data-chapter-parts-elements', part ? undefined : children.length)
 					.appendTo(parent);
 			}
 		}
