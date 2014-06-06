@@ -134,6 +134,24 @@ var Reader = (function (r) {
 		}
 	};
 
+	// Will set a maximum size of 0.5 of a column width for the given size
+	// result is always in px
+	var _parseSize = function(size){
+		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+
+		if(size.indexOf('px') !== -1){
+			return Math.min(parseFloat(size), columnWidth / 2);
+		} else if(size.indexOf('em') !== -1){
+			return Math.min(parseFloat(size) * 18, columnWidth / 2);
+		} else if(size.indexOf('%') !== -1){
+			// do not allow relative margins higher than 100
+			return Math.min(parseFloat(size), 100) * columnWidth / 100;
+		}
+
+		// if size unit is not recognised, return 0
+		return 0;
+	};
+
 	var _addPublisherStyles = function($head){
 		var links = [];
 		$head.filter('link[href$=".css"]').each(function(index, link){
@@ -159,12 +177,10 @@ var Reader = (function (r) {
 				textDecoration: 'text-decoration',
 				textIndent: 'text-indent',
 				textTransform: 'text-transform',
-				margin: 'margin',
 				marginLeft: 'margin-left',
 				marginTop: 'margin-top',
 				marginRight: 'margin-right',
 				marginBottom: 'margin-bottom',
-				padding: 'padding',
 				paddingLeft: 'padding-left',
 				paddingTop: 'padding-top',
 				paddingRight: 'padding-right',
@@ -184,6 +200,8 @@ var Reader = (function (r) {
 								// convert px font-size to rem, todo: convert other sizes?
 								if(key === 'fontSize'){
 									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
+								} else if(key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1){
+									cssText += ';' + whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
 								} else {
 									cssText += ';' + whitelist[key] + ':' + rule.style[key];
 								}
