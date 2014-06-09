@@ -385,7 +385,7 @@ var Reader = (function (r) {
 		if (!r.$reader.has(textNode).length) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			var $firstElementInViewport = r.$reader.find(':not(:has(*)):not(.'+_classBlacklist.join(',.')+')').filter(function(){
+			var $firstElementInViewport = r.$reader.find(':visible:not(:has(*)):not(.'+_classBlacklist.join(',.')+')').filter(function(){
 				return $(this).offset().left >= 0;
 			}).first();
 
