@@ -401,7 +401,7 @@ var Reader = (function (r) {
 		if (!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			var $firstElementInViewport = r.$reader.find(':visible:not(:has(:not(.'+_classBlacklist.join(',.')+'))):not(.'+_classBlacklist.join(',.')+')').filter(function(){
+			var $firstElementInViewport = r.$reader.find(':visible:not(.'+_classBlacklist.join(',.')+')').filter(function(){
 				var offset =  $(this).offset();
 					// some paragraphs client rect appear above the reader, even though the text itself wraps on the previous page as well
 				return offset.left >= 0 && offset.top >= rect.top;
