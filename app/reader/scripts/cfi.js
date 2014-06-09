@@ -358,6 +358,22 @@ var Reader = (function (r) {
 		}
 	};
 
+	var _textNodeInViewport = function(el, offset){
+		// this test is only for text nodes, relates to CR-300
+		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
+		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
+		if(el && el.nodeType === 3){
+			var range = document.createRange();
+			range.setStart(el, offset || 0);
+			var rects = range.getClientRects();
+			if(rects && rects.length){
+				var rect = rects[0];
+				return rect.left >= 0;
+			}
+		}
+		return true;
+	};
+
 	// <a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.
 	var getFirstNode = function () {
 
@@ -382,7 +398,7 @@ var Reader = (function (r) {
 		}
 
 		/* Make sure textNode is part of the reader... */
-		if (!r.$reader.has(textNode).length) {
+		if (!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
 			var $firstElementInViewport = r.$reader.find(':visible:not(:has(*)):not(.'+_classBlacklist.join(',.')+')').filter(function(){
