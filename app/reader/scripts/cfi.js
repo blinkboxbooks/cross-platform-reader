@@ -374,28 +374,33 @@ var Reader = (function (r) {
 		return true;
 	};
 
-	// <a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.
-	var getFirstNode = function () {
-
-		var range;
-		var textNode;
-		var offset;
-		var container = r.$reader[0];
-		var rect = container.getBoundingClientRect();
-		var left = r.getReaderLeftPosition();
-		var document = r.$iframe.contents()[0];
-
+	var _getElementAt = function(x, y){
+		var range, textNode, offset, doc = r.$iframe.contents()[0];
 		/* standard */
-		if (document.caretPositionFromPoint) {
-			range = document.caretPositionFromPoint(rect.left - left, rect.top);
+		if (doc.caretPositionFromPoint) {
+			range = doc.caretPositionFromPoint(x, y);
 			textNode = range.offsetNode;
 			offset = range.offset;
 			/* WebKit */
-		} else if (document.caretRangeFromPoint) {
-			range = document.caretRangeFromPoint(rect.left - left, rect.top);
+		} else if (doc.caretRangeFromPoint) {
+			range = doc.caretRangeFromPoint(x, y);
 			textNode = range.startContainer;
 			offset = range.startOffset;
 		}
+		return {
+			textNode: textNode,
+			offset: offset
+		};
+	};
+
+	// <a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.
+	var getFirstNode = function () {
+
+		var rect = r.$reader[0].getBoundingClientRect();
+		var left = r.getReaderLeftPosition();
+		var result = _getElementAt(rect.left - left, rect.top);
+		var textNode = result.textNode;
+		var offset = result.offset;
 
 		/* Make sure textNode is part of the reader... */
 		if (!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)) {
@@ -410,7 +415,9 @@ var Reader = (function (r) {
 			if($firstElementInViewport.length){
 				textNode = $firstElementInViewport[0];
 			} else {
-				textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
+				textNode = r.$reader.children().filter(function(){
+					return $(this).text().trim().length;
+				}).first()[0];
 			}
 		}
 
