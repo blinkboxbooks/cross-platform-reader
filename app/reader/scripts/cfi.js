@@ -387,6 +387,15 @@ var Reader = (function (r) {
 			textNode = range.startContainer;
 			offset = range.startOffset;
 		}
+
+		if(!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)){
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+			if(x < 3/4 * columnWidth){
+				x += columnWidth / 4;
+				return _getElementAt(x, y);
+			}
+			return null;
+		}
 		return {
 			textNode: textNode,
 			offset: offset
@@ -399,11 +408,11 @@ var Reader = (function (r) {
 		var rect = r.$reader[0].getBoundingClientRect();
 		var left = r.getReaderLeftPosition();
 		var result = _getElementAt(rect.left - left, rect.top);
-		var textNode = result.textNode;
-		var offset = result.offset;
+		var textNode;
+		var offset;
 
 		/* Make sure textNode is part of the reader... */
-		if (!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)) {
+		if (!result) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
 			var $firstElementInViewport = r.$reader.find(':visible:not(.'+_classBlacklist.join(',.')+')').filter(function(){
@@ -419,6 +428,9 @@ var Reader = (function (r) {
 					return $(this).text().trim().length;
 				}).first()[0];
 			}
+		} else {
+			textNode = result.textNode;
+			offset = result.offset;
 		}
 
 		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
