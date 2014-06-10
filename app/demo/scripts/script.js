@@ -19,8 +19,13 @@ angular.module('app', ['ngRoute'])
 				redirectTo: '/'
 			});
 	})
+	.run(function($document, $rootScope){
+		$document.bind('keydown', function(e) {
+			$rootScope.$broadcast('keydown', e);
+			$rootScope.$broadcast('keydown:' + e.which, e);
+		});
+	})
 	.controller('Reader_controller', function ($scope, $routeParams, $exceptionHandler, Book) {
-
 
 		// Reader event handler
 		function _log(e){
@@ -143,6 +148,11 @@ angular.module('app', ['ngRoute'])
 				}
 			}
 		});
+
+		$scope.$on('keydown:66', $scope.handlers.bookmark);
+		$scope.$on('keydown:39', $scope.handlers.next);
+		$scope.$on('keydown:37', $scope.handlers.prev);
+
 	})
 	// Service to access to the API of Catalogue
 	.factory('Book', function($http, $q) {
