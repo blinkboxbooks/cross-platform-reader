@@ -3547,7 +3547,12 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, isBookmark) { // Add an element to a CFI point
-			if($((isBookmark ? '[data-bookmark]' : '')+'[data-cfi="' + cfi + '"]', r.$iframe.contents()).length === 0){
+			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents());
+			if($marker.length){
+				if(isBookmark && !$marker.is('[data-bookmark]')){
+					$marker.attr('data-bookmark', '');
+				}
+			} else {
 				try {
 					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
 					var cfiInContext = r.CFI.addContext(cfi);
@@ -3677,42 +3682,79 @@ var Reader = (function (r) {
 		}
 	};
 
-	// <a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.
-	var getFirstNode = function () {
+	var _textNodeInViewport = function(el, offset){
+		// this test is only for text nodes, relates to CR-300
+		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
+		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
+		if(el && el.nodeType === 3){
+			var range = r.$iframe.contents()[0].createRange();
+			range.setStart(el, offset || 0);
+			var rects = range.getClientRects();
+			if(rects && rects.length){
+				var rect = rects[0];
+				return rect.left >= 0;
+			}
+		}
+		return true;
+	};
 
-		var range;
-		var textNode;
-		var offset;
-		var container = r.$reader[0];
-		var rect = container.getBoundingClientRect();
-		var left = r.getReaderLeftPosition();
-		var document = r.$iframe.contents()[0];
-
+	var _getElementAt = function(x, y){
+		var range, textNode, offset, doc = r.$iframe.contents()[0];
 		/* standard */
-		if (document.caretPositionFromPoint) {
-			range = document.caretPositionFromPoint(rect.left - left, rect.top);
+		if (doc.caretPositionFromPoint) {
+			range = doc.caretPositionFromPoint(x, y);
 			textNode = range.offsetNode;
 			offset = range.offset;
 			/* WebKit */
-		} else if (document.caretRangeFromPoint) {
-			range = document.caretRangeFromPoint(rect.left - left, rect.top);
+		} else if (doc.caretRangeFromPoint) {
+			range = doc.caretRangeFromPoint(x, y);
 			textNode = range.startContainer;
 			offset = range.startOffset;
 		}
 
+		if(!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)){
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+			if(x < 3/4 * columnWidth){
+				x += columnWidth / 4;
+				return _getElementAt(x, y);
+			}
+			return null;
+		}
+		return {
+			textNode: textNode,
+			offset: offset
+		};
+	};
+
+	// <a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.
+	var getFirstNode = function () {
+
+		var rect = r.$reader[0].getBoundingClientRect();
+		var left = r.getReaderLeftPosition();
+		var result = _getElementAt(rect.left - left, rect.top);
+		var textNode;
+		var offset;
+
 		/* Make sure textNode is part of the reader... */
-		if (!r.$reader.has(textNode).length) {
+		if (!result) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			var $firstElementInViewport = r.$reader.find(':not(:has(*)):not(.'+_classBlacklist.join(',.')+')').filter(function(){
-				return $(this).offset().left >= 0;
+			var $firstElementInViewport = r.$reader.find(':visible:not(.'+_classBlacklist.join(',.')+')').filter(function(){
+				var offset =  $(this).offset();
+					// some paragraphs client rect appear above the reader, even though the text itself wraps on the previous page as well
+				return offset.left >= 0 && offset.top >= rect.top;
 			}).first();
 
 			if($firstElementInViewport.length){
 				textNode = $firstElementInViewport[0];
 			} else {
-				textNode = container.childNodes.length > 0 && $(container.childNodes[0]).text().trim().length ? container.childNodes[0] : r.$reader.children().first()[0];
+				textNode = r.$reader.children().filter(function(){
+					return $(this).text().trim().length;
+				}).first()[0];
 			}
+		} else {
+			textNode = result.textNode;
+			offset = result.offset;
 		}
 
 		// The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself
@@ -4341,7 +4383,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.57-143'
+				appversion: '0.1.58-144'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4717,7 +4759,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.57-143'
+			'version': '0.1.58-144'
 		},
 		START_OF_BOOK : {
 			code: 8,
