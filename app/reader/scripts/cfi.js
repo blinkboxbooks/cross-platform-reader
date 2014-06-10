@@ -368,7 +368,7 @@ var Reader = (function (r) {
 		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
 		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
 		if(el && el.nodeType === 3){
-			var range = document.createRange();
+			var range = r.$iframe.contents()[0].createRange();
 			range.setStart(el, offset || 0);
 			var rects = range.getClientRects();
 			if(rects && rects.length){
