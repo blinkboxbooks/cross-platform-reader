@@ -52,6 +52,9 @@ var Reader = (function (r) {
 		// Save the initial bookmarks.
 		r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
 
+		// Initialise the epub module
+		r.Epub.init(r.$reader[0]);
+
 		// Set the initial position.
 		_initCFI = param.hasOwnProperty('initCFI') ? param.initCFI : _initCFI;
 		_initURL = param.hasOwnProperty('initURL') ? param.initURL : _initURL;
