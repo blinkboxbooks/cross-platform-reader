@@ -62,8 +62,15 @@ var Reader = (function (r, Epub) {
 		};
 
 		// Generates the CFI that targets the given element
-		prototype.generateCFI = function(el){
-			var cfi = EPUBcfi.Generator.generateElementCFIComponent(el);
+		prototype.generateCFI = function(el, offset){
+			var cfi;
+
+			if (el.nodeType === 3) {
+				cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent(el, offset || 0, this.BLACKLIST);
+			} else {
+				cfi = EPUBcfi.Generator.generateElementCFIComponent(el, this.BLACKLIST);
+			}
+
 			cfi = EPUBcfi.Generator.generateCompleteCFI(this.opfCFI, cfi);
 
 			cfi = this.cleanCFI(cfi);
