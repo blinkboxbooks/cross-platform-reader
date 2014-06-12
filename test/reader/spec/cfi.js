@@ -66,8 +66,6 @@ describe('CFI', function() {
 	it('should initialise CFI manager', function(){
 		// fields
 		expect(CFI).toBeObject();
-		expect(CFI.opfCFI).toBeDefined();
-		expect(CFI.context).toBeDefined();
 
 		// getters and setters
 		expect(CFI.getCFIObject).toBeFunction();
@@ -76,7 +74,6 @@ describe('CFI', function() {
 		// methods
 		expect(CFI.goToCFI).toBeFunction();
 		expect(CFI.getChapterFromCFI).toBeFunction();
-		expect(CFI.reset).toBeFunction();
 	});
 
 	it('should get current CFI', function(done){

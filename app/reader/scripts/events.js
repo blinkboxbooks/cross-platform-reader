@@ -142,8 +142,6 @@ var Reader = (function (r) {
 
 	// Notify clients of reader events
 	var _notify = function(data){
-		r.Debug.log(data);
-
 		// Notify reader listener, if it exists
 		if (r.listener && typeof(r.listener) === 'function') { r.listener(data); }
 
@@ -161,6 +159,8 @@ var Reader = (function (r) {
 
 	r.Notify = {
 		error: function notifyError(err, url, line){
+			r.Debug.error(err);
+
 			_notify(err);
 			// only report bugsense for production code
 			if(r.Bugsense && r.Event.STATUS.version.indexOf('readerVersion') === -1){
@@ -190,6 +190,8 @@ var Reader = (function (r) {
 			}
 		},
 		event: function notifyEvent(event){
+			r.Debug.log(event);
+
 			_notify(event);
 		}
 	};
