@@ -175,14 +175,14 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				r.injectMarker(cfi, marker);
+				r.Epub.injectMarker(cfi, marker);
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
 				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					r.injectMarker(cfi, marker);
+					r.Epub.injectMarker(cfi, marker);
 				}
 			}
 		},
