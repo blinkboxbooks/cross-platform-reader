@@ -3,7 +3,7 @@
 var Reader = (function (r, Epub) {
 	r.Epub = new Epub();
 	return r;
-}(Reader || {}, (function(EPUBcfi){
+}(Reader || {}, (function(r, EPUBcfi){
 
 		var Epub = function(){
 			this.context = null;
@@ -47,7 +47,30 @@ var Reader = (function (r, Epub) {
 			return cfi.replace(this.context, '');
 		};
 
-		prototype.normalizeChapterPartCFI = function(cfi){
+		// <a name="normalizeChapterPartCFI"></a> This function normalizes CFI parts to account for chapters which have been split up into multiple parts.
+		// todo this method is the only dependency on global Reader object, consider refactoring
+		// move getPrevChapterPartMarker and stuff to Epub
+		prototype.normalizeChapterPartCFI = function (cfi, remove) {
+			// Check if the chapter has been split up into multiple parts:
+			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
+			if (prevChapterPartMarker.length) {
+				// Get the CFI path for the first non-removed element:
+				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], this.BLACKLIST),
+					chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(this.opfCFI, chapterMarkerCFI),
+					markerCFIParts = chapterMarkerCompleteCFI.split('/'),
+					completeCFIParts = cfi.split('/');
+				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
+				if (markerCFIParts.slice(0, -1).join('/') === completeCFIParts.slice(0, markerCFIParts.length - 1).join('/')) {
+					var removedElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value,
+					// The incorrect path value, as it doesn't account for the removed elements:
+						elPathValue = parseInt(completeCFIParts[markerCFIParts.length - 1], 10),
+					// Get the optional path suffix like any ids:
+						pathSuffix = completeCFIParts[markerCFIParts.length - 1].slice(String(elPathValue).length);
+					// Update the path value with the number of removed elements * 2 (CFI elements always have an even index):
+					completeCFIParts[markerCFIParts.length - 1] = (elPathValue + (removedElements * 2 * (remove ? -1 : 1))) + pathSuffix;
+					return completeCFIParts.join('/');
+				}
+			}
 			return cfi;
 		};
 
@@ -81,4 +104,4 @@ var Reader = (function (r, Epub) {
 		};
 
 		return Epub;
-	})(window.EPUBcfi)));
+	})(Reader || {}, EPUBcfi)));
