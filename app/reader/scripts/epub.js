@@ -13,30 +13,29 @@ var Reader = (function (r, Epub) {
 
 		// constants
 		prototype.BLACKLIST = ['cpr-marker', 'cpr-subchapter-link'];
+		prototype.DOT_REGEX = /\[([\w-_])*\.([\w-_])*\]/gi;
+		prototype.BODY_CFI = '!/4';
 
-		// Initialisation function, called when the reader is initialised
+		// Initialisation function, called when the reader is initialised.
 		prototype.init = function(reader){
-			// save a reference to the document
 			this.document = reader.ownerDocument;
 
-			// update the context
 			var elCFI = EPUBcfi.Generator.generateElementCFIComponent(reader);
-			elCFI = elCFI.substring(2); // remove the body cfi step, i.e. /4
-			this.context = elCFI.split('[' + reader.id + ']')[0] + '[' + reader.id + ']';
+			this.context = elCFI.substring(2); // remove the body cfi step, i.e. /4
 		};
 
 		// <a name="_clean"></a> This function will sanitize a cfi (removed dots from ID assertion)
-		var _clean = function(cfi){
-			return cfi.replace(/\[([\w-_])*\.([\w-_])*\]/gi, '');
+		prototype.cleanCFI = function(cfi){
+			return cfi.replace(this.DOT_REGEX, '');
 		};
 
 		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.
 		prototype.addContext = function(cfi){
-			cfi = _clean(cfi);
+			cfi = this.cleanCFI(cfi);
 
-			var contextSplit = cfi.split('!/4');
+			var contextSplit = cfi.split(this.BODY_CFI);
 
-			return contextSplit[0] + '!/4' + this.context + contextSplit[1];
+			return contextSplit[0] + this.BODY_CFI + this.context + contextSplit[1];
 		};
 
 		prototype.normalizeChapterPartCFI = function(cfi){
