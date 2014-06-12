@@ -525,6 +525,7 @@ var Reader = (function (r) {
 		}
 
 		r.CFI.setUp(chapterNumber);
+		r.Epub.setUp(chapterNumber, r.Book.$opf);
 		r.Navigation.setChapter(chapterNumber);
 		r.setReaderOpacity(0);
 
