@@ -112,7 +112,7 @@ var Reader = (function (r, Epub) {
 			return cfi;
 		};
 
-		//
+		// Injects a marker in the specified position
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.cleanCFI(cfi);
 			cfi = this.addContext(cfi);
