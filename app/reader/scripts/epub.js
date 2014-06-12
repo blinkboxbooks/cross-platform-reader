@@ -1,5 +1,13 @@
 'use strict';
 
+// Helper methods:
+//
+// * [`updateContext`](#updateContext)
+// * [`addContext`](#addContext)
+// * [`removeContext`](#removeContext)
+// * [`normalizeChapterPartCFI`](#normalizeChapterPartCFI)
+// * [`addOneNodeToCFI`](#addOneNodeToCFI)
+
 var Reader = (function (r, Epub) {
 	r.Epub = new Epub();
 	return r;
@@ -11,7 +19,8 @@ var Reader = (function (r, Epub) {
 			this.document = null;
 		}, prototype = Epub.prototype;
 
-		// constants
+		// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
+		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
 		prototype.BLACKLIST = ['cpr-marker', 'cpr-subchapter-link'];
 		prototype.DOT_REGEX = /\[([\w-_])*\.([\w-_])*\]/gi;
 		prototype.BODY_CFI = '!/4';
@@ -101,6 +110,19 @@ var Reader = (function (r, Epub) {
 			cfi = this.removeContext(cfi);
 
 			return cfi;
+		};
+
+		//
+		prototype.injectMarker = function(cfi, marker){
+			cfi = this.cleanCFI(cfi);
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+			EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+		};
+
+		prototype.reset = function(){
+			this.opfCFI = null;
+			this.context = null;
 		};
 
 		return Epub;

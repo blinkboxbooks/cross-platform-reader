@@ -155,6 +155,11 @@ var Reader = (function (r) {
 			if(_debug){
 				console.warn(s);
 			}
+		},
+		error: function logDebug(s){
+			if(_debug){
+				console.error(s);
+			}
 		}
 	};
 

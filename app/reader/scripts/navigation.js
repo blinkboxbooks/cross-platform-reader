@@ -29,7 +29,7 @@ var Reader = (function (r) {
 		r.mobile = false;
 
 		// Reset all modules.
-		r.CFI.reset();
+		r.Epub.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
 		r.Book.reset();

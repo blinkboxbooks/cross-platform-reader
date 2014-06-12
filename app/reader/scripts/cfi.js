@@ -1,14 +1,6 @@
 'use strict';
 
-/* jshint unused: true */
-/* exported Reader */
-/* globals $, EPUBcfi */
-
 var Reader = (function (r) {
-	// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
-	// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-	var _classBlacklist = ['cpr-marker', 'cpr-subchapter-link'];
-
 	// The **CFI** object exposes methods to handle CFIs. it is **not** intended to be exposed to the client directly.
 	//
 	// * [`setUp`](#setUp)
@@ -21,202 +13,86 @@ var Reader = (function (r) {
 
 	// Helper methods:
 	//
-	// * [`updateContext`](#updateContext)
-	// * [`addContext`](#addContext)
-	// * [`removeContext`](#removeContext)
-	// * [`normalizeChapterPartCFI`](#normalizeChapterPartCFI)
-	// * [`addOneNodeToCFI`](#addOneNodeToCFI)
 	// * [`getChapterFromCFI`](#getChapterFromCFI)
 	//
 	// Other private methods
 	//
 	// * [`getFirstNode`](#getFirstNode)
 	r.CFI = {
-		// The `opfCFI` is used to generate the first part of any valid CFI. This part points to the **file** containing the chapter.
-		opfCFI: null,
-		// Variable that contains a partial CFI representing the DOM tree between the reader container and the body. It is different between clients and has to be constructed dynamically.
-		context: null,
-		// <a name="setUp"></a> Initialises the CFI variables, should be called whenever we load a new chapter
-		// `chapter` the current chapter
-		setUp: function (chapter) {
-			if (r.Book.$opf === null) {
-				return;
-			}
-			try {
-				var chapterId = $(r.Book.$opf).find('spine').children()[chapter].getAttribute('idref');
-				r.CFI.opfCFI = EPUBcfi.Generator.generatePackageDocumentCFIComponent(chapterId, r.Book.$opf[0]);
-			} catch (err) {
-				// cannot generate CFI
-				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: err, call: 'CFI.setUp'}));
-			}
-		},
-		// <a name="updateContext"></a> This function will generate the CFI path between the body and the reader, specific to every client.
-		updateContext: function(){
-			if(!r.$reader || !r.CFI.opfCFI){
-				return;
-			}
-
-			var elCFI = EPUBcfi.Generator.generateElementCFIComponent(r.$reader[0]);
-			var completeCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, elCFI);
-			var part_1 = completeCFI.split('!/4')[1];
-			r.CFI.context = part_1.split('[' + (r.$reader[0].id) + ']')[0] + '[' + (r.$reader[0].id) + ']';
-		},
-		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.
-		addContext: function(completeCFI){
-			if($.type(completeCFI) !== 'string'){
-				return;
-			}
-			// The reader context would not normally be updated anymore, but this is a workaround to the web-app, when they move the reader in the DOM and the context changes. Until that is fixed, we must update the context all the time.
-			// if(r.CFI.context === null){
-			r.CFI.updateContext();
-			// }
-
-			if(completeCFI.indexOf('!/4') !== -1){
-				// Remove any IDs that contain "."
-				completeCFI = completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, '');
-				// Take into account the style tags and Google font tag (current node -= 2/3)
-				var contextSplit = completeCFI.split('!/4');
-				completeCFI = contextSplit[0] + '!/4' + r.CFI.context + contextSplit[1];
-			}
-
-			return completeCFI;
-		},
-		// <a name="removeContext"></a> This function will remove the context from a CFI to generate a re-usable, generic, CFI.
-		removeContext: function(completeCFI){
-			if($.type(completeCFI) !== 'string'){
-				return;
-			}
-			// The reader context would not normally be updated anymore, but this is a workaround to the web-app, when they move the reader in the DOM and the context changes. Until that is fixed, we must update the context all the time.
-			// if(r.CFI.context === null){
-			r.CFI.updateContext();
-			// }
-
-			if(completeCFI.indexOf(r.CFI.context) !== -1){
-				completeCFI = completeCFI.replace(r.CFI.context, '');
-				// Remove any IDs that contain "."
-				completeCFI = completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, '');
-			}
-
-			return completeCFI;
-		},
-
-		// <a name="normalizeChapterPartCFI"></a> This function normalizes CFI parts to account for chapters which have been split up into multiple parts.
-		normalizeChapterPartCFI: function (completeCFI, remove) {
-			// Check if the chapter has been split up into multiple parts:
-			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
-			if (prevChapterPartMarker.length) {
-				// Get the CFI path for the first non-removed element:
-				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], _classBlacklist),
-						chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, chapterMarkerCFI),
-						markerCFIParts = chapterMarkerCompleteCFI.split('/'),
-						completeCFIParts = completeCFI.split('/');
-				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
-				if (markerCFIParts.slice(0, -1).join('/') === completeCFIParts.slice(0, markerCFIParts.length - 1).join('/')) {
-					var removedElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value,
-							// The incorrect path value, as it doesn't account for the removed elements:
-							elPathValue = parseInt(completeCFIParts[markerCFIParts.length - 1], 10),
-							// Get the optional path suffix like any ids:
-							pathSuffix = completeCFIParts[markerCFIParts.length - 1].slice(String(elPathValue).length);
-					// Update the path value with the number of removed elements * 2 (CFI elements always have an even index):
-					completeCFIParts[markerCFIParts.length - 1] = (elPathValue + (removedElements * 2 * (remove ? -1 : 1))) + pathSuffix;
-					return completeCFIParts.join('/');
-				}
-			}
-			return completeCFI;
-		},
-
 		// <a name="getCFIObject"></a> Return the current position's CFI and a preview of the current text.
 		getCFIObject: function() {
-			// The reader context would not normally be updated anymore, but this is a workaround to the web-app, when they move the reader in the DOM and the context changes. Until that is fixed, we must update the context all the time.
-			// if(r.CFI.context === null){
-			r.CFI.updateContext();
-			// }
-
 			try {
-				var startTextNode = getFirstNode();
-				var elCFI = null;
+				var startTextNode = getFirstNode(),
+					cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
+					i;
 
-				if (startTextNode.textNode.nodeType === 3) {
-					elCFI = EPUBcfi.Generator.generateCharacterOffsetCFIComponent(startTextNode.textNode, startTextNode.offset, _classBlacklist);
-				} else if (startTextNode.textNode.nodeType === 1) {
-					elCFI = EPUBcfi.Generator.generateElementCFIComponent(startTextNode.textNode, _classBlacklist);
+				// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
+				// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
+				// the complete CFi must not contain any '.' (processed normally, but not here)
+				var $node = r.Epub.getElementAt(cfi);
+				if($node.length > 1 && $node[0].nodeType === 3) {
+					var offset = startTextNode.offset;
+					for(i = 0; i < $node.length - 1; i++){
+						if($($node[i]).is(startTextNode.textNode)){
+							break;
+						}
+						offset += $node[i].length;
+					}
+					cfi = cfi.replace(/:\d+/, ':' + offset);
 				}
-				if (elCFI !== null) {
 
-					var completeCFI = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, elCFI);
-					var i;
-					// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
-					// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
-					// the complete CFi must not contain any '.' (processed normally, but not here)
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(completeCFI.replace(/\[([\w-_])*\.([\w-_])*\]/gi, ''), r.$iframe.contents()[0], _classBlacklist));
-					if($node.length > 1 && $node[0].nodeType === 3) {
-						var offset = startTextNode.offset;
-						for(i = 0; i < $node.length - 1; i++){
-							if($($node[i]).is(startTextNode.textNode)){
-								break;
-							}
-							offset += $node[i].length;
-						}
-						completeCFI = completeCFI.replace(/:\d+/, ':' + offset);
+				var result = {
+					CFI: cfi,
+					preview: startTextNode.preview
+				};
+
+				var chapter = r.CFI.getChapterFromCFI(result.CFI);
+				var sections = [];
+
+				var _parseItem = function(item){
+					if(item.href.indexOf(href) !== -1){
+						sections.push(item);
 					}
-
-					// Account for chapters that have been split up into multiple parts:
-					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI);
-
-					var result = {
-						CFI: r.CFI.removeContext(completeCFI),
-						preview: startTextNode.preview
-					};
-
-					var chapter = r.CFI.getChapterFromCFI(result.CFI);
-					var sections = [];
-
-					var _parseItem = function(item){
-						if(item.href.indexOf(href) !== -1){
-							sections.push(item);
-						}
-						if(item.children){
-							for(var i = 0, l = item.children.length; i < l; i++){
-								_parseItem(item.children[i]);
-							}
-						}
-					};
-
-					if(chapter !== -1){
-						var href = r.Book.spine[chapter].href;
-						for(i = 0; i < r.Book.toc.length; i++){
-							_parseItem(r.Book.toc[i]);
+					if(item.children){
+						for(var i = 0, l = item.children.length; i < l; i++){
+							_parseItem(item.children[i]);
 						}
 					}
-					if(sections.length){
-						if(sections.length > 1){
-							var currentPage = r.Navigation.getPage();
-							// if more than one match, compare page numbers of different elements and identify where the current page is
-							for(var j = 0, l = sections.length; j < l; j++){
-								// get the anchor the url is pointing at
-								var anchor = sections[j].href.split('#');
-								anchor = anchor.length > 1 ? '#'+anchor[1] : null;
-								if(!anchor){
-									continue;
-								} else {
-									var $anchor = $(anchor, r.$iframe.contents());
-									// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
-									if($anchor.length){
-										var anchorPage = r.returnPageElement($anchor);
-										if(anchorPage > currentPage){
-											break;
-										}
-										result.chapter = sections[j].label;
+				};
+
+				if(chapter !== -1){
+					var href = r.Book.spine[chapter].href;
+					for(i = 0; i < r.Book.toc.length; i++){
+						_parseItem(r.Book.toc[i]);
+					}
+				}
+				if(sections.length){
+					if(sections.length > 1){
+						var currentPage = r.Navigation.getPage();
+						// if more than one match, compare page numbers of different elements and identify where the current page is
+						for(var j = 0, l = sections.length; j < l; j++){
+							// get the anchor the url is pointing at
+							var anchor = sections[j].href.split('#');
+							anchor = anchor.length > 1 ? '#'+anchor[1] : null;
+							if(!anchor){
+								continue;
+							} else {
+								var $anchor = $(anchor, r.$iframe.contents());
+								// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
+								if($anchor.length){
+									var anchorPage = r.returnPageElement($anchor);
+									if(anchorPage > currentPage){
+										break;
 									}
+									result.chapter = sections[j].label;
 								}
 							}
-						} else {
-							result.chapter = sections[0].label;
 						}
+					} else {
+						result.chapter = sections[0].label;
 					}
-					return result;
 				}
-				return null;
+				return result;
 			}
 			catch (err) {
 				// cannot generate CFI
@@ -236,10 +112,7 @@ var Reader = (function (r) {
 			} else {
 				try {
 					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
-					var cfiInContext = r.CFI.addContext(cfi);
-					// Account for chapters that have been split up into multiple parts:
-					cfiInContext = r.CFI.normalizeChapterPartCFI(cfiInContext, true);
-					var $node = $(EPUBcfi.Interpreter.getTargetElement(cfiInContext, r.$iframe.contents()[0], _classBlacklist));
+					var $node = r.Epub.getElementAt(cfi);
 
 					// in case the cfi targets an svg child, target the svg element itself
 					if($node.parents('svg').length){
@@ -276,12 +149,8 @@ var Reader = (function (r) {
 			if ($nextNode) {
 				if ($nextNode[0].nodeType === 3) {
 					if($nextNode[0].length > 1){
-						cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent($nextNode[0], 0, _classBlacklist);
-						cfi = EPUBcfi.Generator.generateCompleteCFI(r.CFI.opfCFI, cfi);
-						// the cfi library builds a complete cfi so we must remove the context before proceeding
-						var completeCFI = r.CFI.normalizeChapterPartCFI(cfi);
-						completeCFI = r.CFI.removeContext(completeCFI);
-						r.CFI.addOneWordToCFI(completeCFI, $nextNode, marker, isBookmark, true);
+						cfi = r.Epub.generateCFI($nextNode[0], 0);
+						r.CFI.addOneWordToCFI(cfi, $nextNode, marker, isBookmark, true);
 					} else {
 						// the text node is not large enought to have a marker injected, need to prepend it
 						$nextNode.before(marker);
@@ -298,7 +167,7 @@ var Reader = (function (r) {
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
 		addOneWordToCFI : function (cfi, el, marker, isBookmark, force) {
-			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10), completeCFI;
+			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
 			});
@@ -306,18 +175,14 @@ var Reader = (function (r) {
 			if (el.text().length > 1 && words.length && pos + words[0].length < el.text().length) {
 				pos = pos + words[0].length;
 				cfi = cfi.split(':')[0] + ':' + pos + ')';
-				completeCFI = r.CFI.addContext(cfi);
-				completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
-				EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
+				r.injectMarker(cfi, marker);
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
 				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
-					completeCFI = r.CFI.addContext(cfi);
-					completeCFI = r.CFI.normalizeChapterPartCFI(completeCFI, true);
-					EPUBcfi.Interpreter.injectElement(completeCFI, r.$iframe.contents()[0], marker, _classBlacklist);
+					r.injectMarker(cfi, marker);
 				}
 			}
 		},
@@ -356,10 +221,6 @@ var Reader = (function (r) {
 				}
 			}
 			return -1;
-		},
-		reset : function(){
-			r.CFI.opfCFI = null;
-			r.CFI.context = null;
 		}
 	};
 
@@ -420,7 +281,7 @@ var Reader = (function (r) {
 		if (!result) {
 			/* Reset offset since textNode changed. */
 			offset = 0;
-			var $firstElementInViewport = r.$reader.find(':visible:not(.'+_classBlacklist.join(',.')+')').filter(function(){
+			var $firstElementInViewport = r.$reader.find(':visible:not(.'+ r.Epub.BLACKLIST.join(',.')+')').filter(function(){
 				var offset =  $(this).offset();
 					// some paragraphs client rect appear above the reader, even though the text itself wraps on the previous page as well
 				return offset.left >= 0 && offset.top >= rect.top;
@@ -451,12 +312,12 @@ var Reader = (function (r) {
 				return el;
 			}
 			/* Return the element if it only has one child and it is in the blacklist */
-			if (el.childNodes.length === 1 && _hasClass($el.contents(), _classBlacklist)) { // TODO: Explore more options
+			if (el.childNodes.length === 1 && _hasClass($el.contents(), r.Epub.BLACKLIST)) { // TODO: Explore more options
 				return el;
 			}
 			for(var i = 0, l = $el.contents().length; i < l; i++){
 				var $child = $($el.contents()[i]);
-				if(!_hasClass($child, _classBlacklist)){
+				if(!_hasClass($child, r.Epub.BLACKLIST)){
 					/* reset offset since textNode changed */
 					offset = 0;
 					return findLeafNode($child[0]);
@@ -544,7 +405,7 @@ var Reader = (function (r) {
 		if ($el.length) {
 			$el = $el.last();
 			var nodes = $el.parent().contents().filter(function(i, e){
-				return !$(e).hasClass(_classBlacklist.join(',.'));
+				return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
 			});
 			var index = $.inArray($el[0], nodes);
 			if (nodes[index + 1]) {

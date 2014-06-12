@@ -524,7 +524,6 @@ var Reader = (function (r) {
 			chapterUrl = r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href;
 		}
 
-		r.CFI.setUp(chapterNumber);
 		r.Epub.setUp(chapterNumber, r.Book.$opf);
 		r.Navigation.setChapter(chapterNumber);
 		r.setReaderOpacity(0);
