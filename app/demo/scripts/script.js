@@ -29,7 +29,7 @@ angular.module('app', ['ngRoute'])
 
 		// Reader event handler
 		function _log(e){
-			$('#log .panel-body').prepend('<p>' + JSON.stringify(e) + '</p>');
+			$('#log .panel-body').prepend('<p data-test="'+ (e.code === 7 ? 'status': '') + '">' + JSON.stringify(e) + '</p>');
 		}
 
 		// the current book loaded

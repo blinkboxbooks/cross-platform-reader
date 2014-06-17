@@ -18,13 +18,13 @@
 	</div>
 	<div class="panel-body">
 		<p>
-			<a class="btn btn-default" ng-click="handlers.prev()">Previous</a>
-			<a class="btn btn-default" ng-click="handlers.next()">Next</a>
+			<a class="btn btn-default" ng-click="handlers.prev()" data-test="prev-button">Previous</a>
+			<a class="btn btn-default" ng-click="handlers.next()" data-test="next-button">Next</a>
 		</p>
 		<div id="reader_container"></div>
 		<div>
 			<a class="btn btn-default" ng-click="handlers.cfi()">Get CFI</a>
-			<a class="btn btn-default" ng-click="handlers.bookmark()">Bookmark</a>
+			<a class="btn btn-default" ng-click="handlers.bookmark()" data-test="bookmark-button">Bookmark</a>
 		</div>
 	</div>
 </div>

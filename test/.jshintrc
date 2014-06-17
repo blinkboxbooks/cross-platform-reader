@@ -29,6 +29,8 @@
 		"afterEach": false,
 		"jasmine": false,
 		"Reader": false,
-		"browser": false
+		"browser": false,
+		"element": false,
+		"by": false
 	}
 }

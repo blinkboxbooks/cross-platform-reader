@@ -12,4 +12,11 @@ describe('Navigation', function() {
 		page.load();
 		expect(browser.getCurrentUrl()).toContain(page.path);
 	});
+
+	it('should go next page', function() {
+		page.next.click();
+		expect(page.status.first().getText()).toBe(null);
+		browser.sleep(1000);
+		expect(page.status.first().getText()).toBe(null);
+	});
 });
