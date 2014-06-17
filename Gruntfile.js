@@ -80,12 +80,12 @@ module.exports = function (grunt) {
 					]
 				}
 			},
-			reader: {
+			test: {
 				options: {
 					port: 9001,
 					base: [
-						'test',
-						'<%= yeoman.app %>/reader'
+						'.tmp',
+						'<%= yeoman.app %>'
 					]
 				}
 			},
@@ -371,7 +371,26 @@ module.exports = function (grunt) {
 				push: false,
 				gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d' // options to use with '$ git describe'
 			}
-		}
+		},
+		protractor: {
+			options: {
+				configFile: 'protractor.conf.js',
+				keepAlive: false
+			},
+			test: {},
+		},
+		shell: {
+			test: {
+				options: {
+					stdout: true
+				},
+				command: 'node node_modules/protractor/bin/webdriver-manager update'
+			}
+		},
+	});
+
+	grunt.registerTask('ptor', function () {
+		grunt.task.run(['shell', 'connect:test', 'protractor']);
 	});
 
 	grunt.registerTask('reader', function (target) {
@@ -430,7 +449,6 @@ module.exports = function (grunt) {
 	grunt.registerTask('test', function (target) {
 		target = target || 'reader';
 		grunt.task.run([
-			'connect:' + target,
 			'karma:' + target
 		]);
 	});
