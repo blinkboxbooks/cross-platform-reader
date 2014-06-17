@@ -111,9 +111,11 @@ angular.module('app', ['ngRoute'])
 
 		$scope.handlers = {
 			prev: function(){
+				$('[data-test="status"]').removeAttr('data-test');
 				READER.prev();
 			},
 			next: function(){
+				$('[data-test="status"]').removeAttr('data-test');
 				READER.next();
 			},
 			cfi: function(){
@@ -124,6 +126,7 @@ angular.module('app', ['ngRoute'])
 				}
 			},
 			bookmark: function(){
+				$('[data-test="status"]').removeAttr('data-test');
 				READER.setBookmark();
 			}
 		};

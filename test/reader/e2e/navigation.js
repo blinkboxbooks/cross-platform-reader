@@ -14,9 +14,12 @@ describe('Navigation', function() {
 	});
 
 	it('should go next page', function() {
-		page.next.click();
-		expect(page.status.first().getText()).toBe(null);
-		browser.sleep(1000);
-		expect(page.status.first().getText()).toBe(null);
+		page.next().then(function(e){
+			console.log(e);
+		});
+
+		page.prev().then(function(e){
+			console.log(e);
+		});
 	});
 });
