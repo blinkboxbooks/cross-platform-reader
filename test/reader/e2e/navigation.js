@@ -20,21 +20,20 @@ describe('Navigation', function() {
 
 	it('should go next page', function() {
 
-		var previousStatus = null;
+		var _previousStatus = null;
 
-		var _nextLoop = function(status){
-
+		page.loop(function(status){
 			expect(page.hasErrors()).toBe(false);
 
-			if(previousStatus){
-				expect(status.progress).toBeGreaterOrEqualThan(previousStatus.progress);
+			if(_previousStatus){
+				expect(status.progress).toBeGreaterOrEqualThan(_previousStatus.progress);
 
 				// if we are in the same chapter, expect the page number to be increased
 				// else the chapter to be increased
-				if(status.chapter === previousStatus.chapter){
-					expect(status.page).toBe(previousStatus.page + 1);
+				if(status.chapter === _previousStatus.chapter){
+					expect(status.page).toBe(_previousStatus.page + 1);
 				} else {
-					expect(status.chapter).toBe(previousStatus.chapter + 1);
+					expect(status.chapter).toBe(_previousStatus.chapter + 1);
 				}
 			} else {
 				// expect on initialization to open chapter 0 and page 0
@@ -42,16 +41,12 @@ describe('Navigation', function() {
 				expect(status.chapter).toBe(0);
 			}
 
-			previousStatus = status;
+			_previousStatus = status;
 
 			// keep track of progress
 			process.stdout.write('> ' + status.progress + '% \r');
-
-			page.next().then(_nextLoop, function(){
-				// book finished
-			});
-		};
-
-		page.status().then(_nextLoop);
+		}, function(){
+			console.log('Done');
+		});
 	});
 });

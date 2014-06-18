@@ -57,6 +57,27 @@ var Page = function(){
 		});
 	};
 
+
+	/**
+	 * This function will loop through the entire book by either calling next or previous repeatedly.
+	 * callback is a function called every time the status updates
+	 * done is a function called when the loop is complete
+	 * reverse is a flag that tell the reader to loop backwards
+	 * */
+	this.loop = function(callback, done, reverse){
+
+		var _action = !reverse ? this.next : this.prev;
+
+		var	_loop = function(status){
+			callback(status);
+
+			// the action will be rejected if the action cannot be completed (exp calling next on the last page)
+			_action().then(_loop, done);
+		};
+
+		this.status().then(_loop);
+	};
+
 };
 
 module.exports = new Page();
