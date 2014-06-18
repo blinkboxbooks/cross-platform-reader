@@ -36,6 +36,12 @@ var Page = function(){
 		});
 	};
 
+	this.status = function(){
+		return status.getText().then(function(e){
+			return JSON.parse(e);
+		});
+	};
+
 };
 
 module.exports = new Page();
