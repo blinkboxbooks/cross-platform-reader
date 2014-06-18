@@ -30,15 +30,29 @@ angular.module('app', ['ngRoute'])
 		// Reader event handler
 		function _log(e){
 			var $p = $('<p>' + JSON.stringify(e) + '</p>');
-			if(e.code === 7){
-				$('[data-test="status"]').removeAttr('data-test');
-				$p.attr('data-test', 'status');
-			} else if(e.code === 0){
-				$scope.book.hasNext = false;
-			} else if(e.code === 4){
-				$scope.book.hasPrevious = false;
+			switch(e.code){
+				case 0: // last page
+					$scope.book.hasNext = false;
+					break;
+				case 4: // first page
+					$scope.book.hasPrevious = false;
+					break;
+				case 7: // reader status update
+					$('[data-test="status"]').removeAttr('data-test');
+					$p.attr('data-test', 'status');
+					break;
+				case 9: // reader missing a file
+				case 10: // parsing failed
+				case 11: // cfi generation error
+				case 12: // cfi insertion
+				case 13: // invalid argument
+				case 14: // cannot add bookmark
+				case 15: // bookmark already exists
+				case 16: // cannot remove bookmark
+					$p.attr('data-test', 'error');
+					break;
 			}
-			$('#log .panel-body').append($p);
+			$('#log .panel-body').prepend($p);
 		}
 
 		// the current book loaded
