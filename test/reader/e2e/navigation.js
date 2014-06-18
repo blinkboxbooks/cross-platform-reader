@@ -21,7 +21,11 @@ describe('Navigation', function() {
 	it('should go next page', function() {
 
 		var previousStatus = null;
+
 		var _nextLoop = function(status){
+
+			expect(page.hasErrors()).toBe(false);
+
 			if(previousStatus){
 				expect(status.progress).toBeGreaterOrEqualThan(previousStatus.progress);
 

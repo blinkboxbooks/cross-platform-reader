@@ -5,7 +5,8 @@ var Page = function(){
 
 	var nextButton = element(by.css('[data-test="next-button"]')),
 		prevButton = element(by.css('[data-test="prev-button"]')),
-		status = element.all(by.css('[data-test="status"]')).first();
+		status = element.all(by.css('[data-test="status"]')).first(),
+		errors = element.all(by.css('[data-test="error"]'));
 
 	this.load = function(){
 		browser.get(this.path);
@@ -47,6 +48,12 @@ var Page = function(){
 	this.status = function(){
 		return status.getText().then(function(e){
 			return JSON.parse(e);
+		});
+	};
+
+	this.hasErrors = function(){
+		return errors.count().then(function(count){
+			return count > 0;
 		});
 	};
 
