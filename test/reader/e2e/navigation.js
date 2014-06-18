@@ -23,7 +23,7 @@ describe('Navigation', function() {
 		var previousStatus = null;
 		var _nextLoop = function(status){
 			if(previousStatus){
-				//expect(status.progress).toBeGreaterOrEqualThan(previousStatus.progress);
+				expect(status.progress).toBeGreaterOrEqualThan(previousStatus.progress);
 
 				// if we are in the same chapter, expect the page number to be increased
 				// else the chapter to be increased

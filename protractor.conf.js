@@ -53,8 +53,7 @@ exports.config = {
 	//
 	// Spec patterns are relative to the location of this config.
 	specs: [
-		'test/reader/e2e/**/*.js',
-		//'test/reader/helpers.js'
+		'test/reader/e2e/navigation.js'
 	],
 
 	// Patterns to exclude.
@@ -90,12 +89,13 @@ exports.config = {
 	// before the specs are executed
 	// You can specify a file containing code to run by setting onPrepare to
 	// the filename string.
-	onPrepare: function() {
+	onPrepare: 'test/reader/e2e/matchers.js',
+		// function() {
 		// At this point, global 'protractor' object will be set up, and jasmine
 		// will be available. For example, you can add a Jasmine reporter with:
 		//     jasmine.getEnv().addReporter(new jasmine.JUnitXmlReporter(
 		//         'outputdir/', true, true));
-	},
+		// },
 
 	// The params object will be passed directly to the protractor instance,
 	// and can be accessed from your test. It is an arbitrary object and can
