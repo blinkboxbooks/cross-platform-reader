@@ -13,14 +13,22 @@ var Page = function(){
 	};
 
 	this.next = function(){
-		nextButton.click();
+		return nextButton.isEnabled().then(function(isEnabled){
+			if(isEnabled){
+				nextButton.click();
 
-		browser.wait(function() {
-			return status.isPresent();
-		}, 2000);
+				browser.wait(function() {
+					return status.isPresent();
+				}, 2000);
 
-		return status.getText().then(function(e){
-			return JSON.parse(e);
+				return status.getText().then(function(e){
+					return JSON.parse(e);
+				});
+			}
+			// button is not clickable, cannot go next, reject
+			var defer = protractor.promise.defer();
+			defer.reject();
+			return defer.promise; // error handler required to prevent test failure
 		});
 	};
 

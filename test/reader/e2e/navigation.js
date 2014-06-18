@@ -4,8 +4,13 @@ describe('Navigation', function() {
 
 	var page = require('./page.js');
 
+	beforeEach(function(){
+		console.log(jasmine.getEnv().currentSpec.description);
+	});
+
 	afterEach(function(){
-		browser.sleep(1000);
+		// this is for development purposes only
+		// browser.sleep(1000);
 	});
 
 	it('should load demo app', function() {
@@ -36,15 +41,13 @@ describe('Navigation', function() {
 			previousStatus = status;
 
 			// keep track of progress
-			process.stdout.write(status.progress + '% \r');
+			process.stdout.write('> ' + status.progress + '% \r');
 
-			if(status.chapter < status.chapters - 1 && status.page <= status.pages){
-				page.next().then(_nextLoop);
-			}
+			page.next().then(_nextLoop, function(){
+				// book finished
+			});
 		};
 
-		console.log('Should go to next page');
-		console.log();
 		page.status().then(_nextLoop);
 	});
 });
