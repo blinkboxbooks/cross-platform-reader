@@ -18,8 +18,8 @@
 	</div>
 	<div class="panel-body">
 		<p>
-			<a class="btn btn-default" ng-click="handlers.prev()" data-test="prev-button">Previous</a>
-			<a class="btn btn-default" ng-click="handlers.next()" data-test="next-button">Next</a>
+			<button class="btn btn-default" ng-disabled="!book.hasPrevious" ng-click="handlers.prev()"  data-test="prev-button">Previous</button>
+			<button class="btn btn-default" ng-disabled="!book.hasNext" ng-click="handlers.next()" data-test="next-button">Next</button>
 		</p>
 		<div id="reader_container"></div>
 		<div>

@@ -5,7 +5,7 @@ var Page = function(){
 
 	var nextButton = element(by.css('[data-test="next-button"]')),
 		prevButton = element(by.css('[data-test="prev-button"]')),
-		status = element(by.css('[data-test="status"]'));
+		status = element.all(by.css('[data-test="status"]')).first();
 
 	this.load = function(){
 		browser.get(this.path);
