@@ -32,14 +32,20 @@ var Page = function(){
 	};
 
 	this.prev = function(){
-		prevButton.click();
+		return prevButton.isEnabled().then(function(isEnabled){
+			if(isEnabled){
+				prevButton.click();
 
-		browser.wait(function() {
-			return status.isPresent();
-		}, 2000);
+				browser.wait(function() {
+					return status.isPresent();
+				}, 2000);
 
-		return status.getText().then(function(e){
-			return JSON.parse(e);
+				return status.getText().then(function(e){
+					return JSON.parse(e);
+				});
+			}
+			// button is not clickable, cannot go next, reject
+			return protractor.promise.rejected();
 		});
 	};
 

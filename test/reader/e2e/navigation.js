@@ -10,7 +10,7 @@ describe('Navigation', function() {
 
 	afterEach(function(){
 		// this is for development purposes only
-		// browser.sleep(1000);
+		// browser.sleep(10000);
 	});
 
 	it('should load demo app', function() {
@@ -18,7 +18,7 @@ describe('Navigation', function() {
 		expect(browser.getCurrentUrl()).toContain(page.path);
 	});
 
-	it('should go next page', function() {
+	it('should go to next page', function() {
 
 		var _previousStatus = null;
 
@@ -46,7 +46,36 @@ describe('Navigation', function() {
 			// keep track of progress
 			process.stdout.write('> ' + status.progress + '% \r');
 		}).then(function(){
-			console.log('Done');
+			expect(_previousStatus.progress).toBe(100);
+			console.log();
+		});
+	});
+
+	it('should go to previous page', function() {
+
+		var _previousStatus = null;
+
+		page.loop(function(status){
+			expect(page.hasErrors()).toBe(false);
+
+			if(_previousStatus){
+				expect(status.progress).toBeLessOrEqualThan(_previousStatus.progress);
+
+				// if we are in the same chapter, expect the page number to be decreased
+				// else the chapter to be increased
+				if(status.chapter === _previousStatus.chapter){
+					expect(status.page).toBe(_previousStatus.page - 1);
+				} else {
+					expect(status.chapter).toBe(_previousStatus.chapter - 1);
+				}
+			}
+
+			_previousStatus = status;
+
+			// keep track of progress
+			process.stdout.write('> ' + status.progress + '% \r');
+		}, true).then(function(){
+			expect(_previousStatus.progress).toBe(0);
 		});
 	});
 });
