@@ -27,9 +27,7 @@ var Page = function(){
 				});
 			}
 			// button is not clickable, cannot go next, reject
-			var defer = protractor.promise.defer();
-			defer.reject();
-			return defer.promise; // error handler required to prevent test failure
+			return protractor.promise.rejected();
 		});
 	};
 
@@ -61,21 +59,24 @@ var Page = function(){
 	/**
 	 * This function will loop through the entire book by either calling next or previous repeatedly.
 	 * callback is a function called every time the status updates
-	 * done is a function called when the loop is complete
 	 * reverse is a flag that tell the reader to loop backwards
+	 * returns a promise that resolves when the loop completes
 	 * */
-	this.loop = function(callback, done, reverse){
+	this.loop = function(callback, reverse){
 
-		var _action = !reverse ? this.next : this.prev;
+		var _defer = protractor.promise.defer(),
+			_action = !reverse ? this.next : this.prev;
 
 		var	_loop = function(status){
 			callback(status);
 
 			// the action will be rejected if the action cannot be completed (exp calling next on the last page)
-			_action().then(_loop, done);
+			_action().then(_loop, _defer.fulfill);
 		};
 
 		this.status().then(_loop);
+
+		return _defer.promise;
 	};
 
 };

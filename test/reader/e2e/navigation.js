@@ -45,7 +45,7 @@ describe('Navigation', function() {
 
 			// keep track of progress
 			process.stdout.write('> ' + status.progress + '% \r');
-		}, function(){
+		}).then(function(){
 			console.log('Done');
 		});
 	});
