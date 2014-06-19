@@ -8,6 +8,7 @@ var Page = function(){
 		status = element.all(by.css('[data-test="status"]')).first(),
 		errors = element.all(by.css('[data-test="error"]')),
 		fontSize = element(by.css('[data-test="font-size"]')),
+		lineHeight = element(by.css('[data-test="line-height"]')),
 		contents = element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a')).first();
 
 	this.load = function(path){
@@ -106,6 +107,12 @@ var Page = function(){
 	this.setFontSize = function(value){
 		return fontSize.clear().then(function(){
 			return fontSize.sendKeys(value);
+		});
+	};
+
+	this.setLineHeight = function(value){
+		return lineHeight.clear().then(function(){
+			return lineHeight.sendKeys(value);
 		});
 	};
 
