@@ -19,6 +19,9 @@ var Reader = (function (r) {
 	// The current location's CFI.
 	var _cfi = null;
 
+	// A reference to the head node of the current chapter:
+	var _chapterHead = $();
+	// The chapter document file name:
 	var chapterDocName = '';
 
 	// Reset method for the reader.
@@ -204,6 +207,12 @@ var Reader = (function (r) {
 		},
 		getChapter: function(){
 			return Chapter.get();
+		},
+		setChapterHead: function (head) {
+			_chapterHead = head;
+		},
+		getChapterHead: function () {
+			return _chapterHead;
 		},
 		getChapterDocName: function() {
 			return Chapter.getDocName();

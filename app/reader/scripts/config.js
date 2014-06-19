@@ -32,6 +32,9 @@ var Reader = (function (r) {
 	// User-set preferences that are related to the display options.
 	var i, rule;
 	r.preferences = {
+		publisherStyles: {
+			value: true
+		},
 		maxChapterElements: {
 			min: 100,
 			max: 10000,
