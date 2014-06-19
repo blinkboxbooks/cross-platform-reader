@@ -73,6 +73,23 @@ angular.module('app', ['ngRoute'])
 			lineHeight: !isNaN(parseFloat($routeParams.width)) ? parseFloat($routeParams.lineHeight) : 1.2,
 			fontSize: $routeParams.fontSize || 1
 		};
+		if ($routeParams.publisherStyles) {
+			try {
+				$scope.preferences.publisherStyles = $.parseJSON($routeParams.publisherStyles);
+			} catch(ignore) {}
+		}
+		if ($routeParams.maxChapterElements) {
+			$scope.preferences.maxChapterElements = Number($routeParams.maxChapterElements);
+		}
+		if ($routeParams.preloadRange) {
+			$scope.preferences.preloadRange = Number($routeParams.preloadRange);
+		}
+		if ($routeParams.transitionDuration) {
+			$scope.preferences.transitionDuration = Number($routeParams.transitionDuration);
+		}
+		if ($routeParams.transitionTimingFunction) {
+			$scope.preferences.transitionTimingFunction = $routeParams.transitionTimingFunction;
+		}
 
 		// Line height increase/decrease
 		$scope.formSettings = {
