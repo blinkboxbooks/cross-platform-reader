@@ -14,7 +14,8 @@ beforeEach(function() {
 		},
 		toBeApx: function(expected, diff) {
 			diff = diff || 1; // note, diff cannot be 0, use toEqual instead
-			return this.actual > expected - diff && this.actual < expected + diff;
+			var actual = parseInt(this.actual, 10);
+			return actual > expected - diff && actual < expected + diff;
 		}
 	});
 
