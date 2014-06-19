@@ -132,13 +132,17 @@ var Reader = (function (r) {
 
 			// Enable/Disable publisher styles.
 			if(args.hasOwnProperty('publisherStyles')){
-				value = r.preferences.publisherStyles.value = Boolean(args.publisherStyles);
-				if (value) {
-					r.addPublisherStyles().then(function () {
+				value = Boolean(args.publisherStyles);
+				if (value !== r.preferences.publisherStyles.value) {
+					r.preferences.publisherStyles.value = value;
+					if (value) {
+						r.addPublisherStyles().then(function () {
+							r.refreshLayout();
+						});
+					} else {
+						r.resetPublisherStyles();
 						r.refreshLayout();
-					});
-				} else {
-					r.resetPublisherStyles();
+					}
 				}
 			}
 
