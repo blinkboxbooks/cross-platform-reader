@@ -21,6 +21,16 @@
 // * [`setTheme`](#setTheme)
 
 var Reader = (function (r) {
+	// <a name="enablePublisherStyles"></a>
+	r.enablePublisherStyles = function(){
+		return r.setPreferences({publisherStyles: true});
+	};
+
+	// <a name="disablePublisherStyles"></a>
+	r.disablePublisherStyles = function(){
+		return r.setPreferences({publisherStyles: false});
+	};
+
 	// <a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).
 	r.setMaxChapterElements = function(value){
 		return r.setPreferences({maxChapterElements: value});
@@ -119,6 +129,18 @@ var Reader = (function (r) {
 	r.setPreferences = function(args){
 		if(typeof args === 'object'){
 			var value, updated = false;
+
+			// Enable/Disable publisher styles.
+			if(args.hasOwnProperty('publisherStyles')){
+				value = r.preferences.publisherStyles.value = Boolean(args.publisherStyles);
+				if (value) {
+					r.addPublisherStyles().then(function () {
+						r.refreshLayout();
+					});
+				} else {
+					r.resetPublisherStyles();
+				}
+			}
 
 			// Set max chapter elements (within bounds).
 			// Updating max chapter elements does not need any styles update nor a layout refresh,
