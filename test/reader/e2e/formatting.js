@@ -64,4 +64,26 @@ describe('Formatting', function() {
 		});
 	});
 
+	describe('Font family', function() {
+
+		it('should initialise the reader with the default font family', function() {
+			page.readerContext(function(contents){
+				expect(contents.getCssValue('font-family')).toEqual('Helvetica');
+			});
+		});
+
+		it('should apply font family', function(){
+			page.fontFamily.then(function(options){
+				options.forEach(function(option){
+					option.click().getText().then(function(value){
+						page.readerContext(function(contents){
+							expect(contents.getCssValue('font-family')).toContain(value);
+						});
+					});
+				});
+			});
+		});
+
+	});
+
 });

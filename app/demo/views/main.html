@@ -37,7 +37,7 @@
 			<div class="form-group">
 				<label for="LineHeight" class="col-md-4 control-label">Line height (em)</label>
 				<div class="col-md-8">
-					<input id="LineHeight" class="form-control" ng-model="preferences.lineHeight" type="number" min="{{formSettings.lineHeight.min}}" max="{{formSettings.lineHeight.max}}" step="{{formSettings.lineHeight.step}}">
+					<input id="LineHeight" class="form-control" ng-model="preferences.lineHeight" data-test="line-height" type="number" min="{{formSettings.lineHeight.min}}" max="{{formSettings.lineHeight.max}}" step="{{formSettings.lineHeight.step}}">
 				</div>
 			</div>
 			<div class="form-group">
@@ -55,7 +55,7 @@
 			<div class="form-group">
 				<label for="Family" class="col-md-4 control-label">Font family</label>
 				<div class="col-md-8">
-					<select id="Family" class="form-control" ng-model="preferences.fontFamily"  ng-options="font for font in formSettings.fonts"></select>
+					<select id="Family" class="form-control" ng-model="preferences.fontFamily" data-test="font-family" ng-options="font for font in formSettings.fonts"></select>
 				</div>
 			</div>
 			<div class="form-group">

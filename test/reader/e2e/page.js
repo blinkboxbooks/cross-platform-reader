@@ -11,6 +11,8 @@ var Page = function(){
 		lineHeight = element(by.css('[data-test="line-height"]')),
 		contents = element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a')).first();
 
+	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
+
 	this.load = function(path){
 		browser.get(this.path + (path || ''));
 		browser.waitForAngular();
