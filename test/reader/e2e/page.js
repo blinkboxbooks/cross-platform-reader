@@ -12,6 +12,7 @@ var Page = function(){
 		contents = element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a')).first();
 
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
+	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
 
 	this.load = function(path){
 		browser.get(this.path + (path || ''));

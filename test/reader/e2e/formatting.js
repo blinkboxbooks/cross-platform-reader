@@ -86,4 +86,26 @@ describe('Formatting', function() {
 
 	});
 
+	describe('Text align', function() {
+
+		it('should initialise the reader with the default text align', function() {
+			page.readerContext(function(contents){
+				expect(contents.getCssValue('text-align')).toEqual('left');
+			});
+		});
+
+		it('should apply text align', function(){
+			page.textAlign.then(function(options){
+				options.forEach(function(option){
+					option.click().getText().then(function(value){
+						page.readerContext(function(contents){
+							expect(contents.getCssValue('text-align')).toEqual(value);
+						});
+					});
+				});
+			});
+		});
+
+	});
+
 });
