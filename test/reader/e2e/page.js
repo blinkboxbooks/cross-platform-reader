@@ -10,8 +10,8 @@ var Page = function(){
 
 	this.contents = element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a'));
 
-	this.load = function(){
-		browser.get(this.path);
+	this.load = function(path){
+		browser.get(this.path + (path || ''));
 		browser.waitForAngular();
 	};
 

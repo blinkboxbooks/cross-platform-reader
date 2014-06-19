@@ -1,9 +1,9 @@
 'use strict';
 
-beforeEach(function() {
+// some extra basic matchers
+require('jasmine-expect');
 
-	// some extra basic matchers
-	require('jasmine-expect');
+beforeEach(function() {
 
 	this.addMatchers({
 		toBeGreaterOrEqualThan: function(expected) {
@@ -12,8 +12,9 @@ beforeEach(function() {
 		toBeLessOrEqualThan: function(expected) {
 			return this.actual <= expected;
 		},
-		toHaveCss: function(){
-			return true;
+		toBeApx: function(expected, diff) {
+			diff = diff || 1; // note, diff cannot be 0, use toEqual instead
+			return this.actual > expected - diff && this.actual < expected + diff;
 		}
 	});
 

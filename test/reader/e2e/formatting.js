@@ -4,11 +4,6 @@ describe('Formatting', function() {
 
 	var page = require('./page.js');
 
-	it('should reload demo app', function() {
-		page.load();
-		expect(browser.getCurrentUrl()).toContain(page.path);
-	});
-
 	describe('Font size', function() {
 
 		var _fontSize = {
@@ -17,6 +12,8 @@ describe('Formatting', function() {
 		};
 
 		beforeEach(function(){
+			page.load();
+
 			var ptor = protractor.getInstance();
 			ptor.switchTo().frame('reader');
 			ptor.ignoreSynchronization = true;
@@ -29,13 +26,19 @@ describe('Formatting', function() {
 		});
 
 		it('should initialise the reader with the default font size', function() {
-			page.contents.map(function(el){
-				return el.getCssValue('font-size');
-			}).then(function(sizes){
-				sizes.forEach(function(size){
-					expect(parseInt(size, 10)).toBeWithinRange((_fontSize.default * _fontSize.unit) - 1, (_fontSize.default * _fontSize.unit) + 1);
-				});
+			expect(page.contents.first().getCssValue('font-size').then(function(size){
+				return parseInt(size, 10);
+			})).toBeApx(_fontSize.default * _fontSize.unit);
+		});
+
+		it('should apply font-size', function(){
+			/*
+			page.setFontSize(value).then(function(){
+				expect(page.contents.first().getCssValue('font-size').then(function(size){
+					return parseInt(size, 10);
+				})).toBeApx(value * _fontSize.unit);
 			});
+			*/
 		});
 
 	});
