@@ -45,7 +45,7 @@
     "grunt-protractor-runner": "^1.0.0",
     "grunt-shell": "^0.7.0",
     "protractor": "^0.24.1",
-    "underscore-node": "^0.1.2"
+    "jasmine-expect": "^1.21.0"
   },
   "engines": {
     "node": ">=0.8.0"

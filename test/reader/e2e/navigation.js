@@ -4,16 +4,7 @@ describe('Navigation', function() {
 
 	var page = require('./page.js');
 
-	beforeEach(function(){
-		console.log(jasmine.getEnv().currentSpec.description);
-	});
-
-	afterEach(function(){
-		// this is for development purposes only
-		// browser.sleep(10000);
-	});
-
-	it('should load demo app', function() {
+	it('should reload demo app', function() {
 		page.load();
 		expect(browser.getCurrentUrl()).toContain(page.path);
 	});
