@@ -8,11 +8,11 @@ var Page = function(){
 		status = element.all(by.css('[data-test="status"]')).first(),
 		errors = element.all(by.css('[data-test="error"]')),
 		fontSize = element(by.css('[data-test="font-size"]')),
-		lineHeight = element(by.css('[data-test="line-height"]')),
-		contents = element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a')).first();
+		lineHeight = element(by.css('[data-test="line-height"]'));
 
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
 	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
+	this.theme = element.all(by.css('[data-test="theme"] option'));
 
 	this.load = function(path){
 		browser.get(this.path + (path || ''));
@@ -71,7 +71,10 @@ var Page = function(){
 		ptor.switchTo().frame('reader');
 		ptor.ignoreSynchronization = true;
 
-		action(contents);
+		action(
+			element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a')).first(),
+			element(by.css('body'))
+		);
 
 		ptor.switchTo().defaultContent();
 		ptor.ignoreSynchronization = false;

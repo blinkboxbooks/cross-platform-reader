@@ -108,4 +108,50 @@ describe('Formatting', function() {
 
 	});
 
+	describe('Theme', function() {
+
+		var _themes = {
+			transparent : {
+				background : 'rgba(0, 0, 0, 0)',
+				color : 'rgba(0, 0, 0, 1)'
+			},
+			light : {
+				background : 'rgb(244, 244, 244)',
+				color : 'rgba(0, 0, 0, 1)'
+			},
+			dark : {
+				background : 'rgb(0, 0, 0)',
+				color : 'rgba(221, 221, 221, 1)'
+			},
+			sepia : {
+				background : 'rgb(237, 231, 213)',
+				color : 'rgba(24, 24, 24, 1)'
+			}
+		};
+
+		it('should initialise the reader with the default theme', function() {
+			page.readerContext(function(contents, body){
+				expect(contents.getCssValue('color')).toEqual('rgba(0, 0, 0, 1)');
+				expect(body.getCssValue('backgroundColor')).toEqual('rgb(244, 244, 244)');
+			});
+		});
+
+		it('should apply theme', function(){
+
+			page.theme.then(function(options){
+				options.forEach(function(option){
+					option.click().getText().then(function(value){
+						page.readerContext(function(contents, body){
+							expect(body.getCssValue('backgroundColor')).toEqual(_themes[value].background);
+							expect(contents.getCssValue('color')).toEqual(_themes[value].color);
+
+						});
+					});
+				});
+			});
+
+		});
+
+	});
+
 });
