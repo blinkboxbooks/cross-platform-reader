@@ -8,6 +8,8 @@ var Page = function(){
 		status = element.all(by.css('[data-test="status"]')).first(),
 		errors = element.all(by.css('[data-test="error"]'));
 
+	this.contents = element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a'));
+
 	this.load = function(){
 		browser.get(this.path);
 		browser.waitForAngular();
