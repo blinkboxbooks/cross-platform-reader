@@ -2,24 +2,24 @@
 
 beforeEach(function() {
 
-	var $ = require('jquery');
+	var _ = require('underscore-node');
 
 	this.addMatchers({
-		toBeArray: function() {
-			var result = $.isArray(this.actual);
+		toBeArray: function(length) {
+			var result = _.isArray(this.actual);
 			if(result && length){
 				result = (this.actual.length === length);
 			}
 			return result;
 		},
 		toBeFunction: function() {
-			return $.isFunction(this.actual);
+			return _.isFunction(this.actual);
 		},
 		toBeObject: function(){
-			return $.isPlainObject(this.actual);
+			return _.isObject(this.actual);
 		},
 		toBeNumber: function() {
-			return $.isNumeric(this.actual);
+			return _.isNumber(this.actual);
 		},
 		toBeGreaterOrEqualThan: function(expected) {
 			return this.actual >= expected;
