@@ -131,8 +131,8 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default theme', function() {
 			page.readerContext(function(contents, body){
-				expect(contents.getCssValue('color')).toEqual('rgba(0, 0, 0, 1)');
-				expect(body.getCssValue('backgroundColor')).toEqual('rgb(244, 244, 244)');
+				expect(contents.getCssValue('color')).toEqualColor(_themes.light.color);
+				expect(body.getCssValue('backgroundColor')).toEqualColor(_themes.light.background);
 			});
 		});
 
@@ -142,9 +142,8 @@ describe('Formatting', function() {
 				options.forEach(function(option){
 					option.click().getText().then(function(value){
 						page.readerContext(function(contents, body){
-							expect(body.getCssValue('backgroundColor')).toEqual(_themes[value].background);
-							expect(contents.getCssValue('color')).toEqual(_themes[value].color);
-
+							expect(body.getCssValue('backgroundColor')).toEqualColor(_themes[value].background);
+							expect(contents.getCssValue('color')).toEqualColor(_themes[value].color);
 						});
 					});
 				});

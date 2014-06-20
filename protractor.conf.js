@@ -54,7 +54,7 @@ exports.config = {
 	// Spec patterns are relative to the location of this config.
 	specs: [
 		'test/reader/e2e/formatting.js',
-		'test/reader/e2e/navigation.js'
+		// 'test/reader/e2e/navigation.js'
 	],
 
 	// Patterns to exclude.

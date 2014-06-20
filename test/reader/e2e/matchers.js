@@ -2,6 +2,7 @@
 
 // some extra basic matchers
 require('jasmine-expect');
+var Color = require('Color');
 
 beforeEach(function() {
 
@@ -16,6 +17,10 @@ beforeEach(function() {
 			diff = diff || 1; // note, diff cannot be 0, use toEqual instead
 			var actual = parseInt(this.actual, 10);
 			return actual > expected - diff && actual < expected + diff;
+		},
+		toEqualColor: function(expected){
+			var actualColor = new Color(this.actual), expectedColor = new Color(expected);
+			return actualColor.hexString() === expectedColor.hexString() && actualColor.alpha() === expectedColor.alpha();
 		}
 	});
 
