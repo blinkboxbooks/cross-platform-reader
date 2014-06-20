@@ -53,8 +53,9 @@ exports.config = {
 	//
 	// Spec patterns are relative to the location of this config.
 	specs: [
-		'test/reader/e2e/bookmarks.js',
+		//'test/reader/e2e/bookmarks.js',
 		//'test/reader/e2e/formatting.js',
+		'test/reader/e2e/layout.js',
 		// 'test/reader/e2e/navigation.js'
 	],
 

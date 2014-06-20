@@ -9,7 +9,12 @@ var Page = function(){
 		errors = element.all(by.css('[data-test="error"]')),
 		fontSize = element(by.css('[data-test="font-size"]')),
 		lineHeight = element(by.css('[data-test="line-height"]')),
-		bookmark = element(by.css('[data-test="bookmark-button"]'));
+		bookmark = element(by.css('[data-test="bookmark-button"]')),
+		width = element(by.css('[data-test="width"]')),
+		height = element(by.css('[data-test="height"]')),
+		columns = element(by.css('[data-test="columns"]')),
+		padding = element(by.css('[data-test="padding"]')),
+		reader = element(by.css('[data-test="reader"] iframe'));
 
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
 	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
@@ -123,16 +128,19 @@ var Page = function(){
 		return _defer.promise;
 	};
 
-	this.setFontSize = function(value){
-		return fontSize.clear().then(function(){
-			return fontSize.sendKeys(value);
+	// clears an input and sets the specified value
+	var _input = function(el, value){
+		return el.clear().then(function(){
+			return el.sendKeys(value);
 		});
 	};
 
+	this.setFontSize = function(value){
+		return _input(fontSize, value);
+	};
+
 	this.setLineHeight = function(value){
-		return lineHeight.clear().then(function(){
-			return lineHeight.sendKeys(value);
-		});
+		return _input(lineHeight, value);
 	};
 
 	this.bookmark = function(){
@@ -142,6 +150,16 @@ var Page = function(){
 		});
 	};
 
+	this.resize = function(dimension){
+		return protractor.promise.all([
+				_input(width, dimension.width),
+				_input(height, dimension.height),
+				_input(columns, dimension.columns),
+				_input(padding, dimension.padding),
+			]).then(function(){
+				return reader.getSize();
+			});
+	};
 };
 
 module.exports = new Page();

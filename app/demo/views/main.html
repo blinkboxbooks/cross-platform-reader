@@ -21,7 +21,7 @@
 			<button class="btn btn-default" ng-disabled="!book.hasPrevious" ng-click="handlers.prev()"  data-test="prev-button">Previous</button>
 			<button class="btn btn-default" ng-disabled="!book.hasNext" ng-click="handlers.next()" data-test="next-button">Next</button>
 		</p>
-		<div id="reader_container"></div>
+		<div id="reader_container" data-test="reader"></div>
 		<div>
 			<a class="btn btn-default" ng-click="handlers.cfi()">Get CFI</a>
 			<a class="btn btn-default" ng-click="handlers.bookmark()" data-test="bookmark-button">Bookmark</a>
@@ -78,25 +78,25 @@
 			<div class="form-group">
 				<label for="Width" class="col-md-4 control-label">Width (px)</label>
 				<div class="col-md-8">
-					<input id="Width" class="form-control" ng-model="layout.width" type="number" min="0">
+					<input id="Width" class="form-control" data-test="width" ng-model="layout.width" type="number" min="0">
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="Height" class="col-md-4 control-label">Height (px)</label>
 				<div class="col-md-8">
-					<input id="Height" class="form-control" ng-model="layout.height" type="number" min="0">
+					<input id="Height" class="form-control" data-test="height" ng-model="layout.height" type="number" min="0">
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="Columns" class="col-md-4 control-label">Columns (int)</label>
 				<div class="col-md-8">
-					<input id="Columns" type="number" class="form-control" ng-model="layout.columns" type="number" min="1">
+					<input id="Columns" type="number" class="form-control" data-test="columns" ng-model="layout.columns" type="number" min="1">
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="Padding" class="col-md-4 control-label">Padding (px)</label>
 				<div class="col-md-8">
-					<input id="Padding" type="number" class="form-control" ng-model="layout.padding" min="0">
+					<input id="Padding" type="number" class="form-control" data-test="padding" ng-model="layout.padding" min="0">
 				</div>
 			</div>
 		</form>
