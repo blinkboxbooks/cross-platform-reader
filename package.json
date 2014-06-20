@@ -46,7 +46,9 @@
     "grunt-shell": "^0.7.0",
     "protractor": "^0.24.1",
     "jasmine-expect": "^1.21.0",
-    "color": "^0.6.0"
+    "color": "^0.6.0",
+    "chai": "^1.9.1",
+    "chai-as-promised": "^4.1.1"
   },
   "engines": {
     "node": ">=0.8.0"

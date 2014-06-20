@@ -2,7 +2,7 @@
 
 describe('Bookmarks', function() {
 
-	var page = require('./page.js');
+	var page = require('../page.js');
 
 	it('should reload demo app', function() {
 		page.load();

@@ -2,7 +2,7 @@
 
 describe('Formatting', function() {
 
-	var page = require('./page.js');
+	var page = require('../page.js');
 
 	it('should reload the demo', function() {
 		page.load();

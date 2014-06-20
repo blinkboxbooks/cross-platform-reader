@@ -53,7 +53,7 @@ exports.config = {
 	//
 	// Spec patterns are relative to the location of this config.
 	specs: [
-		'test/reader/e2e/*.js'
+		'test/reader/cucumber/*.feature'
 	],
 
 	// Patterns to exclude.
@@ -89,13 +89,12 @@ exports.config = {
 	// before the specs are executed
 	// You can specify a file containing code to run by setting onPrepare to
 	// the filename string.
-	onPrepare: 'test/reader/matchers.js',
-		// function() {
+	onPrepare: function() {
 		// At this point, global 'protractor' object will be set up, and jasmine
 		// will be available. For example, you can add a Jasmine reporter with:
 		//     jasmine.getEnv().addReporter(new jasmine.JUnitXmlReporter(
 		//         'outputdir/', true, true));
-		// },
+	},
 
 	// The params object will be passed directly to the protractor instance,
 	// and can be accessed from your test. It is an arbitrary object and can
@@ -114,7 +113,7 @@ exports.config = {
 	// Jasmine and Cucumber are fully supported as a test and assertion framework.
 	// Mocha has limited beta support. You will need to include your own
 	// assertion framework if working with mocha.
-	framework: 'jasmine',
+	framework: 'cucumber',
 
 	// ----- Options to be passed to minijasminenode -----
 	//
@@ -143,7 +142,7 @@ exports.config = {
 	// ----- Options to be passed to cucumber -----
 	cucumberOpts: {
 		// Require files before executing the features.
-		require: 'cucumber/stepDefinitions.js',
+		require: 'test/reader/cucumber/stepDefinitions.js',
 		// Only execute the features or scenarios with tags matching @dev.
 		tags: '@dev',
 		// How to format features (default: progress)

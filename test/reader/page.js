@@ -1,7 +1,7 @@
 'use strict';
 
 var Page = function(){
-	this.path = '/demo/#!/9780007441235?env=2&publisherStyles=false&transitionDuration=0';
+	this.path = '/demo/#!/';
 
 	var nextButton = element(by.css('[data-test="next-button"]')),
 		prevButton = element(by.css('[data-test="prev-button"]')),
@@ -20,9 +20,10 @@ var Page = function(){
 	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
 	this.theme = element.all(by.css('[data-test="theme"] option'));
 	this.margin = element.all(by.css('[data-test="margin"] option'));
+	this.isbn = element(by.css('[data-test="isbn"]'));
 
 	this.load = function(path){
-		browser.get(this.path + (path || ''));
+		browser.get(this.path + (path || '9780007441235?env=2&publisherStyles=false&transitionDuration=0'));
 		browser.waitForAngular();
 	};
 
