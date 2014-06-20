@@ -13,6 +13,7 @@ var Page = function(){
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
 	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
 	this.theme = element.all(by.css('[data-test="theme"] option'));
+	this.margin = element.all(by.css('[data-test="margin"] option'));
 
 	this.load = function(path){
 		browser.get(this.path + (path || ''));
@@ -73,7 +74,11 @@ var Page = function(){
 
 		action(
 			element.all(by.css('#cpr-reader span, #cpr-reader p, #cpr-reader em, #cpr-reader div, #cpr-reader strong, #cpr-reader a')).first(),
-			element(by.css('body'))
+			element(by.css('body')),
+			element(by.css('#cpr-reader')),
+			element(by.css('#cpr-header')),
+			element(by.css('#cpr-footer')),
+			element(by.css('body > div:nth-of-type(2)')) // todo better selector
 		);
 
 		ptor.switchTo().defaultContent();
