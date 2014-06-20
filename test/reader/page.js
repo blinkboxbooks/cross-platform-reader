@@ -1,7 +1,7 @@
 'use strict';
 
 var Page = function(){
-	this.path = '/demo/#!/';
+	this.path = 'http://localhost:9001/demo/#!/';
 
 	var nextButton = element(by.css('[data-test="next-button"]')),
 		prevButton = element(by.css('[data-test="prev-button"]')),
@@ -23,7 +23,9 @@ var Page = function(){
 	this.isbn = element(by.css('[data-test="isbn"]'));
 
 	this.load = function(path){
-		browser.get(this.path + (path || '9780007441235?env=2&publisherStyles=false&transitionDuration=0'));
+		// phantomjs issue https://github.com/angular/protractor/issues/557
+		// avoid using browser.get directly
+		browser.driver.get(this.path + (path || '9780007441235?env=2&publisherStyles=false&transitionDuration=0'));
 		browser.waitForAngular();
 	};
 
