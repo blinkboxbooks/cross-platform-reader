@@ -383,18 +383,10 @@ module.exports = function (grunt) {
 					configFile: 'cucumber.conf.js',
 				}
 			}
-		},
-		shell: {
-			test: {
-				options: {
-					stdout: true
-				},
-				command: 'node node_modules/protractor/bin/webdriver-manager update'
-			}
-		},
+		}
 	});
 
-	grunt.registerTask('test', ['shell', 'connect:test', 'protractor']);
+	grunt.registerTask('test', ['connect:test', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([

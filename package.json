@@ -5,7 +5,8 @@
   "scripts": {
     "pages": "sh config/pages.sh",
     "tags": "sh config/tags.sh",
-    "push": "sh config/push.sh"
+    "push": "sh config/push.sh",
+		"install": "node node_modules/protractor/bin/webdriver-manager update"
   },
   "dependencies": {},
   "devDependencies": {
@@ -43,7 +44,6 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-contrib-connect": "^0.7.1",
     "grunt-protractor-runner": "^1.0.0",
-    "grunt-shell": "^0.7.0",
     "protractor": "^0.24.1",
     "jasmine-expect": "^1.21.0",
     "color": "^0.6.0",
