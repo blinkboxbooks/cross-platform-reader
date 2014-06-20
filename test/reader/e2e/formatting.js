@@ -153,7 +153,8 @@ describe('Formatting', function() {
 
 	describe('Margin', function() {
 
-		var _margin = {
+		// default values
+		var _width = 400, _margin = {
 			min : [9.8, 4, 6.5, 4],
 			max: [9.8, 17.75, 6.5, 17.75],
 			medium: [9.8, 11, 6.5, 11]
@@ -161,37 +162,16 @@ describe('Formatting', function() {
 
 		it('should initialise the reader with the default margins', function() {
 			page.readerContext(function(contents, body, reader, header, footer, container){
-				protractor.promise.all([
-					header.getCssValue('margin-left'),
-					header.getCssValue('margin-right'),
-					footer.getCssValue('margin-left'),
-					footer.getCssValue('margin-right'),
-					container.getCssValue('margin-left'),
-					container.getCssValue('margin-right'),
-					body.getCssValue('width')
-				]).then(function(result){
-						var header = {
-								marginLeft: result[0],
-								marginRight: result[1]
-							},
-							footer = {
-								marginLeft: result[2],
-								marginRight: result[3]
-							},
-							container = {
-								marginLeft: result[4],
-								marginRight: result[5]
-							},
-							width = parseInt(result[6], 10),
-							expected = {
-								marginLeft: Math.floor(_margin.medium[1]/100 * width) + 'px',
-								marginRight: Math.floor(_margin.medium[3]/100 * width) + 'px'
-							};
-
-						expect(header).toEqual(expected);
-						expect(footer).toEqual(expected);
-						expect(container).toEqual(expected);
-					});
+				var expected = {
+					marginLeft: Math.floor(_margin.medium[1]/100 * _width) + 'px',
+					marginRight: Math.floor(_margin.medium[3]/100 * _width) + 'px'
+				};
+				expect(header.getCssValue('margin-left')).toEqual(expected.marginLeft);
+				expect(header.getCssValue('margin-right')).toEqual(expected.marginRight);
+				expect(footer.getCssValue('margin-left')).toEqual(expected.marginLeft);
+				expect(footer.getCssValue('margin-right')).toEqual(expected.marginRight);
+				expect(container.getCssValue('margin-left')).toEqual(expected.marginLeft);
+				expect(container.getCssValue('margin-right')).toEqual(expected.marginRight);
 			});
 		});
 
@@ -200,37 +180,16 @@ describe('Formatting', function() {
 				options.forEach(function(option){
 					option.click().getText().then(function(value){
 						page.readerContext(function(contents, body, reader, header, footer, container){
-							protractor.promise.all([
-									header.getCssValue('margin-left'),
-									header.getCssValue('margin-right'),
-									footer.getCssValue('margin-left'),
-									footer.getCssValue('margin-right'),
-									container.getCssValue('margin-left'),
-									container.getCssValue('margin-right'),
-									body.getCssValue('width')
-								]).then(function(result){
-									var header = {
-											marginLeft: result[0],
-											marginRight: result[1]
-										},
-										footer = {
-											marginLeft: result[2],
-											marginRight: result[3]
-										},
-										container = {
-											marginLeft: result[4],
-											marginRight: result[5]
-										},
-										width = parseInt(result[6], 10),
-										expected = {
-											marginLeft: Math.floor(_margin[value][1]/100 * width) + 'px',
-											marginRight: Math.floor(_margin[value][3]/100 * width) + 'px'
-										};
-
-									expect(header).toEqual(expected);
-									expect(footer).toEqual(expected);
-									expect(container).toEqual(expected);
-								});
+							var expected = {
+								marginLeft: Math.floor(_margin[value][1]/100 * _width) + 'px',
+								marginRight: Math.floor(_margin[value][3]/100 * _width) + 'px'
+							};
+							expect(header.getCssValue('margin-left')).toEqual(expected.marginLeft);
+							expect(header.getCssValue('margin-right')).toEqual(expected.marginRight);
+							expect(footer.getCssValue('margin-left')).toEqual(expected.marginLeft);
+							expect(footer.getCssValue('margin-right')).toEqual(expected.marginRight);
+							expect(container.getCssValue('margin-left')).toEqual(expected.marginLeft);
+							expect(container.getCssValue('margin-right')).toEqual(expected.marginRight);
 						});
 					});
 				});
