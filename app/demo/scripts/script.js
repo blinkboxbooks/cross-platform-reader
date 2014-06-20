@@ -40,6 +40,8 @@ angular.module('app', ['ngRoute'])
 				case 7: // reader status update
 					$('[data-test="status"]').removeAttr('data-test');
 					$p.attr('data-test', 'status');
+					/*jshint -W020 */
+					status = e;
 					break;
 				case 9: // reader missing a file
 				case 10: // parsing failed
@@ -62,6 +64,9 @@ angular.module('app', ['ngRoute'])
 			hasNext: true,
 			hasPrevious: true
 		};
+
+		// keep track of the reader status
+		var status = null;
 
 		// Use '/books/' + isbn + '/' if you want to check the books in your localhost (you would need the books from the share drive  /Documents/ePubs/Test-Books-book-info-v1.2.zip
 		$scope.environment = {
@@ -154,7 +159,11 @@ angular.module('app', ['ngRoute'])
 			},
 			bookmark: function(){
 				$('[data-test="status"]').removeAttr('data-test');
-				READER.setBookmark();
+				if(status.bookmarksInPage.length){
+					status.bookmarksInPage.forEach(READER.removeBookmark);
+				} else {
+					READER.setBookmark();
+				}
 			}
 		};
 
