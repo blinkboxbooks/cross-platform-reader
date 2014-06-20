@@ -373,11 +373,16 @@ module.exports = function (grunt) {
 			}
 		},
 		protractor: {
-			options: {
-				configFile: 'protractor.conf.js',
-				keepAlive: false
+			e2e: {
+				options: {
+					configFile: 'protractor.conf.js',
+				}
 			},
-			test: {},
+			cucumber: {
+				options: {
+					configFile: 'cucumber.conf.js',
+				}
+			}
 		},
 		shell: {
 			test: {
@@ -389,9 +394,7 @@ module.exports = function (grunt) {
 		},
 	});
 
-	grunt.registerTask('ptor', function () {
-		grunt.task.run(['shell', 'connect:test', 'protractor']);
-	});
+	grunt.registerTask('test', ['shell', 'connect:test', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([
@@ -405,7 +408,7 @@ module.exports = function (grunt) {
 		if(target !== 'watch'){
 			grunt.task.run([
 				'concat:reader',
-				// 'test:reader', // run unit tests for the reader library
+				'test', // run unit tests for the reader library
 				'uglify:reader', // move and minify the reader
 				'copy:reader', // copy jquery, necessary for reader
 				'rev:reader' // cache buster
@@ -444,13 +447,6 @@ module.exports = function (grunt) {
 	grunt.registerTask('server', function () {
 		grunt.log.warn('The `server` task has been deprecated. Use `grunt serve` to start a server.');
 		grunt.task.run('serve');
-	});
-
-	grunt.registerTask('test', function (target) {
-		target = target || 'reader';
-		grunt.task.run([
-			'karma:' + target
-		]);
 	});
 
 	grunt.registerTask('build', [
