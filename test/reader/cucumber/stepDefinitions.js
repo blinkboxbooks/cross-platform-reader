@@ -16,8 +16,31 @@ module.exports = function() {
 		next();
 	});
 
+	this.Given(/^I go to chapter (\d+) page (\d+)$/, function (chapter, pageNumber, next) {
+
+		chapter = parseInt(chapter, 10);
+		pageNumber = parseInt(pageNumber, 10);
+
+		var _go = function(status){
+			if(status.chapter === chapter && status.page === pageNumber){
+				next();
+			} else {
+				// test for failure
+				page.next().then(_go);
+			}
+		};
+
+		page.next().then(_go);
+	});
+
 	this.Then(/^the isbn should equal "([^"]*)"$/, function(isbn, next) {
 		expect(page.isbn.getText()).to.eventually.equal(isbn).and.notify(next);
 	});
 
+	this.Then(/^I want to bookmark the current page$/, function (next) {
+		page.bookmark().then(function(status){
+			expect(status.bookmarksInPage.length).to.equal(1);
+			next();
+		});
+	});
 };

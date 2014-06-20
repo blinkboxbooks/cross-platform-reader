@@ -1,3 +1,4 @@
+@dev
 Feature: Example scenarios
   As a user of the cross platform reader library
   I want to write tests for it

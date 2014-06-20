@@ -66,7 +66,7 @@ exports.config = {
 	// and
 	// https://code.google.com/p/selenium/source/browse/javascript/webdriver/capabilities.js
 	capabilities: {
-		'browserName': 'phantomjs',
+		'browserName': 'chrome',
 		'phantomjs.binary.path': 'node_modules/karma-phantomjs-launcher/node_modules/phantomjs/bin/phantomjs'
 	},
 
