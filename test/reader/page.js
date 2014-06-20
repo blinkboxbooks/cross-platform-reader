@@ -117,7 +117,7 @@ var Page = function(){
 				promise.then(function(){
 					// the action will be rejected if the action cannot be completed (exp calling next on the last page)
 					_action().then(_loop, _defer.fulfill);
-				});
+				}, _defer.fulfill);
 			} else {
 				// the action will be rejected if the action cannot be completed (exp calling next on the last page)
 				_action().then(_loop, _defer.fulfill);

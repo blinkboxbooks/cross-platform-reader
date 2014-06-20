@@ -17,20 +17,28 @@ module.exports = function() {
 	});
 
 	this.Given(/^I go to chapter (\d+) page (\d+)$/, function (chapter, pageNumber, next) {
-
 		chapter = parseInt(chapter, 10);
 		pageNumber = parseInt(pageNumber, 10);
 
-		var _go = function(status){
-			if(status.chapter === chapter && status.page === pageNumber){
-				next();
-			} else {
-				// test for failure
-				page.next().then(_go);
-			}
-		};
+		var found = false;
 
-		page.next().then(_go);
+		// loop through the book until the specified location is found
+		page.loop(function(status){
+			if(status.chapter === chapter && status.page === pageNumber){
+				found = true;
+				return protractor.promise.rejected(); // stop loop
+			} else {
+				if(status.chapter > chapter || (status.chapter === chapter && status.page > pageNumber)){
+					return protractor.promise.rejected(); // stop loop
+				}
+			}
+		}).then(function(){
+				if(found){
+					next();
+				}	else {
+					next.fail('Book location not found');
+				}
+			});
 	});
 
 	this.Then(/^the isbn should equal "([^"]*)"$/, function(isbn, next) {
