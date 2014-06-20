@@ -53,8 +53,9 @@ exports.config = {
 	//
 	// Spec patterns are relative to the location of this config.
 	specs: [
-		'test/reader/e2e/formatting.js',
-		'test/reader/e2e/navigation.js'
+		'test/reader/e2e/bookmarks.js',
+		//'test/reader/e2e/formatting.js',
+		// 'test/reader/e2e/navigation.js'
 	],
 
 	// Patterns to exclude.
@@ -67,7 +68,7 @@ exports.config = {
 	// and
 	// https://code.google.com/p/selenium/source/browse/javascript/webdriver/capabilities.js
 	capabilities: {
-		'browserName': 'phantomjs',
+		'browserName': 'chrome',
 		'phantomjs.binary.path': 'node_modules/karma-phantomjs-launcher/node_modules/phantomjs/bin/phantomjs'
 	},
 

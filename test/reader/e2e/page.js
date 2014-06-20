@@ -8,7 +8,8 @@ var Page = function(){
 		status = element.all(by.css('[data-test="status"]')).first(),
 		errors = element.all(by.css('[data-test="error"]')),
 		fontSize = element(by.css('[data-test="font-size"]')),
-		lineHeight = element(by.css('[data-test="line-height"]'));
+		lineHeight = element(by.css('[data-test="line-height"]')),
+		bookmark = element(by.css('[data-test="bookmark-button"]'));
 
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
 	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
@@ -104,10 +105,17 @@ var Page = function(){
 			_action = !reverse ? this.next : this.prev;
 
 		var	_loop = function(status){
-			callback(status);
+			var promise = callback(status);
 
-			// the action will be rejected if the action cannot be completed (exp calling next on the last page)
-			_action().then(_loop, _defer.fulfill);
+			if(protractor.promise.isPromise(promise)){
+				promise.then(function(){
+					// the action will be rejected if the action cannot be completed (exp calling next on the last page)
+					_action().then(_loop, _defer.fulfill);
+				});
+			} else {
+				// the action will be rejected if the action cannot be completed (exp calling next on the last page)
+				_action().then(_loop, _defer.fulfill);
+			}
 		};
 
 		this.status().then(_loop);
@@ -124,6 +132,13 @@ var Page = function(){
 	this.setLineHeight = function(value){
 		return lineHeight.clear().then(function(){
 			return lineHeight.sendKeys(value);
+		});
+	};
+
+	this.bookmark = function(){
+		var status = this.status;
+		return bookmark.click().then(function(){
+			return status();
 		});
 	};
 
