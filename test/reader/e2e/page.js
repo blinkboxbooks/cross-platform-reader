@@ -1,7 +1,7 @@
 'use strict';
 
 var Page = function(){
-	this.path = '/demo/#!/9780007441235?env=2';
+	this.path = '/demo/#!/9780007441235?env=2&publisherStyles=false&transitionDuration=0';
 
 	var nextButton = element(by.css('[data-test="next-button"]')),
 		prevButton = element(by.css('[data-test="prev-button"]')),
