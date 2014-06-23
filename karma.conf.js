@@ -1,16 +1,11 @@
-// Karma configuration
-// Generated on Thu Jan 09 2014 13:33:24 GMT+0000 (GMT)
-
 module.exports = function(config) {
   config.set({
 
     // base path, that will be used to resolve files and exclude
     basePath: '',
 
-
     // frameworks to use
     frameworks: ['jasmine'],
-
 
     // list of files / patterns to load in the browser
 		// set using grunt
@@ -25,8 +20,9 @@ module.exports = function(config) {
 			'app/reader/scripts/*.js',
 
 			// the tests
-			'test/reader/spec/*.js',
 			'test/reader/helpers.js',
+			'test/reader/fixtures.js',
+			'test/reader/unit/*.js',
 
 			// the books
 			{
@@ -52,19 +48,15 @@ module.exports = function(config) {
     // web server port
     port: 9876,
 
-
     // enable / disable colors in the output (reporters and logs)
     colors: true,
-
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_INFO,
 
-
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: false,
-
 
     // Start these browsers, currently available:
     // - Chrome
@@ -76,10 +68,8 @@ module.exports = function(config) {
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
     browsers: ['Chrome', 'Firefox'],
 
-
     // If browser does not capture in given timeout [ms], kill it
     captureTimeout: 60000,
-
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
