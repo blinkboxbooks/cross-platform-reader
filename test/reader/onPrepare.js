@@ -26,8 +26,6 @@ beforeEach(function() {
 			return actualColor.hexString() === expectedColor.hexString() && actualColor.alpha() === expectedColor.alpha();
 		}
 	});
-
-	console.log(jasmine.getEnv().currentSpec.description);
 });
 
 var fs = require('fs'),
