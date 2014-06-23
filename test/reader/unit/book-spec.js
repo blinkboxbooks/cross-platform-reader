@@ -1,6 +1,6 @@
 'use strict';
 
-describe('book', function() {
+describe('Book', function() {
 
 	it('should provide the Book interface', function () {
 		expect(Reader.Book).toBeObject();
