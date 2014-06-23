@@ -400,7 +400,6 @@ module.exports = function (grunt) {
 		if(target !== 'watch'){
 			grunt.task.run([
 				'concat:reader',
-				'test', // run unit tests for the reader library
 				'uglify:reader', // move and minify the reader
 				'copy:reader', // copy jquery, necessary for reader
 				'rev:reader' // cache buster
@@ -446,6 +445,7 @@ module.exports = function (grunt) {
 		'jshint:test', // jshint the tests
 		'reader', // build the reader
 		'demo', // build the demo
+		'test', // run all tests
 		'copy:github', // copy github static pages
 		'replace:dist', // add reader version
 		'docco' // generates technical documentation
