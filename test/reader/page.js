@@ -22,10 +22,11 @@ var Page = function(){
 	this.margin = element.all(by.css('[data-test="margin"] option'));
 	this.isbn = element(by.css('[data-test="isbn"]'));
 
-	this.load = function(path){
+	this.load = function(isbn, env){
 		// phantomjs issue https://github.com/angular/protractor/issues/557
 		// avoid using browser.get directly
-		browser.driver.get(this.path + (path || '9780007441235?env=2&publisherStyles=false&transitionDuration=0'));
+		console.log(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles=false&transitionDuration=0');
+		browser.driver.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles=false&transitionDuration=0');
 		browser.waitForAngular();
 	};
 

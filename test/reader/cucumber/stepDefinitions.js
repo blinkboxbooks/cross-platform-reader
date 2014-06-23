@@ -12,7 +12,7 @@ var expect = chai.expect,
 module.exports = function() {
 
 	this.Given(/^I open book with the ISBN of ([^"]*)$/, function(isbn, next) {
-		page.load(isbn + '?env=1');
+		page.load(isbn, 1);
 		next();
 	});
 
