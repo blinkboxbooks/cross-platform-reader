@@ -517,11 +517,12 @@ var Reader = (function (r) {
 						$el.off();
 						// Remove the placeholder class from the image element:
 						$el.removeClass('cpr-placeholder');
-						// All images greater than 75% of the reader width will receive cpr-img-large class to center them:
-						var columnWidth = r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2;
-						if (el.width > 3/4*columnWidth) {
+						// All images greater than 75% of the reader width or height will receive cpr-img-large class to center them:
+						var columnWidth = r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2,
+								columnHeight = r.Layout.Reader.height;
+						if (el.width > 3/4 * columnWidth || el.height > 3/4 * columnHeight) {
 							$el.addClass('cpr-img-large');
-						} else  if(el.width > 1/4*columnWidth){
+						} else  if(el.width > 1/4 * columnWidth || el.height > 1/4 * columnHeight){
 							$el.addClass('cpr-img-medium');
 						} else {
 							$el.addClass('cpr-img-small');
