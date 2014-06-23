@@ -14,7 +14,6 @@ describe('Navigation', function() {
 		expect(status.cfi).not.toBeNull();
 		expect(status.cfi.CFI).toBeDefined();
 		expect(status.cfi.preview).toBeDefined();
-		expect(status.cfi.chapter).toBeDefined();
 		expect(status.bookmarksInPage).toBeArray();
 		expect(status.bookmarks).toBeArray();
 		expect(status.page).toBeNumber();
@@ -22,10 +21,6 @@ describe('Navigation', function() {
 		expect(status.chapter).toBeNumber();
 		expect(status.chapters).toBeNumber();
 		expect(status.progress).toBeNumber();
-
-		// expect the chapter label and preview to not be empty strings
-		expect(status.cfi.preview).toBeTruthy();
-		expect(status.cfi.chapter).toBeTruthy();
 
 		// expect progress to be valid
 		expect(status.progress).toBeGreaterOrEqualThan(0);
@@ -48,13 +43,9 @@ describe('Navigation', function() {
 			}
 
 			_previousStatus = status;
-
-			// keep track of progress
-			process.stdout.write('> ' + status.progress + '% \r');
 		}).then(function(){
 			expect(_previousStatus.progress).toBe(100);
 			expect(page.hasErrors()).toBe(false);
-			console.log();
 		});
 	});
 
@@ -70,13 +61,9 @@ describe('Navigation', function() {
 			}
 
 			_previousStatus = status;
-
-			// keep track of progress
-			process.stdout.write('> ' + status.progress + '% \r');
 		}, true).then(function(){
 			expect(_previousStatus.progress).toBe(0);
 			expect(page.hasErrors()).toBe(false);
-			console.log();
 		});
 	});
 });

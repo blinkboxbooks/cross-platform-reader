@@ -14,9 +14,6 @@ describe('Bookmarks', function() {
 		page.loop(function(status){
 			expect(status.bookmarksInPage).toBeEmptyArray();
 
-			// keep track of progress
-			process.stdout.write('> ' + status.progress + '% \r');
-
 			return page.bookmark().then(function(status){
 				expect(status.bookmarksInPage).toBeArrayOfSize(1);
 
