@@ -73,7 +73,7 @@ exports.config = {
 	multiCapabilities: [
 		{
 			'browserName': 'phantomjs',
-			'phantomjs.binary.path': 'node_modules/karma-phantomjs-launcher/node_modules/phantomjs/bin/phantomjs',
+			'phantomjs.binary.path': 'node_modules/phantomjs/bin/phantomjs',
 			'shardTestFiles': true,
 			'maxInstances': 10
 		}
