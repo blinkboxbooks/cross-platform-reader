@@ -1,12 +1,25 @@
 'use strict';
 
 var fixtures = {
-	BOOKMARK: {
+	"BOOKMARK_CHAPTER": 4,
+	"BOOKMARK": {
 		"CFI": "epubcfi(/6/10!/4/2[semiprologue]/2/4/2/2/1:0)",
-		"preview": "SEMIPROLOGUEIf you’re a hammer, everything looks like a nail.If you’re a singer, everything looks like a song.Life is short. Break the rules, forgive quickly, kiss slowly, love truly, laugh uncontrollably, and never regret anything that makes you smile.” We’re not quantified; there’s no chart of desire. When the roaring flames of your heart have burned down to embers, may you find that you have married your best friend. Hunch, conjecture, instinct . . . a blind allegiance to anything can get you killed, and always remember . . . sing as though no one can hear you; live as though ",
+		"preview": "",
 		"chapter": "SemiPrologue"
 	},
-	BOOK_DATA: {
+	"BOOKMARK_2_CHAPTER": 5,
+	"BOOKMARK_2": {
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/4/2/2/1:0)",
+		"preview": "",
+		"chapter": "Chapter 1"
+	},
+	"BOOKMARK_3_CHAPTER": 5,
+	"BOOKMARK_3": {
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/12/2/1:0)",
+		"preview": "",
+		"chapter": "Chapter 1"
+	},
+	"BOOK_DATA": {
 		"title": "Does the Noise in My Head Bother You?: The Autobiography",
 		"spine": [
 			{
