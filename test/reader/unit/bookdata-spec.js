@@ -3,6 +3,11 @@
 describe('Bookmarks', function() {
 
 	beforeEach(function () {
+		spyOn($, 'ajax').and.callFake(function () {
+			return {
+				then: $.noop
+			}
+		});
 		Reader.init({
 			container: $('<div></div>').appendTo($('body'))
 		});
@@ -304,6 +309,11 @@ describe('Bookmarks', function() {
 describe('Debug', function() {
 
 	beforeEach(function () {
+		spyOn($, 'ajax').and.callFake(function () {
+			return {
+				then: $.noop
+			}
+		});
 		Reader.init({
 			container: $('<div></div>').appendTo($('body'))
 		});
