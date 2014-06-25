@@ -19,6 +19,18 @@ var fixtures = {
 		"preview": "",
 		"chapter": "Chapter 1"
 	},
+	"BOOKMARK_4_CHAPTER": 5,
+	"BOOKMARK_4": {
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/28/1:33)",
+		"preview": "",
+		"chapter": "Chapter 1"
+	},
+	"BOOKMARK_5_CHAPTER": 5,
+	"BOOKMARK_5": {
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/30/1:45)",
+		"preview": "",
+		"chapter": "Chapter 1"
+	},
 	"BOOK_DATA_RAW": {
 		"version": "1.2",
 		"title": "Does the Noise in My Head Bother You?: The Autobiography",
