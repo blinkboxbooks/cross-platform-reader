@@ -237,6 +237,8 @@ var Reader = (function (r) {
 				return rect.left >= 0;
 			}
 		} else if(el.nodeType === 1){
+			// This check is only necessary for iOS webview bug, where caretRangeFromPoint returns the wrong element
+			// http://jira.blinkbox.local/jira/browse/CR-320
 			return r.returnPageElement(el) === r.Navigation.getPage();
 		}
 		return true;
