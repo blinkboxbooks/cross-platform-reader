@@ -3548,11 +3548,11 @@ var Reader = (function (r) {
 		}
 	};
 
-	var _textNodeInViewport = function(el, offset){
+	var _nodeInViewport = function(el, offset){
 		// this test is only for text nodes, relates to CR-300
 		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
 		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
-		if(el && el.nodeType === 3){
+		if(el.nodeType === 3){
 			var range = r.$iframe.contents()[0].createRange();
 			range.setStart(el, offset || 0);
 			var rects = range.getClientRects();
@@ -3560,6 +3560,10 @@ var Reader = (function (r) {
 				var rect = rects[0];
 				return rect.left >= 0;
 			}
+		} else if(el.nodeType === 1){
+			// This check is only necessary for iOS webview bug, where caretRangeFromPoint returns the wrong element
+			// http://jira.blinkbox.local/jira/browse/CR-320
+			return r.returnPageElement(el) === r.Navigation.getPage();
 		}
 		return true;
 	};
@@ -3578,7 +3582,7 @@ var Reader = (function (r) {
 			offset = range.startOffset;
 		}
 
-		if(!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)){
+		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset)){
 			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 			if(x < 3/4 * columnWidth){
 				x += columnWidth / 4;
@@ -4024,7 +4028,7 @@ var Reader = (function (r) {
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
 		r.$parent = $(param.container).empty();
-		r.$iframe = $('<iframe scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
+		r.$iframe = $('<iframe name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
 		r.$head = r.$iframe.contents().find('head');
 		r.$wrap = r.$iframe.contents().find('body');
 		r.$container = $('<div></div>').appendTo(r.$wrap);
@@ -4130,7 +4134,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.1.61-147'
+				appversion: '0.1.62-151'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4637,7 +4641,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.1.61-147'
+			'version': '0.1.62-151'
 		},
 		START_OF_BOOK : {
 			code: 8,
