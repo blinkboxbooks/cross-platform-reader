@@ -445,7 +445,7 @@ module.exports = function (grunt) {
 		'jshint:test', // jshint the tests
 		'reader', // build the reader
 		'demo', // build the demo
-		'test', // run all tests
+		// 'test', // run all tests
 		'copy:github', // copy github static pages
 		'replace:dist', // add reader version
 		'docco' // generates technical documentation
