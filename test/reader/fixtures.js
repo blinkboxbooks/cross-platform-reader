@@ -21,13 +21,19 @@ var fixtures = {
 	},
 	"BOOKMARK_4_CHAPTER": 5,
 	"BOOKMARK_4": {
-		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/28/1:33)",
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/28/1:27)",
 		"preview": "",
 		"chapter": "Chapter 1"
 	},
 	"BOOKMARK_5_CHAPTER": 5,
 	"BOOKMARK_5": {
-		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/30/1:45)",
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/30/1:0)",
+		"preview": "",
+		"chapter": "Chapter 1"
+	},
+	"BOOKMARK_6_CHAPTER": 5,
+	"BOOKMARK_6": {
+		"CFI": "epubcfi(/6/12!/4/2[chapter-1]/2/30/1:5)",
 		"preview": "",
 		"chapter": "Chapter 1"
 	},
