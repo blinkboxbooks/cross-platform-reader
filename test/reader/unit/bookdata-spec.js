@@ -9,7 +9,9 @@ describe('Bookmarks', function() {
 			}
 		});
 		Reader.init({
-			container: $('<div></div>').appendTo($('body'))
+			container: $('<div></div>').appendTo($('body')),
+			width: 400,
+			height: 600
 		});
 	});
 

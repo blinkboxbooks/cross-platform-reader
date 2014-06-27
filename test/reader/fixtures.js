@@ -4,7 +4,7 @@ var fixtures = {
 	"BOOKMARK_CHAPTER": 4,
 	"BOOKMARK": {
 		"CFI": "epubcfi(/6/10!/4/2[semiprologue]/2/4/2/2/1:0)",
-		"preview": "",
+		"preview": "Banana",
 		"chapter": "SemiPrologue"
 	},
 	"BOOKMARK_2_CHAPTER": 5,

@@ -9,8 +9,11 @@ describe('CFI', function() {
 			}
 		});
 		Reader.init({
-			container: $('<div></div>').appendTo($('body'))
+			container: $('<div></div>').appendTo($('body')),
+			width: 400,
+			height: 600
 		});
+		Reader.Book.load(fixtures.BOOK_DATA);
 	});
 
 	it('should provide the CFI interface', function () {
@@ -345,6 +348,70 @@ describe('CFI', function() {
 			expect(Reader.loadChapter).not.toHaveBeenCalled();
 		});
 
+	});
+
+	describe('getCFIObject', function () {
+
+		it('should return the CFI for the current position for a text node', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOKMARK.CFI,
+				preview: fixtures.BOOKMARK.preview,
+				chapter : fixtures.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+	});
+
+	it('should return the CFI for the current position for an element node', function () {
+		var doc = Reader.$iframe.contents()[0],
+			element = $('<div></div>').appendTo(Reader.$reader);
+		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOKMARK.CFI);
+		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+		spyOn(doc, 'createRange').and.returnValue({
+			setStart: $.noop,
+			getClientRects: function () {
+				return [{top: 0, left: 0}];
+			}
+		});
+		if (doc.caretRangeFromPoint) {
+			spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+				startContainer: element[0],
+				startOffset: 0
+			});
+		} else if (doc.caretPositionFromPoint) {
+			spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+				offsetNode: element[0],
+				offset: 0
+			});
+		}
+		expect(Reader.CFI.getCFIObject()).toEqual({
+			CFI: fixtures.BOOKMARK.CFI,
+			preview: '',
+			chapter : fixtures.BOOKMARK.chapter
+		});
+		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 	});
 
 });
