@@ -72,7 +72,7 @@ exports.config = {
 	// If this is specified, capabilities will be ignored.
 	multiCapabilities: [
 		{
-			'browserName': 'phantomjs',
+			'browserName': 'firefox',
 			'phantomjs.binary.path': 'node_modules/phantomjs/bin/phantomjs',
 			'shardTestFiles': true,
 			'maxInstances': 10
