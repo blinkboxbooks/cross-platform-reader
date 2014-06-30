@@ -29,29 +29,29 @@ describe('Bookmarks', function() {
 
 		it('should set the current CFI as bookmark', function () {
 			spyOn(Reader.Notify, 'error').and.callThrough();
-			spyOn(Reader.Navigation, 'getCurrentCFI').and.returnValue(fixtures.BOOKMARK);
-			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOKMARK_CHAPTER);
+			spyOn(Reader.Navigation, 'getCurrentCFI').and.returnValue(fixtures.BOOK.BOOKMARK);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'setCFI');
 			var result = Reader.Bookmarks.setBookmark();
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
-			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOKMARK.CFI, true);
-			expect(result).toEqual(JSON.stringify(fixtures.BOOKMARK));
+			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, true);
+			expect(result).toEqual(JSON.stringify(fixtures.BOOK.BOOKMARK));
 		});
 
 		it('should set the given CFI as bookmark', function () {
 			spyOn(Reader.Notify, 'error').and.callThrough();
 			spyOn(Reader.Navigation, 'getCurrentCFI').and.callThrough();
-			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOKMARK_CHAPTER);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'setCFI');
-			var result = Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Navigation.getCurrentCFI).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
-			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOKMARK.CFI, true);
-			expect(result).toEqual(fixtures.BOOKMARK.CFI);
+			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, true);
+			expect(result).toEqual(fixtures.BOOK.BOOKMARK.CFI);
 		});
 
 		it('should not set a marker if the second argument is true', function () {
@@ -59,23 +59,23 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Navigation, 'getChapter').and.callThrough();
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'setCFI');
-			var result = Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI, true);
+			var result = Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI, true);
 			expect(Reader.Navigation.getChapter).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).not.toHaveBeenCalled();
 			expect(Reader.CFI.setCFI).not.toHaveBeenCalled();
-			expect(result).toEqual(fixtures.BOOKMARK.CFI);
+			expect(result).toEqual(fixtures.BOOK.BOOKMARK.CFI);
 		});
 
 		it('should trigger an error if the bookmark has already been set', function () {
 			spyOn(Reader.Notify, 'error').and.callThrough();
-			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOKMARK_CHAPTER);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'setCFI');
-			Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
-			var result = Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
+			Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.display.calls.count()).toBe(1);
 			expect(Reader.CFI.setCFI.calls.count()).toBe(1);
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_EXISTS, {details: fixtures.BOOKMARK.CFI, call: 'setBookmark'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_EXISTS, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'setBookmark'}));
 			expect(result).toBeFalsy();
 		});
 
@@ -84,11 +84,11 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'setCFI');
 			spyOn(Reader.CFI, 'getChapterFromCFI').and.returnValue(-1);
-			Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
-			var result = Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
+			Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.display).not.toHaveBeenCalled();
 			expect(Reader.CFI.setCFI).not.toHaveBeenCalled();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_EXISTS, {details: fixtures.BOOKMARK.CFI, call: 'setBookmark'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_EXISTS, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'setBookmark'}));
 			expect(result).toBeFalsy();
 		});
 
@@ -98,10 +98,10 @@ describe('Bookmarks', function() {
 
 		it('Should return the list of bookmarks', function () {
 			var bookmarks = [];
-			bookmarks[fixtures.BOOKMARK_CHAPTER] = [fixtures.BOOKMARK.CFI];
+			bookmarks[fixtures.BOOK.BOOKMARK_CHAPTER] = [fixtures.BOOK.BOOKMARK.CFI];
 			spyOn(Reader.CFI, 'setCFI');
 			expect(Reader.Bookmarks.getBookmarks()).toEqual([]);
-			Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
+			Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.getBookmarks()).toEqual(bookmarks);
 		});
 
@@ -113,18 +113,18 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Notify, 'error').and.callThrough();
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'getChapterFromCFI').and.returnValue(-1);
-			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.display).not.toHaveBeenCalled();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_REMOVE, {details: fixtures.BOOKMARK.CFI, call: 'removeBookmark'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_REMOVE, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'removeBookmark'}));
 			expect(result).toBeFalsy();
 		});
 
 		it('should trigger an error if the bookmark does not exist', function () {
 			spyOn(Reader.Notify, 'error').and.callThrough();
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
-			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.display).not.toHaveBeenCalled();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_REMOVE, {details: fixtures.BOOKMARK.CFI, call: 'removeBookmark'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_REMOVE, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'removeBookmark'}));
 			expect(result).toBeFalsy();
 		});
 
@@ -132,10 +132,10 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Notify, 'error').and.callThrough();
 			spyOn(Reader.Bookmarks, 'display').and.callThrough();
 			spyOn(Reader.CFI, 'setCFI');
-			Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
-			expect(Reader.Bookmarks.getBookmarks()[fixtures.BOOKMARK_CHAPTER][0]).toBe(fixtures.BOOKMARK.CFI);
-			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOKMARK.CFI);
-			expect(Reader.Bookmarks.getBookmarks()[fixtures.BOOKMARK_CHAPTER][0]).toBeFalsy();
+			Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
+			expect(Reader.Bookmarks.getBookmarks()[fixtures.BOOK.BOOKMARK_CHAPTER][0]).toBe(fixtures.BOOK.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOK.BOOKMARK.CFI);
+			expect(Reader.Bookmarks.getBookmarks()[fixtures.BOOK.BOOKMARK_CHAPTER][0]).toBeFalsy();
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
 			expect(result).toBeTruthy();
@@ -143,27 +143,27 @@ describe('Bookmarks', function() {
 
 		it('should remove the cpr-marker from the DOM', function () {
 			spyOn(Reader.CFI, 'setCFI');
-			Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
+			Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			// Manually add a cpr-marker as we mocked Reader.CFI.setCFI:
 			Reader.$reader.append(
-				'<span class="cpr-marker" data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span class="cpr-marker" data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			expect(Reader.$reader.find('.cpr-marker').length).toBe(1);
-			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOKMARK.CFI);
+			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.$reader.find('.cpr-marker').length).toBe(0);
 			expect(result).toBeTruthy();
 		});
 
 		it('should remove the data-bookmark attribute from the element with the matching data-cfi attribute', function () {
 			spyOn(Reader.CFI, 'setCFI');
-			Reader.Bookmarks.setBookmark(fixtures.BOOKMARK.CFI);
+			Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			// Manually add a bookmark as we mocked Reader.CFI.setCFI:
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
-			expect(Reader.$reader.find('[data-bookmark][data-cfi="' + fixtures.BOOKMARK.CFI + '"]').length).toBe(1);
-			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOKMARK.CFI);
-			expect(Reader.$reader.find('[data-bookmark][data-cfi="' + fixtures.BOOKMARK.CFI + '"]').length).toBe(0);
+			expect(Reader.$reader.find('[data-bookmark][data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]').length).toBe(1);
+			var result = Reader.Bookmarks.removeBookmark(fixtures.BOOK.BOOKMARK.CFI);
+			expect(Reader.$reader.find('[data-bookmark][data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]').length).toBe(0);
 			expect(result).toBeTruthy();
 		});
 
@@ -173,21 +173,21 @@ describe('Bookmarks', function() {
 
 		it('Should set the given list of bookmarks and remove any old bookmarks', function () {
 			var bookmarks = [];
-			bookmarks[fixtures.BOOKMARK_CHAPTER] = [fixtures.BOOKMARK.CFI];
+			bookmarks[fixtures.BOOK.BOOKMARK_CHAPTER] = [fixtures.BOOK.BOOKMARK.CFI];
 			spyOn(Reader.CFI, 'setCFI');
-			Reader.Bookmarks.setBookmarks([fixtures.BOOKMARK.CFI]);
+			Reader.Bookmarks.setBookmarks([fixtures.BOOK.BOOKMARK.CFI]);
 			expect(Reader.Bookmarks.getBookmarks()).toEqual(bookmarks);
 			bookmarks = [];
-			bookmarks[fixtures.BOOKMARK_2_CHAPTER] = [fixtures.BOOKMARK_2.CFI, fixtures.BOOKMARK_3.CFI];
-			Reader.Bookmarks.setBookmarks([fixtures.BOOKMARK_2.CFI, fixtures.BOOKMARK_3.CFI]);
+			bookmarks[fixtures.BOOK.BOOKMARK_2_CHAPTER] = [fixtures.BOOK.BOOKMARK_2.CFI, fixtures.BOOK.BOOKMARK_3.CFI];
+			Reader.Bookmarks.setBookmarks([fixtures.BOOK.BOOKMARK_2.CFI, fixtures.BOOK.BOOKMARK_3.CFI]);
 			expect(Reader.Bookmarks.getBookmarks()).toEqual(bookmarks);
 		});
 
 		it('Should do nothing if the given argument is not an array', function () {
 			var bookmarks = [];
-			bookmarks[fixtures.BOOKMARK_CHAPTER] = [fixtures.BOOKMARK.CFI];
+			bookmarks[fixtures.BOOK.BOOKMARK_CHAPTER] = [fixtures.BOOK.BOOKMARK.CFI];
 			spyOn(Reader.CFI, 'setCFI');
-			Reader.Bookmarks.setBookmarks([fixtures.BOOKMARK.CFI]);
+			Reader.Bookmarks.setBookmarks([fixtures.BOOK.BOOKMARK.CFI]);
 			expect(Reader.Bookmarks.getBookmarks()).toEqual(bookmarks);
 			Reader.Bookmarks.setBookmarks(undefined);
 			expect(Reader.Bookmarks.getBookmarks()).toEqual(bookmarks);
@@ -199,7 +199,7 @@ describe('Bookmarks', function() {
 
 		it('should return the list of visible bookmarks', function () {
 			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
-				if ($(el).is('[data-cfi="' + fixtures.BOOKMARK.CFI + '"]')) {
+				if ($(el).is('[data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]')) {
 					// Define the first bookmark as being on page 1:
 					return 1
 				}
@@ -210,17 +210,17 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(2);
 			// Manually add bookmarks:
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK_2.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK_2.CFI + '"></span>'
 			);
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK_3.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK_3.CFI + '"></span>'
 			);
 			expect(Reader.Bookmarks.getVisibleBookmarks()).toEqual([
-				fixtures.BOOKMARK_2.CFI,
-				fixtures.BOOKMARK_3.CFI
+				fixtures.BOOK.BOOKMARK_2.CFI,
+				fixtures.BOOK.BOOKMARK_3.CFI
 			]);
 		});
 
@@ -230,7 +230,7 @@ describe('Bookmarks', function() {
 
 		it('should return the list of visible bookmarks', function () {
 			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
-				if ($(el).is('[data-cfi="' + fixtures.BOOKMARK.CFI + '"]')) {
+				if ($(el).is('[data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]')) {
 					// Define the first bookmark as being on page 1:
 					return 1
 				}
@@ -241,17 +241,17 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(2);
 			// Manually add bookmarks:
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK_2.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK_2.CFI + '"></span>'
 			);
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK_3.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK_3.CFI + '"></span>'
 			);
 			expect(Reader.Bookmarks.getVisibleBookmarks()).toEqual([
-				fixtures.BOOKMARK_2.CFI,
-				fixtures.BOOKMARK_3.CFI
+				fixtures.BOOK.BOOKMARK_2.CFI,
+				fixtures.BOOK.BOOKMARK_3.CFI
 			]);
 		});
 
@@ -274,7 +274,7 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(2);
 			// Manually add a bookmark:
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			expect(Reader.Bookmarks.display()).toBeTruthy();
 			expect(Reader.$wrap.find('#cpr-bookmark-ui').css('display')).toBe('block');
@@ -285,7 +285,7 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(2);
 			// Manually add a bookmark:
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			Reader.mobile = true;
 			expect(Reader.Bookmarks.display()).toBeTruthy();
@@ -297,7 +297,7 @@ describe('Bookmarks', function() {
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(1);
 			// Manually add a bookmark:
 			Reader.$reader.append(
-				'<span data-bookmark data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			expect(Reader.Bookmarks.display()).toBeFalsy();
 			expect(Reader.$wrap.find('#cpr-bookmark-ui').is(':visible')).toBeFalsy();

@@ -13,7 +13,7 @@ describe('CFI', function() {
 			width: 400,
 			height: 600
 		});
-		Reader.Book.load(fixtures.BOOK_DATA);
+		Reader.Book.load(fixtures.BOOK.DATA);
 	});
 
 	it('should provide the CFI interface', function () {
@@ -23,9 +23,9 @@ describe('CFI', function() {
 	describe('isValidCFI', function () {
 
 		it('should return true for valid CFIs', function () {
-			expect(Reader.CFI.isValidCFI(fixtures.BOOKMARK.CFI)).toBeTruthy();
-			expect(Reader.CFI.isValidCFI(fixtures.BOOKMARK_2.CFI)).toBeTruthy();
-			expect(Reader.CFI.isValidCFI(fixtures.BOOKMARK_3.CFI)).toBeTruthy();
+			expect(Reader.CFI.isValidCFI(fixtures.BOOK.BOOKMARK.CFI)).toBeTruthy();
+			expect(Reader.CFI.isValidCFI(fixtures.BOOK.BOOKMARK_2.CFI)).toBeTruthy();
+			expect(Reader.CFI.isValidCFI(fixtures.BOOK.BOOKMARK_3.CFI)).toBeTruthy();
 		});
 
 		it('should return false for invalid CFIs', function () {
@@ -38,8 +38,8 @@ describe('CFI', function() {
 	describe('getCFISelector', function () {
 
 		it('should return the element selector for the given CFI', function () {
-			expect($('<span></span>').attr('data-cfi', fixtures.BOOKMARK.CFI).is(
-				Reader.CFI.getCFISelector(fixtures.BOOKMARK.CFI)
+			expect($('<span></span>').attr('data-cfi', fixtures.BOOK.BOOKMARK.CFI).is(
+				Reader.CFI.getCFISelector(fixtures.BOOK.BOOKMARK.CFI)
 			)).toBeTruthy();
 		});
 
@@ -51,13 +51,13 @@ describe('CFI', function() {
 			spyOn(Reader, 'returnPageElement').and.returnValue(123);
 			// Manually add a bookmark:
 			Reader.$reader.append(
-				'<span data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
-			expect(Reader.CFI.findCFIElement(fixtures.BOOKMARK.CFI)).toBe(123);
+			expect(Reader.CFI.findCFIElement(fixtures.BOOK.BOOKMARK.CFI)).toBe(123);
 		});
 
 		it('should return -1 if no element with the given CFI can be found', function () {
-			expect(Reader.CFI.findCFIElement(fixtures.BOOKMARK.CFI)).toBe(-1);
+			expect(Reader.CFI.findCFIElement(fixtures.BOOK.BOOKMARK.CFI)).toBe(-1);
 		});
 
 	});
@@ -65,9 +65,9 @@ describe('CFI', function() {
 	describe('getChapterFromCFI', function () {
 
 		it('should return the chapter number from the given CFI', function () {
-			expect(Reader.CFI.getChapterFromCFI(fixtures.BOOKMARK.CFI)).toBe(fixtures.BOOKMARK_CHAPTER);
-			expect(Reader.CFI.getChapterFromCFI(fixtures.BOOKMARK_2.CFI)).toBe(fixtures.BOOKMARK_2_CHAPTER);
-			expect(Reader.CFI.getChapterFromCFI(fixtures.BOOKMARK_3.CFI)).toBe(fixtures.BOOKMARK_3_CHAPTER);
+			expect(Reader.CFI.getChapterFromCFI(fixtures.BOOK.BOOKMARK.CFI)).toBe(fixtures.BOOK.BOOKMARK_CHAPTER);
+			expect(Reader.CFI.getChapterFromCFI(fixtures.BOOK.BOOKMARK_2.CFI)).toBe(fixtures.BOOK.BOOKMARK_2_CHAPTER);
+			expect(Reader.CFI.getChapterFromCFI(fixtures.BOOK.BOOKMARK_3.CFI)).toBe(fixtures.BOOK.BOOKMARK_3_CHAPTER);
 		});
 
 		it('should return -1 if the given CFI is not a valid string', function () {
@@ -91,7 +91,7 @@ describe('CFI', function() {
 					markerArg;
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(Reader.Epub.injectMarker).toHaveBeenCalled();
 			cfiArg = Reader.Epub.injectMarker.calls.mostRecent().args[0];
 			expect(
@@ -99,10 +99,10 @@ describe('CFI', function() {
 				Number(cfiArg.split(':')[1].split(')')[0])
 			).toBe(
 				// Extract the old word position and add 6 (for the next word position):
-				Number(fixtures.BOOKMARK_4.CFI.split(':')[1].split(')')[0]) + 6
+				Number(fixtures.BOOK.BOOKMARK_4.CFI.split(':')[1].split(')')[0]) + 6
 			);
 			markerArg = Reader.Epub.injectMarker.calls.mostRecent().args[1];
-			expect($(markerArg).is('[data-cfi="' + fixtures.BOOKMARK_4.CFI + '"]')).toBeTruthy();
+			expect($(markerArg).is('[data-cfi="' + fixtures.BOOK.BOOKMARK_4.CFI + '"]')).toBeTruthy();
 			expect($(markerArg).hasClass('cpr-marker')).toBeTruthy();
 			expect($(markerArg).is('[data-bookmark]')).toBeFalsy();
 		});
@@ -118,8 +118,8 @@ describe('CFI', function() {
 				markerArg;
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOKMARK_5.CFI);
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK_5.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 			nextNodeArg = Reader.Epub.generateCFI.calls.mostRecent().args[0];
 			// Tbe argument given to the generateCFI method should be the next text node:
@@ -127,9 +127,9 @@ describe('CFI', function() {
 			expect(Reader.Epub.injectMarker).toHaveBeenCalled();
 			cfiArg = Reader.Epub.injectMarker.calls.mostRecent().args[0];
 			// Tbe new position is the next text node + 1 character (B|anana as given by the position of the generated CFI):
-			expect(cfiArg).toBe(fixtures.BOOKMARK_5.CFI.replace(':0', ':1'));
+			expect(cfiArg).toBe(fixtures.BOOK.BOOKMARK_5.CFI.replace(':0', ':1'));
 			markerArg = Reader.Epub.injectMarker.calls.mostRecent().args[1];
-			expect($(markerArg).is('[data-cfi="' + fixtures.BOOKMARK_4.CFI + '"]')).toBeTruthy();
+			expect($(markerArg).is('[data-cfi="' + fixtures.BOOK.BOOKMARK_4.CFI + '"]')).toBeTruthy();
 			expect($(markerArg).hasClass('cpr-marker')).toBeTruthy();
 			expect($(markerArg).is('[data-bookmark]')).toBeFalsy();
 		});
@@ -145,8 +145,8 @@ describe('CFI', function() {
 				markerArg;
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOKMARK_6.CFI);
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK_6.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 			nextNodeArg = Reader.Epub.generateCFI.calls.mostRecent().args[0];
 			// Tbe argument given to the generateCFI method should be the next text node:
@@ -154,9 +154,9 @@ describe('CFI', function() {
 			expect(Reader.Epub.injectMarker).toHaveBeenCalled();
 			cfiArg = Reader.Epub.injectMarker.calls.mostRecent().args[0];
 			// Tbe new position is the next text node character (Banan|a as given by the position of the generated CFI):
-			expect(cfiArg).toBe(fixtures.BOOKMARK_6.CFI);
+			expect(cfiArg).toBe(fixtures.BOOK.BOOKMARK_6.CFI);
 			markerArg = Reader.Epub.injectMarker.calls.mostRecent().args[1];
-			expect($(markerArg).is('[data-cfi="' + fixtures.BOOKMARK_4.CFI + '"]')).toBeTruthy();
+			expect($(markerArg).is('[data-cfi="' + fixtures.BOOK.BOOKMARK_4.CFI + '"]')).toBeTruthy();
 			expect($(markerArg).hasClass('cpr-marker')).toBeTruthy();
 			expect($(markerArg).is('[data-bookmark]')).toBeFalsy();
 		});
@@ -170,13 +170,13 @@ describe('CFI', function() {
 				markerArg;
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(Reader.Epub.injectMarker).toHaveBeenCalled();
 			cfiArg = Reader.Epub.injectMarker.calls.mostRecent().args[0];
 			// Tbe new position is the current text node + 1 character:
-			expect(cfiArg).toBe(fixtures.BOOKMARK_4.CFI.replace(':27', ':28'));
+			expect(cfiArg).toBe(fixtures.BOOK.BOOKMARK_4.CFI.replace(':27', ':28'));
 			markerArg = Reader.Epub.injectMarker.calls.mostRecent().args[1];
-			expect($(markerArg).is('[data-cfi="' + fixtures.BOOKMARK_4.CFI + '"]')).toBeTruthy();
+			expect($(markerArg).is('[data-cfi="' + fixtures.BOOK.BOOKMARK_4.CFI + '"]')).toBeTruthy();
 			expect($(markerArg).hasClass('cpr-marker')).toBeTruthy();
 			expect($(markerArg).is('[data-bookmark]')).toBeFalsy();
 		});
@@ -188,9 +188,9 @@ describe('CFI', function() {
 					element = wrapper.find('span').first().contents();
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(Reader.Epub.injectMarker).not.toHaveBeenCalled();
-			expect(wrapper.children().last().is('[data-cfi="' + fixtures.BOOKMARK_4.CFI + '"]')).toBeTruthy();
+			expect(wrapper.children().last().is('[data-cfi="' + fixtures.BOOK.BOOKMARK_4.CFI + '"]')).toBeTruthy();
 			expect(wrapper.children().last().is('[data-bookmark]')).toBeFalsy();
 		});
 
@@ -201,7 +201,7 @@ describe('CFI', function() {
 				element = wrapper.find('span').first().contents();
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(Reader.Epub.injectMarker).not.toHaveBeenCalled();
 			expect(wrapper.children().last().find('.cpr-marker').length).toBe(1);
 			expect(wrapper.children().last().find('.cpr-marker').is('[data-bookmark]')).toBeFalsy();
@@ -215,16 +215,16 @@ describe('CFI', function() {
 				element = svg.find('circle');
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Epub.injectMarker).not.toHaveBeenCalled();
-			expect(svg.is('[data-cfi="' + fixtures.BOOKMARK.CFI + '"]')).toBeTruthy();
+			expect(svg.is('[data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]')).toBeTruthy();
 			expect(svg.is('[data-bookmark]')).toBeFalsy();
 		});
 
 		it('should not inject any marker or add any class if no element at the given CFI position could be found', function () {
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue($(null));
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Epub.injectMarker).not.toHaveBeenCalled();
 		});
 
@@ -235,7 +235,7 @@ describe('CFI', function() {
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker').and.throwError('ERROR');
 			spyOn(Reader.Notify, 'error').and.callThrough();
-			Reader.CFI.setCFI(fixtures.BOOKMARK.CFI);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Epub.injectMarker).toHaveBeenCalled();
 			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_CFI_INSERTION, {details: new Error('ERROR'), call: 'setCFI'}));
 		});
@@ -252,7 +252,7 @@ describe('CFI', function() {
 				markerArg;
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI, true);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI, true);
 			markerArg = Reader.Epub.injectMarker.calls.mostRecent().args[1];
 			expect($(markerArg).is('[data-bookmark]')).toBeTruthy();
 		});
@@ -264,7 +264,7 @@ describe('CFI', function() {
 				element = wrapper.find('span').first().contents();
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI, true);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI, true);
 			expect(wrapper.children().last().is('[data-bookmark]')).toBeTruthy();
 		});
 
@@ -275,7 +275,7 @@ describe('CFI', function() {
 				element = wrapper.find('span').first().contents();
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK_4.CFI, true);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI, true);
 			expect(wrapper.children().last().find('.cpr-marker').is('[data-bookmark]')).toBeTruthy();
 		});
 
@@ -287,16 +287,16 @@ describe('CFI', function() {
 				element = svg.find('circle');
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOKMARK.CFI, true);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI, true);
 			expect(svg.is('[data-bookmark]')).toBeTruthy();
 		});
 
 		it('should add the data-bookmark attribute to an existing CFI marker', function () {
-			var element = $('<span data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>').appendTo(Reader.$reader);
-			Reader.CFI.setCFI(fixtures.BOOKMARK.CFI, true);
+			var element = $('<span data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>').appendTo(Reader.$reader);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI, true);
 			expect(element.is('[data-bookmark]')).toBeTruthy();
 			// Should keep the attribute when trying to add the bookmark twice:
-			Reader.CFI.setCFI(fixtures.BOOKMARK.CFI, true);
+			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI, true);
 			expect(element.is('[data-bookmark]')).toBeTruthy();
 		});
 
@@ -306,35 +306,35 @@ describe('CFI', function() {
 
 		it('should load the page containing the given CFI', function () {
 			var loadPagePromise = $.Deferred().promise();
-			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOKMARK_CHAPTER);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Navigation, 'isCFIInCurrentChapterPart').and.returnValue(true);
 			spyOn(Reader.Navigation, 'loadPage').and.returnValue(loadPagePromise);
 			spyOn(Reader, 'returnPageElement').and.returnValue(123);
 			// Manually add a bookmark:
 			Reader.$reader.append(
-				'<span data-cfi="' + fixtures.BOOKMARK.CFI + '"></span>'
+				'<span data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
-			expect(Reader.CFI.goToCFI(fixtures.BOOKMARK.CFI)).toBe(loadPagePromise);
+			expect(Reader.CFI.goToCFI(fixtures.BOOK.BOOKMARK.CFI)).toBe(loadPagePromise);
 			expect(Reader.Navigation.loadPage).toHaveBeenCalled();
 		});
 
 		it('should insert the CFI marker before loading the page if it does not already exist', function () {
 			var loadPagePromise = $.Deferred().promise();
-			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOKMARK_CHAPTER);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Navigation, 'isCFIInCurrentChapterPart').and.returnValue(true);
 			spyOn(Reader.CFI, 'setCFI');
 			spyOn(Reader.Navigation, 'loadPage').and.returnValue(loadPagePromise);
-			expect(Reader.CFI.goToCFI(fixtures.BOOKMARK.CFI)).toBe(loadPagePromise);
+			expect(Reader.CFI.goToCFI(fixtures.BOOK.BOOKMARK.CFI)).toBe(loadPagePromise);
 			expect(Reader.CFI.setCFI).toHaveBeenCalled();
 			expect(Reader.Navigation.loadPage).toHaveBeenCalled();
 		});
 
 		it('should load the chapter containing the given CFI', function () {
 			var loadChapterPromise = $.Deferred().promise();
-			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOKMARK_CHAPTER_2);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER_2);
 			spyOn(Reader.Navigation, 'isCFIInCurrentChapterPart').and.returnValue(true);
 			spyOn(Reader, 'loadChapter').and.returnValue(loadChapterPromise);
-			expect(Reader.CFI.goToCFI(fixtures.BOOKMARK.CFI)).toBe(loadChapterPromise);
+			expect(Reader.CFI.goToCFI(fixtures.BOOK.BOOKMARK.CFI)).toBe(loadChapterPromise);
 			expect(Reader.loadChapter).toHaveBeenCalled();
 		});
 
@@ -355,7 +355,7 @@ describe('CFI', function() {
 		it('should return the CFI for the current position for a text node', function () {
 			var doc = Reader.$iframe.contents()[0],
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
-			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(doc, 'createRange').and.returnValue({
 				setStart: $.noop,
@@ -375,9 +375,9 @@ describe('CFI', function() {
 				});
 			}
 			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOKMARK.CFI,
-				preview: fixtures.BOOKMARK.preview,
-				chapter : fixtures.BOOKMARK.chapter
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -387,7 +387,7 @@ describe('CFI', function() {
 	it('should return the CFI for the current position for an element node', function () {
 		var doc = Reader.$iframe.contents()[0],
 			element = $('<div></div>').appendTo(Reader.$reader);
-		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOKMARK.CFI);
+		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 		spyOn(doc, 'createRange').and.returnValue({
 			setStart: $.noop,
@@ -407,9 +407,72 @@ describe('CFI', function() {
 			});
 		}
 		expect(Reader.CFI.getCFIObject()).toEqual({
-			CFI: fixtures.BOOKMARK.CFI,
+			CFI: fixtures.BOOK.BOOKMARK.CFI,
 			preview: '',
-			chapter : fixtures.BOOKMARK.chapter
+			chapter : fixtures.BOOK.BOOKMARK.chapter
+		});
+		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+	});
+
+	it('should return the CFI for the current position for multiple text nodes', function () {
+		var doc = Reader.$iframe.contents()[0],
+			element = $('<span>Banana</span><span>Apple</span><span>Orange</span>').contents().appendTo(Reader.$reader);
+		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+		spyOn(doc, 'createRange').and.returnValue({
+			setStart: $.noop,
+			getClientRects: function () {
+				return [{top: 0, left: 0}];
+			}
+		});
+		if (doc.caretRangeFromPoint) {
+			spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+				startContainer: element[1],
+				startOffset: 0
+			});
+		} else if (doc.caretPositionFromPoint) {
+			spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+				offsetNode: element[1],
+				offset: 0
+			});
+		}
+		expect(Reader.CFI.getCFIObject()).toEqual({
+			// Adjust the CFI position based on the skipped text node:
+			CFI: fixtures.BOOK.BOOKMARK.CFI.replace(':0', ':' + element[0].length),
+			preview: 'AppleOrange',
+			chapter : fixtures.BOOK.BOOKMARK.chapter
+		});
+		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+	});
+
+	it('should return the correct label for a chapter identified via URL anchor', function () {
+		Reader.Book.load(fixtures.BOOK_2.DATA);
+		var doc = Reader.$iframe.contents()[0],
+				wrapper = $('<span id="int02">Banana</span>').appendTo(Reader.$reader),
+				element = wrapper.contents();
+		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK_2.BOOKMARK.CFI);
+		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+		spyOn(doc, 'createRange').and.returnValue({
+			setStart: $.noop,
+			getClientRects: function () {
+				return [{top: 0, left: 0}];
+			}
+		});
+		if (doc.caretRangeFromPoint) {
+			spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+				startContainer: element[0],
+				startOffset: 0
+			});
+		} else if (doc.caretPositionFromPoint) {
+			spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+				offsetNode: element[0],
+				offset: 0
+			});
+		}
+		expect(Reader.CFI.getCFIObject()).toEqual({
+			CFI: fixtures.BOOK_2.BOOKMARK.CFI,
+			preview: fixtures.BOOK_2.BOOKMARK.preview,
+			chapter : fixtures.BOOK_2.BOOKMARK.chapter
 		});
 		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 	});
