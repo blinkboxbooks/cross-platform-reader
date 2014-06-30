@@ -73,7 +73,6 @@ exports.config = {
 	multiCapabilities: [
 		{
 			'browserName': 'firefox',
-			'phantomjs.binary.path': 'node_modules/phantomjs/bin/phantomjs',
 			'shardTestFiles': true,
 			'maxInstances': 10
 		}

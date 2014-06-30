@@ -72,13 +72,11 @@ exports.config = {
 	// If this is specified, capabilities will be ignored.
 	multiCapabilities: [
 		{
-			'browserName': 'phantomjs',
-			'phantomjs.binary.path': 'node_modules/phantomjs/bin/phantomjs',
+			'browserName': 'firefox',
 			'shardTestFiles': true,
 			'maxInstances': 10
 		}
 	],
-
 	// ----- More information for your tests ----
 	//
 	// A base URL for your application under test. Calls to protractor.get()

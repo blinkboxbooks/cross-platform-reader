@@ -33,8 +33,8 @@ describe('Layout', function() {
 
 				page.readerContext(function(contents, body, reader){
 					expect(reader.getCssValue('width')).toEqual(expectedWidth + 'px');
-					expect(reader.getCssValue('-webkit-column-width')).toEqual(expectedColumn + 'px');
-					expect(reader.getCssValue('-webkit-column-gap')).toEqual(dimension.padding + 'px');
+					expect(reader.getCssValue('-moz-column-width')).toEqual(expectedColumn + 'px');
+					expect(reader.getCssValue('-moz-column-gap')).toEqual(dimension.padding + 'px');
 				});
 			});
 		});
