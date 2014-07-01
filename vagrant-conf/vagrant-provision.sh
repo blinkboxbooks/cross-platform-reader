@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "Provisioning web-dev VM as $(whoami)"
+echo "Provisioning web-dev VM"
 
 # ---------------------------------------------
 # nginx conf
