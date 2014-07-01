@@ -11,7 +11,6 @@
     "pages": "sh config/pages.sh",
     "tags": "sh config/tags.sh",
 		"push": "sh config/push.sh",
-		"build": "sh config/build.sh",
 		"install": "node node_modules/protractor/bin/webdriver-manager update"
   },
   "dependencies": {},
