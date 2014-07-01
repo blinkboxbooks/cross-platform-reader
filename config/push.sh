@@ -7,4 +7,4 @@ echo "Tagging build as $READER_VERSION..."
 git checkout master
 git tag $READER_VERSION
 git push --tags
-git push web-app master
+git push origin master
