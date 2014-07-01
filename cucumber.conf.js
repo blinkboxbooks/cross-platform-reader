@@ -43,7 +43,7 @@ exports.config = {
 	// The address of a running selenium server. If specified, Protractor will
 	// connect to an already running instance of selenium. This usually looks like
 	// seleniumAddress: 'http://localhost:4444/wd/hub'
-	seleniumAddress: null,
+	seleniumAddress: 'http://127.0.0.1:4444/wd/hub',
 
 	// The timeout for each script run on the browser. This should be longer
 	// than the maximum time your application needs to stabilize between tasks.
@@ -70,15 +70,14 @@ exports.config = {
 	// If you would like to run more than one instance of webdriver on the same
 	// tests, use multiCapabilities, which takes an array of capabilities.
 	// If this is specified, capabilities will be ignored.
+
 	multiCapabilities: [
 		{
-			'browserName': 'phantomjs',
-			'phantomjs.binary.path': 'node_modules/phantomjs/bin/phantomjs',
+			'browserName': 'firefox',
 			'shardTestFiles': true,
 			'maxInstances': 10
 		}
 	],
-
 	// ----- More information for your tests ----
 	//
 	// A base URL for your application under test. Calls to protractor.get()

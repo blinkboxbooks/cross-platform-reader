@@ -23,9 +23,7 @@ var Page = function(){
 	this.isbn = element(by.css('[data-test="isbn"]'));
 
 	this.load = function(isbn, env){
-		// phantomjs issue https://github.com/angular/protractor/issues/557
-		// avoid using browser.get directly
-		browser.driver.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles=false&transitionDuration=0');
+		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles=false&transitionDuration=0');
 		browser.waitForAngular();
 	};
 

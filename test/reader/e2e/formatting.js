@@ -6,6 +6,7 @@ describe('Formatting', function() {
 
 	it('should reload the demo', function() {
 		page.load();
+		expect(browser.getCurrentUrl()).toContain(page.path);
 	});
 
 	describe('Font size', function() {

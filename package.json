@@ -2,11 +2,16 @@
   "name": "CPR",
   "version": "0.1.62",
   "description": "Cross Platform Reader",
+	"repository": {
+		"type": "git",
+		"url": "https://git.mobcastdev.com/Website/cross-platform-reader.git"
+	},
+	"private": true,
   "scripts": {
     "pages": "sh config/pages.sh",
     "tags": "sh config/tags.sh",
-    "push": "sh config/push.sh",
-    "install": "node node_modules/protractor/bin/webdriver-manager update"
+		"push": "sh config/push.sh",
+		"install": "node node_modules/protractor/bin/webdriver-manager update"
   },
   "dependencies": {},
   "devDependencies": {
