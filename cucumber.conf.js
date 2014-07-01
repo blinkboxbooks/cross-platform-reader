@@ -65,12 +65,11 @@ exports.config = {
 	// https://code.google.com/p/selenium/wiki/DesiredCapabilities
 	// and
 	// https://code.google.com/p/selenium/source/browse/javascript/webdriver/capabilities.js
-	// capabilities: {},
+	capabilities: {},
 
 	// If you would like to run more than one instance of webdriver on the same
 	// tests, use multiCapabilities, which takes an array of capabilities.
 	// If this is specified, capabilities will be ignored.
-	capabilities: {},
 
 	multiCapabilities: [
 		{
