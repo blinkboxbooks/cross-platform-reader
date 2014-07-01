@@ -333,14 +333,8 @@ var Reader = (function (r) {
 		// Calculates the length of a string and returns true if the length has the minimum number of words.
 		// Returns true if text is a string and its length is > than the desired number of words, false otherwise.
 		var hasDesiredLength = function (text) {
-			if ($.type(text) !== 'string') {
-				return false;
-			}
-
 			// Check number of words so far.
-			var whitespaces = text.match(/\S+/g);
-			words = whitespaces ? text.match(/\S+/g).length : 0;
-			return words > 100;
+			return text.match(/\S+/g).length > 100;
 		};
 
 		var _hasClass = function (el, classNames) {
@@ -352,8 +346,6 @@ var Reader = (function (r) {
 		var generatePreview = function () {
 			var $currentNode = $(textNode);
 			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
-
-			generatePreview :
 			while (!hasDesiredLength(text)) {
 				var $next = getNextNode($currentNode);
 
@@ -362,7 +354,7 @@ var Reader = (function (r) {
 					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text() : '';
 				} else {
 					// No more content go get text from, break operation.
-					break generatePreview;
+					break;
 				}
 			}
 
@@ -402,24 +394,21 @@ var Reader = (function (r) {
 	};
 
 	var getNextNode = function ($el) {
-		if ($el.length) {
-			$el = $el.last();
-			var nodes = $el.parent().contents().filter(function(i, e){
-				return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
-			});
-			var index = $.inArray($el[0], nodes);
-			if (nodes[index + 1]) {
-				var $next = $(nodes[index + 1]);
-				// ignore empty textnodes
-				if($next[0].nodeType === 3 && !$next.text().trim().length){
-					return getNextNode($next);
-				}
-				return $next;
-			} else if (!$el.parent().is(r.$reader)) {
-				return getNextNode($el.parent());
+		$el = $el.last();
+		var nodes = $el.parent().contents().filter(function(i, e){
+			return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
+		});
+		var index = $.inArray($el[0], nodes);
+		if (nodes[index + 1]) {
+			var $next = $(nodes[index + 1]);
+			// ignore empty textnodes
+			if($next[0].nodeType === 3 && !$next.text().trim().length){
+				return getNextNode($next);
 			}
+			return $next;
+		} else if (!$el.parent().is(r.$reader)) {
+			return getNextNode($el.parent());
 		}
-		return null;
 	};
 
 	return r;

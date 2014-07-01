@@ -302,6 +302,12 @@ var fixtures = {
 			"preview": "Banana",
 			"chapter": "SELECT BIBLIOGRAPHY"
 		},
+		"BOOKMARK_2_CHAPTER": 3,
+		"BOOKMARK_2": {
+			"CFI": "epubcfi(/6/8!/4/2/5:0)",
+			"preview": "Banana",
+			"chapter": "CHAPTER 2"
+		},
 		"DATA_RAW": {
 			"version": "1.3",
 			"title": "A History of My Times",
@@ -1855,12 +1861,19 @@ var fixtures = {
 					"mediaType": "application/xhtml+xml",
 					"linear": true,
 					"wordCount": 12885
+				},
+				{
+					"itemId": "book01",
+					"href": "OEBPS/html/book01.html",
+					"mediaType": "application/xhtml+xml",
+					"linear": true,
+					"wordCount": 1234
 				}
 			]
 		},
 		"DATA": {
 			"content_path_prefix": "OEBPS/html",
-			"opf": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><package xmlns=\"http://www.idpf.org/2007/opf\" version=\"2.0\" unique-identifier=\"p9780140441758\"><metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:title>A History of My Times</dc:title><dc:creator>Xenophon</dc:creator><dc:date>2007</dc:date><dc:identifier id=\"p9780140441758\">ISBN: 978-0-14-192685-8</dc:identifier><dc:format>425 pages</dc:format><dc:coverage>London</dc:coverage><dc:coverage>New York</dc:coverage><dc:coverage>Ontario</dc:coverage><dc:coverage>Dublin</dc:coverage><dc:coverage>Camberwell</dc:coverage><dc:coverage>New Delhi</dc:coverage><dc:coverage>Albany</dc:coverage><dc:coverage>Rosebank</dc:coverage><dc:type>Text</dc:type><dc:language>en</dc:language><dc:rights>All rights reserved.</dc:rights><dc:publisher>Penguin Books</dc:publisher></metadata><manifest><item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/><item id=\"cover\" href=\"cover.html\" media-type=\"application/xhtml+xml\"/><item id=\"frontmatter\" href=\"frontmatter.html\" media-type=\"application/xhtml+xml\"/><item id=\"introduction\" href=\"introduction.html\" media-type=\"application/xhtml+xml\"/><item id=\"css\" href=\"9780140441758.css\" media-type=\"text/css\"/><item id=\"pub01\" href=\"images/pub.jpg\" media-type=\"image/jpeg\"/><item id=\"pt\" href=\"page-template.xpgt\" media-type=\"application/vnd.adobe-page-template+xml\"/></manifest><spine toc=\"ncx\" page-map=\"map\"><itemref idref=\"cover\"/><itemref idref=\"frontmatter\"/><itemref idref=\"introduction\"/></spine></package>"
+			"opf": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><package xmlns=\"http://www.idpf.org/2007/opf\" version=\"2.0\" unique-identifier=\"p9780140441758\"><metadata xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><dc:title>A History of My Times</dc:title><dc:creator>Xenophon</dc:creator><dc:date>2007</dc:date><dc:identifier id=\"p9780140441758\">ISBN: 978-0-14-192685-8</dc:identifier><dc:format>425 pages</dc:format><dc:coverage>London</dc:coverage><dc:coverage>New York</dc:coverage><dc:coverage>Ontario</dc:coverage><dc:coverage>Dublin</dc:coverage><dc:coverage>Camberwell</dc:coverage><dc:coverage>New Delhi</dc:coverage><dc:coverage>Albany</dc:coverage><dc:coverage>Rosebank</dc:coverage><dc:type>Text</dc:type><dc:language>en</dc:language><dc:rights>All rights reserved.</dc:rights><dc:publisher>Penguin Books</dc:publisher></metadata><manifest><item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/><item id=\"cover\" href=\"cover.html\" media-type=\"application/xhtml+xml\"/><item id=\"frontmatter\" href=\"frontmatter.html\" media-type=\"application/xhtml+xml\"/><item id=\"introduction\" href=\"introduction.html\" media-type=\"application/xhtml+xml\"/><item id=\"css\" href=\"9780140441758.css\" media-type=\"text/css\"/><item id=\"pub01\" href=\"images/pub.jpg\" media-type=\"image/jpeg\"/><item id=\"pt\" href=\"page-template.xpgt\" media-type=\"application/vnd.adobe-page-template+xml\"/></manifest><spine toc=\"ncx\" page-map=\"map\"><itemref idref=\"cover\"/><itemref idref=\"frontmatter\"/><itemref idref=\"introduction\"/><itemref idref=\"book01\"/></spine></package>"
 		}
 	}
 };

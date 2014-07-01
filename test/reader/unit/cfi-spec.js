@@ -211,7 +211,7 @@ describe('CFI', function() {
 			// The given CFI position is the circle element inside of the SVG:
 			var wrapper = $('<div><svg><circle cx="32" cy="32" r="32"/></svg></div>').appendTo(Reader.$reader),
 				svg = wrapper.find('svg'),
-				// Select the circle as element:
+			// Select the circle as element:
 				element = svg.find('circle');
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
@@ -382,99 +382,738 @@ describe('CFI', function() {
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
 
+		it('should return the CFI for the current position for an element node', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div>Banana</div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should adjust the generated preview based on the element offset', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>test Banana</span>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 5
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 5
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: '&#8230;Banana',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should ignore empty text nodes', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><span>Banana</span>   <span>Apple</span></div>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'BananaApple',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should ignore script content for the generated preview', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span><script>var banana = "Banana";</script><span>Apple</span>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'BananaApple',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should trim the generated preview to 100 words', function () {
+			var doc = Reader.$iframe.contents()[0],
+				wordList = new Array(101).join('Banana '),
+				element = $('<span>' + wordList + wordList + '</span>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: wordList,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the CFI for the current position for multiple text nodes', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span><span>Apple</span><span>Orange</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[1],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[1],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				// Adjust the CFI position based on the skipped text node:
+				CFI: fixtures.BOOK.BOOKMARK.CFI.replace(':0', ':' + element[0].length),
+				preview: 'AppleOrange',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the correct label for a chapter identified via URL anchor', function () {
+			Reader.Book.load(fixtures.BOOK_2.DATA);
+			var doc = Reader.$iframe.contents()[0],
+					wrapper = $('<span id="int02">Banana</span>').appendTo(Reader.$reader),
+					element = wrapper.contents();
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK_2.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK_2.BOOKMARK.CFI,
+				preview: fixtures.BOOK_2.BOOKMARK.preview,
+				chapter : fixtures.BOOK_2.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the correct label for a TOC child element', function () {
+			Reader.Book.load(fixtures.BOOK_2.DATA);
+			var doc = Reader.$iframe.contents()[0],
+					wrapper = $('<span id="bk01ch01">Banana</span><span id="bk01ch02">Apple</span><span id="bk01ch03">Orange</span>')
+						.appendTo(Reader.$reader),
+					element = wrapper.contents();
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK_2.BOOKMARK_2.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(Reader.Navigation, 'getPage').and.returnValue(1);
+			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
+				switch(el.prop('id')) {
+					case 'bk01ch01':
+						return 0;
+					case 'bk01ch02':
+						return 1;
+					case 'bk01ch03':
+						return 2;
+				}
+			});
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK_2.BOOKMARK_2.CFI,
+				preview: 'BananaAppleOrange',
+				chapter : fixtures.BOOK_2.BOOKMARK_2.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should handle if a TOC child element does not have an anchor', function () {
+			var clonedData = $.extend(true, fixtures.BOOK_2.DATA);
+			clonedData.toc[7].children[0].href = clonedData.toc[7].children[0].href.split('#')[0];
+			Reader.Book.load(clonedData);
+			var doc = Reader.$iframe.contents()[0],
+					wrapper = $('<span id="bk01ch02">Apple</span><span id="bk01ch03">Orange</span>')
+						.appendTo(Reader.$reader),
+					element = wrapper.contents();
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK_2.BOOKMARK_2.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(Reader.Navigation, 'getPage').and.returnValue(1);
+			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
+				switch(el.prop('id')) {
+					case 'bk01ch02':
+						return 1;
+					case 'bk01ch03':
+						return 2;
+				}
+			});
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK_2.BOOKMARK_2.CFI,
+				preview: 'AppleOrange',
+				chapter : fixtures.BOOK_2.BOOKMARK_2.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should handle if the chapter cannot be extracted from the given CFI', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(null);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: null,
+				preview: 'Banana'
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the CFI for the given text node if no range could be generated', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the CFI for adjacent text nodes if the original target is not in the viewport', function () {
+			var doc = Reader.$iframe.contents()[0],
+					element = $('<span>Banana</span>').contents().appendTo(Reader.$reader),
+					left = -100;
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.callFake(function () {
+				return element;
+			});
+			spyOn(doc, 'createRange').and.callFake(function () {
+				var rect = {top: 0, left: left};
+				if (left < 0) {
+					element = $('<span>Apple</span>').contents().appendTo(Reader.$reader);
+					left += 100;
+				}
+				return {
+					setStart: $.noop,
+					getClientRects: function () {
+						return [rect];
+					}
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.callFake(function () {
+					return {
+						startContainer: element[0],
+							startOffset: 0
+					};
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.callFake(function () {
+					return {
+						offsetNode: element[0],
+						offset: 0
+					};
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Apple',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the CFI for the first element in the viewport if the target cannot be found', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(Reader.$reader, 'find').and.callFake(function () {
+				return $('<span>Apple</span>').appendTo(Reader.$reader);
+			});
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: -100}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Apple',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the CFI for the first element of the reader if no element can be found in the viewport', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(Reader.$reader, 'children').and.callFake(function () {
+				return $('<span>Apple</span>').appendTo(Reader.$reader);
+			});
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: -100}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Apple',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should use the img alt text for the generated preview', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Banana"></div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Image: Banana',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should create a generic preview for images without alt text', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="></div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Image: No description',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should create a generic preview for tables as target element', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><table></table></div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Table',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+		});
+
+		it('should return the CFI for the parent SVG if the CFI targets one of its child nodes', function () {
+			var doc = Reader.$iframe.contents()[0],
+					wrapper = $('<div><svg><circle cx="32" cy="32" r="32"/></svg></div>').appendTo(Reader.$reader),
+					element = wrapper.find('circle');
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: 'Image: No description',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(wrapper.find('svg')[0]);
+		});
+
+		it('should return the CFI for target element if the only child is a blacklisted marker', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><span class="cpr-marker"></span></div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: '',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(element[0]);
+		});
+
+		it('should return the CFI for target element if all child elements are blacklisted', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><span class="cpr-marker"></span><span class="cpr-marker"></span></div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: '',
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(element[0]);
+		});
+
+		it('should return the CFI for the child element that is not a blacklisted marker', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<div><span class="cpr-marker"></span><span>Banana</span></div>').appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(element.children().last().contents()[0]);
+		});
+
+		it('should trigger an error event if generating the CFI fails', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Notify, 'error').and.callThrough();
+			spyOn(Reader.Epub, 'generateCFI').and.throwError('ERROR');
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			if (doc.caretRangeFromPoint) {
+				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
+					startContainer: element[0],
+					startOffset: 0
+				});
+			} else if (doc.caretPositionFromPoint) {
+				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
+					offsetNode: element[0],
+					offset: 0
+				});
+			}
+			expect(Reader.CFI.getCFIObject()).toBeFalsy();
+			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_CFI_GENERATION, {details: new Error('ERROR'), call: 'getCFIObject'}));
+		});
+
 	});
 
-	it('should return the CFI for the current position for an element node', function () {
-		var doc = Reader.$iframe.contents()[0],
-			element = $('<div></div>').appendTo(Reader.$reader);
-		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
-		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
-		spyOn(doc, 'createRange').and.returnValue({
-			setStart: $.noop,
-			getClientRects: function () {
-				return [{top: 0, left: 0}];
-			}
-		});
-		if (doc.caretRangeFromPoint) {
-			spyOn(doc, 'caretRangeFromPoint').and.returnValue({
-				startContainer: element[0],
-				startOffset: 0
-			});
-		} else if (doc.caretPositionFromPoint) {
-			spyOn(doc, 'caretPositionFromPoint').and.returnValue({
-				offsetNode: element[0],
-				offset: 0
-			});
-		}
-		expect(Reader.CFI.getCFIObject()).toEqual({
-			CFI: fixtures.BOOK.BOOKMARK.CFI,
-			preview: '',
-			chapter : fixtures.BOOK.BOOKMARK.chapter
-		});
-		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
-	});
+	describe('getCFI', function () {
 
-	it('should return the CFI for the current position for multiple text nodes', function () {
-		var doc = Reader.$iframe.contents()[0],
-			element = $('<span>Banana</span><span>Apple</span><span>Orange</span>').contents().appendTo(Reader.$reader);
-		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
-		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
-		spyOn(doc, 'createRange').and.returnValue({
-			setStart: $.noop,
-			getClientRects: function () {
-				return [{top: 0, left: 0}];
-			}
-		});
-		if (doc.caretRangeFromPoint) {
-			spyOn(doc, 'caretRangeFromPoint').and.returnValue({
-				startContainer: element[1],
-				startOffset: 0
+		it('should return a JSON string of the CFI object', function () {
+			var obj = {
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+				},
+				encodedObj = encodeURIComponent(JSON.stringify(obj));
+			spyOn(Reader.CFI, 'getCFIObject').and.returnValue({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
 			});
-		} else if (doc.caretPositionFromPoint) {
-			spyOn(doc, 'caretPositionFromPoint').and.returnValue({
-				offsetNode: element[1],
-				offset: 0
-			});
-		}
-		expect(Reader.CFI.getCFIObject()).toEqual({
-			// Adjust the CFI position based on the skipped text node:
-			CFI: fixtures.BOOK.BOOKMARK.CFI.replace(':0', ':' + element[0].length),
-			preview: 'AppleOrange',
-			chapter : fixtures.BOOK.BOOKMARK.chapter
+			expect(Reader.CFI.getCFI()).toBe(encodedObj);
 		});
-		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
-	});
 
-	it('should return the correct label for a chapter identified via URL anchor', function () {
-		Reader.Book.load(fixtures.BOOK_2.DATA);
-		var doc = Reader.$iframe.contents()[0],
-				wrapper = $('<span id="int02">Banana</span>').appendTo(Reader.$reader),
-				element = wrapper.contents();
-		spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK_2.BOOKMARK.CFI);
-		spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
-		spyOn(doc, 'createRange').and.returnValue({
-			setStart: $.noop,
-			getClientRects: function () {
-				return [{top: 0, left: 0}];
-			}
-		});
-		if (doc.caretRangeFromPoint) {
-			spyOn(doc, 'caretRangeFromPoint').and.returnValue({
-				startContainer: element[0],
-				startOffset: 0
-			});
-		} else if (doc.caretPositionFromPoint) {
-			spyOn(doc, 'caretPositionFromPoint').and.returnValue({
-				offsetNode: element[0],
-				offset: 0
-			});
-		}
-		expect(Reader.CFI.getCFIObject()).toEqual({
-			CFI: fixtures.BOOK_2.BOOKMARK.CFI,
-			preview: fixtures.BOOK_2.BOOKMARK.preview,
-			chapter : fixtures.BOOK_2.BOOKMARK.chapter
-		});
-		expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 	});
 
 });
