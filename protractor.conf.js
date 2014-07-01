@@ -43,7 +43,7 @@ exports.config = {
 	// The address of a running selenium server. If specified, Protractor will
 	// connect to an already running instance of selenium. This usually looks like
 	// seleniumAddress: 'http://localhost:4444/wd/hub'
-	seleniumAddress: null,
+	seleniumAddress: 'http://127.0.0.1:4444/wd/hub',
 
 	// The timeout for each script run on the browser. This should be longer
 	// than the maximum time your application needs to stabilize between tasks.
