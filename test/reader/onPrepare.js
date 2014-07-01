@@ -5,7 +5,7 @@ browser.driver.manage().window().maximize();
 
 // some extra basic matchers
 require('jasmine-expect');
-var Color = require('Color');
+var Color = require('color');
 
 beforeEach(function() {
 
