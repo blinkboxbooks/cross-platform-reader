@@ -25,18 +25,48 @@ angular.module('app', ['ngRoute'])
 			$rootScope.$broadcast('keydown:' + e.which, e);
 		});
 	})
-	.controller('Reader_controller', function ($scope, $routeParams, $exceptionHandler, Book) {
+	.controller('Reader_controller', function ($scope, $timeout, $routeParams, $exceptionHandler, Book) {
 
 		// Reader event handler
 		function _log(e){
-			$('#log .panel-body').prepend('<p>' + JSON.stringify(e) + '</p>');
+			var $p = $('<p>' + JSON.stringify(e) + '</p>');
+			switch(e.code){
+				case 0: // last page
+					$scope.book.hasNext = false;
+					break;
+				case 4: // first page
+					$scope.book.hasPrevious = false;
+					break;
+				case 7: // reader status update
+					$('[data-test="status"]').removeAttr('data-test');
+					$p.attr('data-test', 'status');
+					/*jshint -W020 */
+					status = e;
+					break;
+				case 9: // reader missing a file
+				case 10: // parsing failed
+				case 11: // cfi generation error
+				case 12: // cfi insertion
+				case 13: // invalid argument
+				case 14: // cannot add bookmark
+				case 15: // bookmark already exists
+				case 16: // cannot remove bookmark
+					$p.attr('data-test', 'error');
+					break;
+			}
+			$('#log .panel-body').prepend($p);
 		}
 
 		// the current book loaded
 		$scope.book = {
 			isbn: $routeParams.isbn || '',
-			url: ''
+			url: '',
+			hasNext: true,
+			hasPrevious: true
 		};
+
+		// keep track of the reader status
+		var status = null;
 
 		// Use '/books/' + isbn + '/' if you want to check the books in your localhost (you would need the books from the share drive  /Documents/ePubs/Test-Books-book-info-v1.2.zip
 		$scope.environment = {
@@ -111,10 +141,14 @@ angular.module('app', ['ngRoute'])
 
 		$scope.handlers = {
 			prev: function(){
+				$('[data-test="status"]').removeAttr('data-test');
 				READER.prev();
+				$scope.book.hasNext = true;
 			},
 			next: function(){
+				$('[data-test="status"]').removeAttr('data-test');
 				READER.next();
+				$scope.book.hasPrevious = true;
 			},
 			cfi: function(){
 				try{
@@ -124,7 +158,12 @@ angular.module('app', ['ngRoute'])
 				}
 			},
 			bookmark: function(){
-				READER.setBookmark();
+				$('[data-test="status"]').removeAttr('data-test');
+				if(status.bookmarksInPage.length){
+					status.bookmarksInPage.forEach(READER.removeBookmark);
+				} else {
+					READER.setBookmark();
+				}
 			}
 		};
 
@@ -153,7 +192,7 @@ angular.module('app', ['ngRoute'])
 					columns: $scope.layout.columns,
 					url: val,
 					bookmarks: [],
-					listener: _log,
+					listener: function(e){ $timeout(function(){_log(e);}); },
 					preferences: $scope.preferences
 				});
 
@@ -166,9 +205,15 @@ angular.module('app', ['ngRoute'])
 			}
 		});
 
-		$scope.$on('keydown:66', $scope.handlers.bookmark);
-		$scope.$on('keydown:39', $scope.handlers.next);
-		$scope.$on('keydown:37', $scope.handlers.prev);
+		$scope.$on('keydown:66', function(){
+			$timeout($scope.handlers.bookmark);
+		});
+		$scope.$on('keydown:39', function(){
+			$timeout($scope.handlers.next);
+		});
+		$scope.$on('keydown:37', function(){
+			$timeout($scope.handlers.prev);
+		});
 
 	})
 	// Service to access to the API of Catalogue
