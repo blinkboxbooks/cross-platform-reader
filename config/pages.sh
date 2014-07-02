@@ -5,8 +5,9 @@ echo "Updating Github Pages..."
 READER_VERSION='v'$(grep version package.json | awk -F\" '{print $(NF-1)}')
 READER_VERSION=$READER_VERSION-$BUILD_NUMBER
 
-git fetch origin gh-pages
-git checkout gh-pages
+git remote update
+git fetch
+git checkout -B gh-pages origin/gh-pages
 rm -r latest
 git rm -r latest
 cp -r dist latest
