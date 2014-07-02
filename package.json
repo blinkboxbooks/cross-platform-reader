@@ -1,6 +1,6 @@
 {
   "name": "CPR",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Cross Platform Reader",
 	"repository": {
 		"type": "git",
@@ -9,7 +9,6 @@
 	"private": true,
   "scripts": {
     "pages": "sh config/pages.sh",
-    "tags": "sh config/tags.sh",
 		"push": "sh config/push.sh",
 		"install": "node node_modules/protractor/bin/webdriver-manager update"
   },
