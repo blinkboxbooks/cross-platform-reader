@@ -3667,20 +3667,14 @@ var Reader = (function (r) {
 		};
 
 		/* generate a preview from the current position */
-		var preview = '',
-			words = 0;
+		var preview = '';
 
 		// Calculates the length of a string and returns true if the length has the minimum number of words.
 		// Returns true if text is a string and its length is > than the desired number of words, false otherwise.
 		var hasDesiredLength = function (text) {
-			if ($.type(text) !== 'string') {
-				return false;
-			}
-
 			// Check number of words so far.
-			var whitespaces = text.match(/\S+/g);
-			words = whitespaces ? text.match(/\S+/g).length : 0;
-			return words > 100;
+			var words = text.match(/\S+/g);
+			return words && words.length > 100;
 		};
 
 		var _hasClass = function (el, classNames) {
@@ -3692,8 +3686,6 @@ var Reader = (function (r) {
 		var generatePreview = function () {
 			var $currentNode = $(textNode);
 			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
-
-			generatePreview :
 			while (!hasDesiredLength(text)) {
 				var $next = getNextNode($currentNode);
 
@@ -3702,7 +3694,7 @@ var Reader = (function (r) {
 					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text() : '';
 				} else {
 					// No more content go get text from, break operation.
-					break generatePreview;
+					break;
 				}
 			}
 
@@ -3742,24 +3734,21 @@ var Reader = (function (r) {
 	};
 
 	var getNextNode = function ($el) {
-		if ($el.length) {
-			$el = $el.last();
-			var nodes = $el.parent().contents().filter(function(i, e){
-				return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
-			});
-			var index = $.inArray($el[0], nodes);
-			if (nodes[index + 1]) {
-				var $next = $(nodes[index + 1]);
-				// ignore empty textnodes
-				if($next[0].nodeType === 3 && !$next.text().trim().length){
-					return getNextNode($next);
-				}
-				return $next;
-			} else if (!$el.parent().is(r.$reader)) {
-				return getNextNode($el.parent());
+		$el = $el.last();
+		var nodes = $el.parent().contents().filter(function(i, e){
+			return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
+		});
+		var index = $.inArray($el[0], nodes);
+		if (nodes[index + 1]) {
+			var $next = $(nodes[index + 1]);
+			// ignore empty textnodes
+			if($next[0].nodeType === 3 && !$next.text().trim().length){
+				return getNextNode($next);
 			}
+			return $next;
+		} else if (!$el.parent().is(r.$reader)) {
+			return getNextNode($el.parent());
 		}
-		return null;
 	};
 
 	return r;
@@ -4146,7 +4135,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.1-32'
+				appversion: '0.2.2-33'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4653,7 +4642,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.1-32'
+			'version': '0.2.2-33'
 		},
 		START_OF_BOOK : {
 			code: 8,
