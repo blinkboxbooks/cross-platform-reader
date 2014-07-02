@@ -55,6 +55,9 @@ var Reader = (function (r) {
 		// Initialise the epub module
 		r.Epub.init(r.$reader[0]);
 
+		// Initialize the touch module:
+		r.Touch.init(r.$iframe.contents());
+
 		// Set the initial position.
 		_initCFI = param.hasOwnProperty('initCFI') ? param.initCFI : _initCFI;
 		_initURL = param.hasOwnProperty('initURL') ? param.initURL : _initURL;
@@ -194,28 +197,6 @@ var Reader = (function (r) {
 		return findURL;
 	};
 
-	var _touchTimer, _touchData = {
-		call: 'userClick',
-		clientX: null,
-		clientY: null
-	};
-
-	// For mobile devices, notify the client of any touch events that happen on the reader (that are not links)
-	var _touchStartHandler = function(e){
-		if($(e.target).is(':not(a)')){
-			_touchTimer = (new Date()).getTime();
-			_touchData.clientX = e.touches ? e.touches[0].clientX : null;
-			_touchData.clientY = e.touches ? e.touches[0].clientY : null;
-		}
-	};
-
-	var _touchEndHandler = function(e){
-		// if the difference between touchstart and touchend is smalller than 300ms, send the callback, otherwise it's a long touch event
-		if((new Date()).getTime() - _touchTimer < 300 && $(e.target).is(':not(a)')){
-			r.Notify.event($.extend({}, Reader.Event.UNHANDLED_TOUCH_EVENT, _touchData));
-		}
-	};
-
 	// Capture all the links in the reader
 	var _clickHandler = function (e) {
 		e.preventDefault();
@@ -279,7 +260,6 @@ var Reader = (function (r) {
 	// * `width` In pixels
 	// * `height` In pixels
 	var _createContainer = function() {
-		var doc = r.$iframe.contents()[0];
 		r.$iframe.css({
 			display: 'inline-block',
 			border: 'none'
@@ -297,14 +277,6 @@ var Reader = (function (r) {
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
-
-		// Set touch handler for mobile clients, to send back the coordinates of the click
-		if(r.mobile){
-			doc.removeEventListener('touchstart', _touchStartHandler);
-			doc.addEventListener('touchstart', _touchStartHandler);
-			doc.removeEventListener('touchend', _touchEndHandler);
-			doc.addEventListener('touchend', _touchEndHandler);
-		}
 	};
 
 	// Load the JSON file with all the information related to this book
@@ -391,7 +363,7 @@ var Reader = (function (r) {
 	// Load a chapter with the index from the spine of this chapter
 	r.loadChapter = function(chapterNumber, page) {
 		var defer = $.Deferred(),
-				chapterUrl;
+			chapterUrl;
 
 		// Check if the PATH is in the href value from the spine...
 		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
