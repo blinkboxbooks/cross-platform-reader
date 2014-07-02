@@ -1125,6 +1125,45 @@ describe('CFI', function() {
 			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_CFI_GENERATION, {details: new Error('ERROR'), call: 'getCFIObject'}));
 		});
 
+		it('should provide cross-platform methods of retrieving the caret position', function () {
+			var doc = Reader.$iframe.contents()[0],
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
+			spyOn(doc, 'createRange').and.returnValue({
+				setStart: $.noop,
+				getClientRects: function () {
+					return [{top: 0, left: 0}];
+				}
+			});
+			Object.defineProperty(doc, 'caretRangeFromPoint', {writable: true, value: null});
+			Object.defineProperty(doc, 'caretPositionFromPoint', {writable: true, value: function () {
+				return {
+					offsetNode: element[0],
+					offset: 0
+				};
+			}});
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			Object.defineProperty(doc, 'caretPositionFromPoint', {writable: true, value: null});
+			Object.defineProperty(doc, 'caretRangeFromPoint', {writable: true, value: function () {
+				return {
+					startContainer: element[0],
+					startOffset: 0
+				};
+			}});
+			expect(Reader.CFI.getCFIObject()).toEqual({
+				CFI: fixtures.BOOK.BOOKMARK.CFI,
+				preview: fixtures.BOOK.BOOKMARK.preview,
+				chapter : fixtures.BOOK.BOOKMARK.chapter
+			});
+			Object.defineProperty(doc, 'caretRangeFromPoint', {writable: true, value: null});
+			expect(Reader.CFI.getCFIObject()).toBeFalsy();
+		});
+
 	});
 
 	describe('getCFI', function () {
