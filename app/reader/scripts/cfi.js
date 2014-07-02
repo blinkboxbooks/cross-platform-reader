@@ -331,14 +331,14 @@ var Reader = (function (r) {
 		};
 
 		/* generate a preview from the current position */
-		var preview = '',
-			words = 0;
+		var preview = '';
 
 		// Calculates the length of a string and returns true if the length has the minimum number of words.
 		// Returns true if text is a string and its length is > than the desired number of words, false otherwise.
 		var hasDesiredLength = function (text) {
 			// Check number of words so far.
-			return text.match(/\S+/g).length > 100;
+			var words = text.match(/\S+/g);
+			return words && words.length > 100;
 		};
 
 		var _hasClass = function (el, classNames) {
