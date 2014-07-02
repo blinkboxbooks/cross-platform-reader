@@ -1,3 +1,5 @@
+/* global fixtures */
+
 'use strict';
 
 describe('Book', function() {

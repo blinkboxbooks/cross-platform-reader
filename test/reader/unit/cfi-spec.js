@@ -1,3 +1,5 @@
+/* global fixtures */
+
 'use strict';
 
 describe('CFI', function() {
@@ -6,7 +8,7 @@ describe('CFI', function() {
 		spyOn($, 'ajax').and.callFake(function () {
 			return {
 				then: $.noop
-			}
+			};
 		});
 		Reader.init({
 			container: $('<div></div>').appendTo($('body')),
@@ -792,13 +794,13 @@ describe('CFI', function() {
 					getClientRects: function () {
 						return [rect];
 					}
-				}
+				};
 			});
 			if (doc.caretRangeFromPoint) {
 				spyOn(doc, 'caretRangeFromPoint').and.callFake(function () {
 					return {
 						startContainer: element[0],
-							startOffset: 0
+						startOffset: 0
 					};
 				});
 			} else if (doc.caretPositionFromPoint) {
@@ -1170,9 +1172,9 @@ describe('CFI', function() {
 
 		it('should return a JSON string of the CFI object', function () {
 			var obj = {
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+					CFI: fixtures.BOOK.BOOKMARK.CFI,
+					preview: fixtures.BOOK.BOOKMARK.preview,
+					chapter : fixtures.BOOK.BOOKMARK.chapter
 				},
 				encodedObj = encodeURIComponent(JSON.stringify(obj));
 			spyOn(Reader.CFI, 'getCFIObject').and.returnValue({

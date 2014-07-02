@@ -1,3 +1,5 @@
+/* global fixtures */
+
 'use strict';
 
 describe('Bookmarks', function() {
@@ -6,7 +8,7 @@ describe('Bookmarks', function() {
 		spyOn($, 'ajax').and.callFake(function () {
 			return {
 				then: $.noop
-			}
+			};
 		});
 		Reader.init({
 			container: $('<div></div>').appendTo($('body')),
@@ -201,7 +203,7 @@ describe('Bookmarks', function() {
 			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
 				if ($(el).is('[data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]')) {
 					// Define the first bookmark as being on page 1:
-					return 1
+					return 1;
 				}
 				// Define other bookmarks as being on page 2:
 				return 2;
@@ -232,7 +234,7 @@ describe('Bookmarks', function() {
 			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
 				if ($(el).is('[data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"]')) {
 					// Define the first bookmark as being on page 1:
-					return 1
+					return 1;
 				}
 				// Define other bookmarks as being on page 2:
 				return 2;
@@ -314,7 +316,7 @@ describe('Debug', function() {
 		spyOn($, 'ajax').and.callFake(function () {
 			return {
 				then: $.noop
-			}
+			};
 		});
 		Reader.init({
 			container: $('<div></div>').appendTo($('body'))
