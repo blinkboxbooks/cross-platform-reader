@@ -62,5 +62,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # run provisioning script
   config.vm.network "forwarded_port", guest: 80, host: 8443, auto_correct: true
 
-  config.vm.provision :shell, :path => "vagrant-conf/vagrant-provision.sh"
+  config.vm.provision :shell, :path => "vagrant-conf/vagrant-provision.sh", args: ENV['BUILD_NUMBER']
 end

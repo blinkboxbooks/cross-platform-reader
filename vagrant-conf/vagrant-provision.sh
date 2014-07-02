@@ -21,4 +21,4 @@ yum install Xvfb firefox -y
 
 # required for headless firefox
 Xvfb :1 -screen 0 1280x768x24 &
-echo 'export DISPLAY=:1' >>/etc/bashrc
+echo "export DISPLAY=:1;export BUILD_NUMBER=$1" >>/etc/bashrc
