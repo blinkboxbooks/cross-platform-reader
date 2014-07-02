@@ -461,8 +461,6 @@ module.exports = function (grunt) {
 		var fullVersion = pkg.version+'-'+process.env.BUILD_NUMBER; // append Jenkins build number
 		var buildNumber = parseInt(process.env.BUILD_NUMBER, 10);   // use build number to avoid conflicting test ports when multiple jobs are running
 
-		console.log(process.env);
-
 		grunt.config.set('readerVersion', fullVersion);
 		grunt.config.set('testPort', 7000+buildNumber);         // port used by Karma test framework
 		grunt.config.set('testRunnerPort', 8000+buildNumber);   // port used by Karma test runner which launches PhantomJS
