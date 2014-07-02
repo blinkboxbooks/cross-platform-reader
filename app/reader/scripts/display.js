@@ -194,7 +194,7 @@ var Reader = (function (r) {
 		return findURL;
 	};
 
-	var _touchTimer, _touchData = {
+	var _touchTimer, _touchLastTime, _touchData = {
 		call: 'userClick',
 		clientX: null,
 		clientY: null
@@ -214,6 +214,8 @@ var Reader = (function (r) {
 		if((new Date()).getTime() - _touchTimer < 300 && $(e.target).is(':not(a)')){
 			r.Notify.event($.extend({}, Reader.Event.UNHANDLED_TOUCH_EVENT, _touchData));
 		}
+    // Record the end of the touch just in case we are going to have a double tab
+    _touchLastTime = (new Date()).getTime();
 	};
 
 	// Capture all the links in the reader

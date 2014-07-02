@@ -79,6 +79,7 @@ var Reader = (function (r) {
 		ERR_CFI_INSERTION:{
 			code: 12,
 			message: 'Could not insert content at the location specified by the CFI.'
+
 		},
 		ERR_INVALID_ARGUMENT:{
 			code: 13,
@@ -112,6 +113,10 @@ var Reader = (function (r) {
 			code: 20,
 			message: 'Internal link was clicked'
 		},
+    DOUBLE_TAB_EVENT: {
+      code: 21,
+      message: 'Double tab event on an image at given coordinates.'
+    },
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
