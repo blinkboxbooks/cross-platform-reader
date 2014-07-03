@@ -347,7 +347,7 @@ module.exports = function (grunt) {
 			options:{
 				configFile: 'karma.conf.js'
 			},
-			reader: {}
+			unit: {}
 		},
 		// this grunt task generates documentation for the reader and saves the files in the docs/ folder
 		// Note: Docco requires a different comment formatting style. Only single line comments ( // ) work and the text is processed using the markdown formatting. This allows for greater control over styling directly in the comments.
@@ -386,7 +386,7 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask('test', ['connect:test', 'protractor']);
+	grunt.registerTask('test', ['karma:unit', 'connect:test', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([

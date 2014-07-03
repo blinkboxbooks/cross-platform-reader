@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# team city does not update local tags
+git fetch origin --prune --tags
+
 # Check for any changes in reader.js, and bump version if so
 
 LATEST=$( git for-each-ref refs/tags --sort=-authordate --format='%(refname)' --count=1)
