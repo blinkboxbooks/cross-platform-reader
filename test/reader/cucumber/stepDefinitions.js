@@ -12,7 +12,7 @@ var expect = chai.expect,
 module.exports = function() {
 
 	this.Given(/^I open book with the ISBN of ([^"]*)$/, function(isbn, next) {
-		page.load(isbn, 1);
+		page.load(isbn, 1, 1);
 		next();
 	});
 
@@ -49,6 +49,12 @@ module.exports = function() {
 		page.bookmark().then(function(status){
 			expect(status.bookmarksInPage.length).to.equal(1);
 			next();
+		});
+	});
+
+	this.Then(/^I expect the text "([^"]*)" to not be clipped$/, function (text, next) {
+		page.readerContext(function(){
+			expect(element(by.xpath('//*[contains(text(),"'+text+'")]')).getCssValue('text-indent').then(parseFloat)).to.eventually.be.at.least(0).and.notify(next);
 		});
 	});
 };

@@ -22,8 +22,8 @@ var Page = function(){
 	this.margin = element.all(by.css('[data-test="margin"] option'));
 	this.isbn = element(by.css('[data-test="isbn"]'));
 
-	this.load = function(isbn, env){
-		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles=false&transitionDuration=0');
+	this.load = function(isbn, env, publisherStyles){
+		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0');
 		browser.waitForAngular();
 	};
 
