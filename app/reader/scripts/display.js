@@ -210,12 +210,21 @@ var Reader = (function (r) {
 	};
 
 	var _touchEndHandler = function(e){
-		// if the difference between touchstart and touchend is smalller than 300ms, send the callback, otherwise it's a long touch event
-		if((new Date()).getTime() - _touchTimer < 300 && $(e.target).is(':not(a)')){
-			r.Notify.event($.extend({}, Reader.Event.UNHANDLED_TOUCH_EVENT, _touchData));
-		}
-    // Record the end of the touch just in case we are going to have a double tab
-    _touchLastTime = (new Date()).getTime();
+    // Check if it is a double tap
+    if (((new Date()).getTime() - _touchLastTime) < 500 && $(e.target).is('img')) {
+      if ($(e.target).attr('data-original-src') !== 'undefined'){
+        _touchData.src = $(e.target).attr('data-original-src');
+        _touchData.call = 'doubleTap';
+        r.Notify.event($.extend({}, Reader.Event.DOUBLE_TAB_EVENT, _touchData));
+      }
+    } else {
+      // if the difference between touchstart and touchend is smalller than 300ms, send the callback, otherwise it's a long touch event
+      if((new Date()).getTime() - _touchTimer < 300 && $(e.target).is(':not(a)')){
+        r.Notify.event($.extend({}, Reader.Event.UNHANDLED_TOUCH_EVENT, _touchData));
+      }
+      // Record the end of the touch just in case we are going to have a double tab
+      _touchLastTime = (new Date()).getTime();
+    }
 	};
 
 	// Capture all the links in the reader
@@ -302,10 +311,10 @@ var Reader = (function (r) {
 
 		// Set touch handler for mobile clients, to send back the coordinates of the click
 		if(r.mobile){
-			doc.removeEventListener('touchstart', _touchStartHandler);
-			doc.addEventListener('touchstart', _touchStartHandler);
-			doc.removeEventListener('touchend', _touchEndHandler);
-			doc.addEventListener('touchend', _touchEndHandler);
+      doc.removeEventListener('touchstart', _touchStartHandler);
+      doc.addEventListener('touchstart', _touchStartHandler);
+      doc.removeEventListener('touchend', _touchEndHandler);
+      doc.addEventListener('touchend', _touchEndHandler);
 		}
 	};
 
