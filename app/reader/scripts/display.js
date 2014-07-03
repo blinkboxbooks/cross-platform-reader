@@ -212,10 +212,10 @@ var Reader = (function (r) {
 	var _touchEndHandler = function(e){
     // Check if it is a double tap
     if (((new Date()).getTime() - _touchLastTime) < 500 && $(e.target).is('img')) {
-      if ($(e.target).attr('data-original-src') !== 'undefined'){
+      if (typeof $(e.target).attr('data-original-src') !== 'undefined'){
         _touchData.src = $(e.target).attr('data-original-src');
         _touchData.call = 'doubleTap';
-        r.Notify.event($.extend({}, Reader.Event.DOUBLE_TAB_EVENT, _touchData));
+        r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, _touchData));
       }
     } else {
       // if the difference between touchstart and touchend is smalller than 300ms, send the callback, otherwise it's a long touch event

@@ -113,9 +113,9 @@ var Reader = (function (r) {
 			code: 20,
 			message: 'Internal link was clicked'
 		},
-    DOUBLE_TAB_EVENT: {
+    IMAGE_SELECTION_EVENT: {
       code: 21,
-      message: 'Double tab event on an image at given coordinates.'
+      message: 'Double tab event on an image with the given url.'
     },
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
