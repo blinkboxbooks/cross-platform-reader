@@ -80,12 +80,12 @@ module.exports = function (grunt) {
 					]
 				}
 			},
-			reader: {
+			test: {
 				options: {
 					port: 9001,
 					base: [
-						'test',
-						'<%= yeoman.app %>/reader'
+						'.tmp',
+						'<%= yeoman.app %>'
 					]
 				}
 			},
@@ -347,7 +347,7 @@ module.exports = function (grunt) {
 			options:{
 				configFile: 'karma.conf.js'
 			},
-			reader: {}
+			unit: {}
 		},
 		// this grunt task generates documentation for the reader and saves the files in the docs/ folder
 		// Note: Docco requires a different comment formatting style. Only single line comments ( // ) work and the text is processed using the markdown formatting. This allows for greater control over styling directly in the comments.
@@ -364,15 +364,29 @@ module.exports = function (grunt) {
 			options: {
 				files: ['package.json'],
 				updateConfigs: [],
-				commit: true,
+				commit: false,
 				commitMessage: 'Release v%VERSION%',
 				commitFiles: ['package.json'], // '-a' for all files
 				createTag: false,
 				push: false,
 				gitDescribeOptions: '--tags --always --abbrev=1 --dirty=-d' // options to use with '$ git describe'
 			}
+		},
+		protractor: {
+			e2e: {
+				options: {
+					configFile: 'protractor.conf.js',
+				}
+			},
+			cucumber: {
+				options: {
+					configFile: 'cucumber.conf.js',
+				}
+			}
 		}
 	});
+
+	grunt.registerTask('test', ['karma:unit', 'connect:test', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([
@@ -386,7 +400,6 @@ module.exports = function (grunt) {
 		if(target !== 'watch'){
 			grunt.task.run([
 				'concat:reader',
-				// 'test:reader', // run unit tests for the reader library
 				'uglify:reader', // move and minify the reader
 				'copy:reader', // copy jquery, necessary for reader
 				'rev:reader' // cache buster
@@ -427,19 +440,12 @@ module.exports = function (grunt) {
 		grunt.task.run('serve');
 	});
 
-	grunt.registerTask('test', function (target) {
-		target = target || 'reader';
-		grunt.task.run([
-			'connect:' + target,
-			'karma:' + target
-		]);
-	});
-
 	grunt.registerTask('build', [
 		'clean:all', // start fresh
 		'jshint:test', // jshint the tests
 		'reader', // build the reader
 		'demo', // build the demo
+		// 'test', // run all tests
 		'copy:github', // copy github static pages
 		'replace:dist', // add reader version
 		'docco' // generates technical documentation

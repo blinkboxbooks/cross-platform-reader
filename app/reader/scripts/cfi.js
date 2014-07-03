@@ -224,11 +224,11 @@ var Reader = (function (r) {
 		}
 	};
 
-	var _textNodeInViewport = function(el, offset){
+	var _nodeInViewport = function(el, offset){
 		// this test is only for text nodes, relates to CR-300
 		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
 		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
-		if(el && el.nodeType === 3){
+		if(el.nodeType === 3){
 			var range = r.$iframe.contents()[0].createRange();
 			range.setStart(el, offset || 0);
 			var rects = range.getClientRects();
@@ -236,6 +236,10 @@ var Reader = (function (r) {
 				var rect = rects[0];
 				return rect.left >= 0;
 			}
+		} else if(el.nodeType === 1){
+			// This check is only necessary for iOS webview bug, where caretRangeFromPoint returns the wrong element
+			// http://jira.blinkbox.local/jira/browse/CR-320
+			return r.returnPageElement(el) === r.Navigation.getPage();
 		}
 		return true;
 	};
@@ -254,7 +258,7 @@ var Reader = (function (r) {
 			offset = range.startOffset;
 		}
 
-		if(!r.$reader.has(textNode).length || !_textNodeInViewport(textNode, offset)){
+		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset)){
 			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 			if(x < 3/4 * columnWidth){
 				x += columnWidth / 4;
@@ -327,20 +331,14 @@ var Reader = (function (r) {
 		};
 
 		/* generate a preview from the current position */
-		var preview = '',
-			words = 0;
+		var preview = '';
 
 		// Calculates the length of a string and returns true if the length has the minimum number of words.
 		// Returns true if text is a string and its length is > than the desired number of words, false otherwise.
 		var hasDesiredLength = function (text) {
-			if ($.type(text) !== 'string') {
-				return false;
-			}
-
 			// Check number of words so far.
-			var whitespaces = text.match(/\S+/g);
-			words = whitespaces ? text.match(/\S+/g).length : 0;
-			return words > 100;
+			var words = text.match(/\S+/g);
+			return words && words.length > 100;
 		};
 
 		var _hasClass = function (el, classNames) {
@@ -352,8 +350,6 @@ var Reader = (function (r) {
 		var generatePreview = function () {
 			var $currentNode = $(textNode);
 			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
-
-			generatePreview :
 			while (!hasDesiredLength(text)) {
 				var $next = getNextNode($currentNode);
 
@@ -362,7 +358,7 @@ var Reader = (function (r) {
 					text += $currentNode.text().length && $currentNode[0].tagName !== 'SCRIPT' ? $currentNode.text() : '';
 				} else {
 					// No more content go get text from, break operation.
-					break generatePreview;
+					break;
 				}
 			}
 
@@ -402,24 +398,21 @@ var Reader = (function (r) {
 	};
 
 	var getNextNode = function ($el) {
-		if ($el.length) {
-			$el = $el.last();
-			var nodes = $el.parent().contents().filter(function(i, e){
-				return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
-			});
-			var index = $.inArray($el[0], nodes);
-			if (nodes[index + 1]) {
-				var $next = $(nodes[index + 1]);
-				// ignore empty textnodes
-				if($next[0].nodeType === 3 && !$next.text().trim().length){
-					return getNextNode($next);
-				}
-				return $next;
-			} else if (!$el.parent().is(r.$reader)) {
-				return getNextNode($el.parent());
+		$el = $el.last();
+		var nodes = $el.parent().contents().filter(function(i, e){
+			return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
+		});
+		var index = $.inArray($el[0], nodes);
+		if (nodes[index + 1]) {
+			var $next = $(nodes[index + 1]);
+			// ignore empty textnodes
+			if($next[0].nodeType === 3 && !$next.text().trim().length){
+				return getNextNode($next);
 			}
+			return $next;
+		} else if (!$el.parent().is(r.$reader)) {
+			return getNextNode($el.parent());
 		}
-		return null;
 	};
 
 	return r;

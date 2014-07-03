@@ -28,6 +28,10 @@
 		"READER": false,
 		"afterEach": false,
 		"jasmine": false,
-		"Reader": false
+		"Reader": false,
+		"browser": false,
+		"element": false,
+		"by": false,
+		"protractor": false
 	}
 }
