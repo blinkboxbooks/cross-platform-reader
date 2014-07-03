@@ -220,6 +220,7 @@ var Reader = (function (r) {
     } else {
       // if the difference between touchstart and touchend is smalller than 300ms, send the callback, otherwise it's a long touch event
       if((new Date()).getTime() - _touchTimer < 300 && $(e.target).is(':not(a)')){
+        _touchData.call = 'userClick';
         r.Notify.event($.extend({}, Reader.Event.UNHANDLED_TOUCH_EVENT, _touchData));
       }
       // Record the end of the touch just in case we are going to have a double tab
