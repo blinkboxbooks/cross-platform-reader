@@ -4029,7 +4029,7 @@ var Reader = (function (r) {
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
 		r.$parent = $(param.container).empty();
-		r.$iframe = $('<iframe name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
+		r.$iframe = $('<iframe id="cpr-iframe" name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
 		r.$head = r.$iframe.contents().find('head');
 		r.$wrap = r.$iframe.contents().find('body');
 		r.$container = $('<div></div>').appendTo(r.$wrap);
@@ -4135,7 +4135,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.2-33'
+				appversion: '0.2.3-34'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4642,7 +4642,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.2-33'
+			'version': '0.2.3-34'
 		},
 		START_OF_BOOK : {
 			code: 8,
