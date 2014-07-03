@@ -27,7 +27,7 @@ var Reader = (function (r) {
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
 		r.$parent = $(param.container).empty();
-		r.$iframe = $('<iframe id="cpr_iframe" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
+		r.$iframe = $('<iframe id="cpr-iframe" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
 		r.$head = r.$iframe.contents().find('head');
 		r.$wrap = r.$iframe.contents().find('body');
 		r.$container = $('<div></div>').appendTo(r.$wrap);
