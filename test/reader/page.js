@@ -24,7 +24,7 @@ var Page = function(){
 
 	this.load = function(isbn, env, publisherStyles){
 		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0');
-		browser.waitForAngular();
+		return browser.waitForAngular();
 	};
 
 	this.next = function(){
