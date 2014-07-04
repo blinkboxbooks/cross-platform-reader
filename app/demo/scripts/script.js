@@ -184,7 +184,7 @@ angular.module('app', ['ngRoute'])
 			if(val){
 				// Call the Reader
 				READER.enableDebug();
-				READER.init({
+				var promise = READER.init({
 					container: '#reader_container',
 					width: $scope.layout.width,
 					height: $scope.layout.height,
@@ -198,8 +198,10 @@ angular.module('app', ['ngRoute'])
 
 				// watch for new watches
 				if(!_isWatching){
-					$scope.$watch('preferences', READER.setPreferences, true);
-					$scope.$watch('layout', READER.resizeContainer, true);
+					promise.then(function(){
+						$scope.$watch('preferences', READER.setPreferences, true);
+						$scope.$watch('layout', READER.resizeContainer, true);
+					});
 					_isWatching = true;
 				}
 			}
