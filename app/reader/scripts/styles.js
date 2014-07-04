@@ -36,19 +36,22 @@ var Reader = (function (r) {
 	// Will set a maximum size of 0.5 of a column width for the given size
 	// result is always in px
 	function _parseSize(size) {
-		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+		var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2),
+			value = 0;
 
 		if(size.indexOf('px') !== -1){
-			return Math.min(parseFloat(size), columnWidth / 2);
+			value = Math.min(parseFloat(size), columnWidth / 2);
 		} else if(size.indexOf('em') !== -1){
-			return Math.min(parseFloat(size) * 18, columnWidth / 2);
+			value = Math.min(parseFloat(size) * 18, columnWidth / 2);
 		} else if(size.indexOf('%') !== -1){
 			// do not allow relative margins higher than 100
-			return Math.min(parseFloat(size), 100) * columnWidth / 100;
+			value = Math.min(parseFloat(size), 100) * columnWidth / 100;
 		}
 
 		// if size unit is not recognised, return 0
-		return 0;
+		// we cannot allow negative margins, paddings and text indents.
+		// Some books rely on the body having a left margin to display property, but the body is used for layout and cannot have any margins on it http://jira.blinkbox.local/jira/browse/CR-331
+		return Math.max(value, 0);
 	}
 
 	function _parseCSS(style) {
@@ -120,7 +123,7 @@ var Reader = (function (r) {
 								// convert px font-size to rem, todo: convert other sizes?
 								if (key === 'fontSize') {
 									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
-								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1) {
+								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key.indexOf('text-indent')) {
 									cssText += ';' + whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
 								} else {
 									cssText += ';' + whitelist[key] + ':' + rule.style[key];
