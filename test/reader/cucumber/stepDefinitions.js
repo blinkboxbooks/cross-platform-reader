@@ -12,7 +12,8 @@ var expect = chai.expect,
 module.exports = function() {
 
 	this.Given(/^I open book with the ISBN of ([^"]*)$/, function(isbn, next) {
-		page.load(isbn, 1, 1).then(next);
+		page.load(isbn, 1, 1);
+		next();
 	});
 
 	this.Given(/^I go to chapter (\d+) page (\d+)$/, function (chapter, pageNumber, next) {
