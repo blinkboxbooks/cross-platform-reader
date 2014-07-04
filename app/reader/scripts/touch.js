@@ -15,18 +15,25 @@ var Reader = (function (r) {
 	var touchStartData,
 			touchDelta,
 			isVerticalScroll,
-			leftPosition;
+			leftPosition,
+      touchLastTime,
+      touchTimeout;
 
 	function resetPosition() {
 		// Move back to the original position:
 		r.setReaderLeftPosition(leftPosition, r.preferences.transitionDuration.value);
 	}
 
+  function sendUnhandledTouchEvent() {
+    r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
+  }
+
 	r.Touch = {
 		reset: function () {
 			touchStartData = undefined;
 			touchDelta = undefined;
 			isVerticalScroll = undefined;
+      touchLastTime = Date.now();
 		},
 		start: function (e) {
 			var touches = e.originalEvent.touches;
@@ -79,8 +86,18 @@ var Reader = (function (r) {
 					resetPosition();
 				}
 				if (isShortDuration && !$(e.target).closest('a').length) {
-					r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
-				}
+          if ($(e.target).is('img')) {
+            touchTimeout = setTimeout(sendUnhandledTouchEvent, 550);
+          } else {
+            sendUnhandledTouchEvent();
+          }
+				} else if (Date.now() - touchLastTime < 500 && $(e.target).is('img')) {
+          clearTimeout(touchTimeout);
+          r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
+            call: 'doubleTap',
+            src: $(e.target).attr('data-original-src')
+          }));
+        }
 			}
 			this.reset();
 		},
