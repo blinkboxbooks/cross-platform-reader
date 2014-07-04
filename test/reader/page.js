@@ -25,6 +25,10 @@ var Page = function(){
 	this.load = function(isbn, env, publisherStyles){
 		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0');
 		browser.waitForAngular();
+		// wait at maximum 2 seconds for the reader to load the content (which means waiting for a status updated from the reader).
+		return browser.wait(function() {
+			return status.isPresent();
+		}, 2000);
 	};
 
 	this.next = function(){
