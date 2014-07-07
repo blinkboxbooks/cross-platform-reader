@@ -10,7 +10,7 @@ Feature: Formatting book content
   @CR-334
   Scenario: Header and footer should not be styled.
     Given I open a book
-    And I change the font family to serif
-    Then I expect the header to have font family sans-serif
-    And I expect the footer to have font family sans-serif
+    And I change the font family to "Times new Roman"
+    Then I expect the header to have font family "sans-serif"
+    And I expect the footer to have font family "sans-serif"
 
