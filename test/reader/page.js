@@ -92,6 +92,7 @@ var Page = function(){
 			element(by.css('body > div:nth-of-type(2)')) // todo better selector
 		);
 
+		// this does not seem to work, we need to reload page t oswitch back to original window
 		ptor.switchTo().defaultContent();
 		ptor.ignoreSynchronization = false;
 	};

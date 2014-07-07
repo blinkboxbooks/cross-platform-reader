@@ -12,5 +12,3 @@ Feature: Formatting book content
     Given I open a book
     And I change the font family to "Times new Roman"
     Then I expect the header to have font family "sans-serif"
-    And I expect the footer to have font family "sans-serif"
-

@@ -81,11 +81,4 @@ module.exports = function() {
 		});
 	});
 
-	this.Then(/^I expect the footer to have font family "([^"]*)"$/, function (fontFamily, next) {
-		// express the regexp above with the code you wish you had
-		page.readerContext(function(contents, body, reader, header, footer){
-			expect(footer.getCssValue('font-family')).to.eventually.equal(fontFamily).and.notify(next);
-		});
-	});
-
 };
