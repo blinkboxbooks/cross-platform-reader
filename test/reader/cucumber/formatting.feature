@@ -6,3 +6,11 @@ Feature: Formatting book content
   Scenario: Issue with negative text indents in book 9781446417508
     Given I open book with the ISBN of 9781446417508
     Then I expect the text "French Onion Soup" to not be clipped
+
+  @CR-334
+  Scenario: Header and footer should not be styled.
+    Given I open a book
+    And I change the font family to serif
+    Then I expect the header to have font family sans-serif
+    And I expect the footer to have font family sans-serif
+
