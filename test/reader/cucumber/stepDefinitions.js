@@ -41,10 +41,6 @@ module.exports = function() {
 			});
 	});
 
-	this.Then(/^the isbn should equal "([^"]*)"$/, function(isbn, next) {
-		expect(page.isbn.getText()).to.eventually.equal(isbn).and.notify(next);
-	});
-
 	this.Then(/^I want to bookmark the current page$/, function (next) {
 		page.bookmark().then(function(status){
 			expect(status.bookmarksInPage.length).to.equal(1);
