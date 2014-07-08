@@ -115,7 +115,8 @@ var Reader = (function (r) {
 		},
     IMAGE_SELECTION_EVENT: {
       code: 21,
-      message: 'Double tab event on an image with the given url.'
+      message: 'Double tab event on an image with the given url.',
+      call: 'doubleTap'
     },
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {

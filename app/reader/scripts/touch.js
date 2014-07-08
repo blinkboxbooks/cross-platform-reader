@@ -94,7 +94,6 @@ var Reader = (function (r) {
 				} else if (Date.now() - touchLastTime < 500 && $(e.target).is('img')) {
           clearTimeout(touchTimeout);
           r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
-            call: 'doubleTap',
             src: $(e.target).attr('data-original-src')
           }));
         }
