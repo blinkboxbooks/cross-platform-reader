@@ -107,7 +107,8 @@ var Reader = (function (r) {
 		},
 		UNHANDLED_TOUCH_EVENT: {
 			code: 19,
-			message: 'Unhandled touch event at given coordinates.'
+			message: 'Unhandled touch event at given coordinates.',
+      call: 'userClick'
 		},
 		NOTICE_INT_LINK: {
 			code: 20,

@@ -38,7 +38,6 @@ var Reader = (function (r) {
 		start: function (e) {
 			var touches = e.originalEvent.touches;
 			touchStartData = {
-				call: 'userClick',
 				clientX: touches ? touches[0].clientX : null,
 				clientY: touches ? touches[0].clientY : null,
 				time: Date.now()
