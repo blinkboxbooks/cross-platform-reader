@@ -134,7 +134,7 @@ var Reader = (function (r) {
 								// convert px font-size to rem, todo: convert other sizes?
 								if (key === 'fontSize') {
 									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
-								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key.indexOf('text-indent') !== -1) {
+								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key === 'textIndent') {
 									cssText += ';' + whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
 								} else {
 									cssText += ';' + whitelist[key] + ':' + rule.style[key];
