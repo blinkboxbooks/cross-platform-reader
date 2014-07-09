@@ -412,7 +412,7 @@ var Reader = (function (r) {
 				partElements = r.Navigation.getNumberOfChapterPartElements();
 				progress = (progress * totalElements - readElements) / partElements;
 			}
-			return Math.ceil(progress * pagesByChapter);
+			return (Math.ceil(progress * pagesByChapter) || 1) - 1;
 		},
 		getLastPageAnchorName: function () {
 			return 'cpr-lastpage';
