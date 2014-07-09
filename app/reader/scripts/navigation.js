@@ -391,7 +391,7 @@ var Reader = (function (r) {
 		},
 		// Returns true for a progress anchor with a chapter percentage like e.g. "50%":
 		isProgressAnchor: function (anchor) {
-			return anchor.slice(-1) === '%';
+			return /%$/.test(anchor);
 		},
 		// Returns a floating point number from a percentage anchor, e.g. 0.5 for "50%":
 		getProgressFromAnchor: function (anchor) {
