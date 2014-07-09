@@ -117,8 +117,7 @@ var Reader = (function (r) {
 
 	var _getColumnsNumber = function() {
 		var el = r.$reader[0];
-		// we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)
-		return Math.floor((el.scrollWidth - 1) / r.getReaderOuterWidth());
+		return Math.ceil(el.scrollWidth / r.getReaderOuterWidth());
 	};
 
 	// Refresh the content layout.
@@ -251,7 +250,7 @@ var Reader = (function (r) {
 			return defer.promise();
 		},
 		next: function() {
-			if (page < pagesByChapter) {
+			if (page < pagesByChapter - 1) {
 				return Page.next();
 			}
 			var defer = $.Deferred(),
@@ -495,8 +494,7 @@ var Reader = (function (r) {
 		},
 		// Calculate how much of the current chapter has been read:
 		getChapterReadFactor: function () {
-			// Add one to page and pagesByChapter to account for 0 based indices:
-			var factor = (page+1) / (pagesByChapter+1),
+			var factor = (page + 1) / pagesByChapter,
 					totalElements,
 					readElements,
 					partElements;
@@ -660,7 +658,7 @@ var Reader = (function (r) {
 			if ($.type(p) === 'string') {
 				if (r.Navigation.isLastPageAnchor(p)) {
 					// jump to the last page of the chapter:
-					page = pagesByChapter;
+					page = pagesByChapter - 1;
 				} else if (r.Navigation.isProgressAnchor(p)) {
 					// page is given as chapter progress, jump to the equivalent part:
 					page = r.Navigation.getProgressAnchorPage(p);
