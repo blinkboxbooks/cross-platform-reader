@@ -360,8 +360,8 @@ var Reader = (function (r) {
 			}
 			var targetWordCount = Math.ceil(progress / 100 * _totalWordCount),
 					wordCount = 0,
+					progressFloat = 0,
 					chapterWordCount,
-					progressFloat,
 					progressAnchor,
 					i;
 			for (i = 0; i < r.Book.spine.length; i++) {
@@ -371,7 +371,9 @@ var Reader = (function (r) {
 				}
 				wordCount += chapterWordCount;
 			}
-			progressFloat = (targetWordCount - wordCount) / chapterWordCount;
+			if (chapterWordCount) {
+				progressFloat = (targetWordCount - wordCount) / chapterWordCount;
+			}
 			progressAnchor = (progressFloat * 100) + '%';
 			if (chapter !== i || !r.Navigation.isProgressInCurrentChapterPart(progressFloat)) {
 				return r.loadChapter(i, progressAnchor);
@@ -467,7 +469,7 @@ var Reader = (function (r) {
 		isProgressInCurrentChapterPart: function (progress) {
 			return !r.Navigation.hasChapterParts() ||
 				r.Navigation.getCurrentChapterPart() ===
-					Math.ceil(r.Navigation.getNumberOfChapterPartsElements() * progress / r.preferences.maxChapterElements.value) - 1;
+					(Math.ceil(r.Navigation.getNumberOfChapterPartsElements() * progress / r.preferences.maxChapterElements.value) || 1) - 1;
 		},
 		// Returns the chapter part based on the given CFI:
 		getChapterPartFromCFI: function (cfi) {

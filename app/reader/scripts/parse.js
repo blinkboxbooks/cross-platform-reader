@@ -73,7 +73,7 @@ var Reader = (function (r) {
 				part = parts - 1;
 			} else if (r.Navigation.isProgressAnchor(page)) {
 				// Anchor points to chapter progress, jump to the equivalent part:
-				part = Math.ceil(children.length * r.Navigation.getProgressFromAnchor(page) / maxElements) - 1;
+				part = (Math.ceil(children.length * r.Navigation.getProgressFromAnchor(page) / maxElements) || 1) - 1;
 			} else if (r.CFI.isValidCFI(page)) {
 				part = r.Navigation.getChapterPartFromCFI(page);
 			} else if ($.type(page) === 'string') {
