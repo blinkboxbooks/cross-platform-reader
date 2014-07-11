@@ -134,7 +134,7 @@ var Reader = (function (r) {
 				var imgSrc = _parseURL(image.getAttribute('src'));
 				// Prevent premature loading of img elements:
 				image.setAttribute('data-src', imgSrc);
-        // Store original URL for the image:
+        // Save original URL for the image:
         image.setAttribute('data-original-src', image.getAttribute('src'));
 				// Use a tiny data-uri GIF as placeholder:
 				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
@@ -166,6 +166,8 @@ var Reader = (function (r) {
 				if (img) {
 					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            // Save original URL for the image:
+            img.setAttribute('data-original-src', url);
 						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
 					}
 				}
