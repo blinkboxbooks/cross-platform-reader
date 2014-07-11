@@ -16,7 +16,7 @@ var Reader = (function (r) {
 			touchDelta,
 			isVerticalScroll,
 			leftPosition,
-      touchLastTime,
+      waitingTap = false,
       touchTimeout;
 
 	function resetPosition() {
@@ -25,6 +25,7 @@ var Reader = (function (r) {
 	}
 
   function sendUnhandledTouchEvent() {
+    waitingTap = false;
     r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
   }
 
@@ -33,7 +34,6 @@ var Reader = (function (r) {
 			touchStartData = undefined;
 			touchDelta = undefined;
 			isVerticalScroll = undefined;
-      touchLastTime = Date.now();
 		},
 		start: function (e) {
 			var touches = e.originalEvent.touches;
@@ -84,14 +84,16 @@ var Reader = (function (r) {
 				if (touchDelta && !isVerticalScroll) {
 					resetPosition();
 				}
-				if (isShortDuration && !$(e.target).closest('a').length) {
-          if ($(e.target).is('img')) {
+				if (isShortDuration && !$(e.target).closest('a').length && !waitingTap) {
+          if ($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) {
+            waitingTap = true;
             touchTimeout = setTimeout(sendUnhandledTouchEvent, 550);
           } else {
             sendUnhandledTouchEvent();
           }
-				} else if (Date.now() - touchLastTime < 500 && $(e.target).is('img')) {
+				} else if (($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) && waitingTap) {
           clearTimeout(touchTimeout);
+          waitingTap = false;
           r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
             src: $(e.target).attr('data-original-src')
           }));
