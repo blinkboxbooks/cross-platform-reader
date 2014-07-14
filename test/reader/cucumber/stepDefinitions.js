@@ -50,13 +50,16 @@ module.exports = function() {
 
 	this.Given(/^I change the font family to "([^"]*)"$/, function (fontFamily, next) {
 		// get font family option matching the selector and click it
-		page.fontFamily.filter(function(option){
-			return option.getText().then(function(text){
-				return text === fontFamily;
-			});
-		}).then(function(el){
-			el[0].click().then(function(){
-				next();
+
+		page.fontFamily.then(function(options){
+			options.forEach(function(option){
+				option.getText().then(function(text){
+					if(text === fontFamily){
+						option.click().then(function(){
+							next();
+						});
+					}
+				});
 			});
 		});
 	});
