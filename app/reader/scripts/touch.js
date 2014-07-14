@@ -15,7 +15,8 @@ var Reader = (function (r) {
 	var touchStartData,
 			touchDelta,
 			isVerticalScroll,
-			leftPosition;
+			leftPosition,
+			navInterface;
 
 	function resetPosition() {
 		// Move back to the original position:
@@ -68,9 +69,9 @@ var Reader = (function (r) {
 					Math.abs(touchDelta.x) > r.Layout.Reader.width / 2)) {
 				// Move the Reader page in the swipe direction:
 				if (touchDelta.x < 0) {
-					promise = r.Navigation.next();
+					promise = navInterface.next();
 				} else {
-					promise = r.Navigation.prev();
+					promise = navInterface.prev();
 				}
 				// If we are already at the start or end of the book, reset to the last position:
 				promise.fail(resetPosition);
@@ -91,6 +92,10 @@ var Reader = (function (r) {
 			doc.on('touchstart touchmove touchend touchcancel', function (event) {
 				r.Touch[event.type.slice(5)].call(r.Touch, event);
 			});
+			/**
+			 * We need to use the wrapper's next/prev methods, to handle any possible event generation and keeping things DRY.
+			 * */
+			navInterface = READER || r.Navigation;
 		}
 	};
 
