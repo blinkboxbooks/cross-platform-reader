@@ -109,7 +109,18 @@ var Reader = (function (r) {
 					paddingRight: 'padding-right',
 					paddingBottom: 'padding-bottom',
 					display: 'display',
-					border: 'border',
+					borderLeftWidth: 'border-left-width',
+					borderRightWidth: 'border-right-width',
+					borderTopWidth: 'border-top-width',
+					borderBottomWidth: 'border-bottom-width',
+					borderLeftStyle: 'border-left-style',
+					borderRightStyle: 'border-right-style',
+					borderTopStyle: 'border-top-style',
+					borderBottomStyle: 'border-bottom-style',
+					borderLeftColor: 'border-left-color',
+					borderRightColor: 'border-right-color',
+					borderTopColor: 'border-top-color',
+					borderBottomColor: 'border-bottom-color',
 					float: 'float'
 				};
 			for (i = 0, l = links.length; i < l; i++) {
@@ -123,7 +134,7 @@ var Reader = (function (r) {
 								// convert px font-size to rem, todo: convert other sizes?
 								if (key === 'fontSize') {
 									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
-								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key.indexOf('text-indent')) {
+								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key === 'textIndent') {
 									cssText += ';' + whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
 								} else {
 									cssText += ';' + whitelist[key] + ':' + rule.style[key];
