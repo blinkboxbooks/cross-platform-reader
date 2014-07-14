@@ -93,9 +93,6 @@ var Reader = (function (r) {
 				var index = $.inArray(cfi, _bookmarks[chapter]);
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter].splice(index, 1);
-					if(!_bookmarks[chapter].length){
-						_bookmarks.splice(chapter, 1);
-					}
 
 					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
