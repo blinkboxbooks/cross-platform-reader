@@ -354,7 +354,8 @@ var Reader = (function (r) {
 		},
 		goToProgress: function (progress) {
 			calculateTotalWordCount();
-			if (!_totalWordCount || $.type(progress) !== 'number') {
+			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
+				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
 				return $.Deferred().reject().promise();
 			}
 			var targetWordCount = Math.ceil(progress / 100 * _totalWordCount),
