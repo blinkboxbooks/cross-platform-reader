@@ -3206,7 +3206,9 @@ var Reader = (function (r) {
 				$.each(_bookmarks, function(i, el){
 					if($.isArray(el)){
 						$.each(el, function(index, cfi){
-							r.Bookmarks.removeBookmark(cfi);
+							if(cfi){
+								r.Bookmarks.removeBookmark(cfi);
+							}
 						});
 					}
 				});
@@ -3258,7 +3260,7 @@ var Reader = (function (r) {
 			if(chapter !== -1){
 				var index = $.inArray(cfi, _bookmarks[chapter]);
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
-					_bookmarks[chapter][index] = null;
+					_bookmarks[chapter].splice(index, 1);
 
 					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
@@ -4138,7 +4140,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.6-38'
+				appversion: '0.2.7-39'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4614,7 +4616,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.6-38'
+			'version': '0.2.7-39'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -6430,7 +6432,8 @@ var Reader = (function (r) {
 	var touchStartData,
 			touchDelta,
 			isVerticalScroll,
-			leftPosition;
+			leftPosition,
+			navInterface;
 
 	function resetPosition() {
 		// Move back to the original position:
@@ -6483,9 +6486,9 @@ var Reader = (function (r) {
 					Math.abs(touchDelta.x) > r.Layout.Reader.width / 2)) {
 				// Move the Reader page in the swipe direction:
 				if (touchDelta.x < 0) {
-					promise = r.Navigation.next();
+					promise = navInterface.next();
 				} else {
-					promise = r.Navigation.prev();
+					promise = navInterface.prev();
 				}
 				// If we are already at the start or end of the book, reset to the last position:
 				promise.fail(resetPosition);
@@ -6506,6 +6509,10 @@ var Reader = (function (r) {
 			doc.on('touchstart touchmove touchend touchcancel', function (event) {
 				r.Touch[event.type.slice(5)].call(r.Touch, event);
 			});
+			/**
+			 * We need to use the wrapper's next/prev methods, to handle any possible event generation and keeping things DRY.
+			 * */
+			navInterface = READER || r.Navigation;
 		}
 	};
 

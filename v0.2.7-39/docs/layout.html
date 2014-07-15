@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>layout.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="book.html">
+                book.js
+              </a>
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="epub.html">
+                epub.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="touch.html">
+                touch.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>layout.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> </span>{
+
+	r.Layout = {
+		Container: {
+			width: <span class="hljs-number">0</span>,
+			height: <span class="hljs-number">0</span>
+		},
+		Reader: {
+			width: <span class="hljs-number">0</span>,
+			height: <span class="hljs-number">0</span>,
+			columns: <span class="hljs-number">1</span>,
+			padding: <span class="hljs-number">0</span>
+		},
+		resizeContainer: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(dimensions)</span></span>{
+			dimensions = $.extend({
+				width: r.Layout.Container.width,
+				height: r.Layout.Container.height,
+				columns: r.Layout.Reader.columns,
+				padding: r.Layout.Reader.padding
+			}, dimensions);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Save new values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.Layout.Container.width = <span class="hljs-built_in">Math</span>.floor(dimensions.width);
+			r.Layout.Container.height = <span class="hljs-built_in">Math</span>.floor(dimensions.height);
+			r.Layout.Reader.width = r.Layout.Container.width - <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">1</span>]*r.Layout.Container.width/<span class="hljs-number">100</span>) - <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">3</span>]*r.Layout.Container.width/<span class="hljs-number">100</span>);
+			r.Layout.Reader.height = r.Layout.Container.height - <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">0</span>]*r.Layout.Container.height/<span class="hljs-number">100</span>) - <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">2</span>]*r.Layout.Container.height/<span class="hljs-number">100</span>);
+			r.Layout.Reader.columns = dimensions.columns;
+			r.Layout.Reader.padding = dimensions.padding;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>avoid rounding errors, adjust the width of the reader to contain the columns + padding</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> columnWidth = <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / <span class="hljs-number">2</span>),</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>columnAdjust adjusts the Reader padding depending on the column number and gap:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					columnAdjust = dimensions.columns &gt; <span class="hljs-number">1</span> ? <span class="hljs-number">0</span> : <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.padding / <span class="hljs-number">4</span>);
+			r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - <span class="hljs-number">1</span>) * r.Layout.Reader.padding;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Apply new size</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.$iframe.css({
+				width: r.Layout.Container.width + <span class="hljs-string">'px'</span>,
+				height: r.Layout.Container.height + <span class="hljs-string">'px'</span>
+			});
+
+			r.$reader.css({</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Position absolute fixes a layout issue on the Huddle:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				position: <span class="hljs-string">'absolute'</span>,
+				width: r.Layout.Reader.width + <span class="hljs-string">'px'</span>,
+				height: r.Layout.Reader.height + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'column-width'</span>: columnWidth + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'column-gap'</span>: r.Layout.Reader.padding + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'column-fill'</span>: <span class="hljs-string">'auto'</span>
+			});
+
+			r.$container.css({</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Position relative is required to set the reader to position absolute:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				position: <span class="hljs-string">'relative'</span>,
+				width: r.Layout.Reader.width + <span class="hljs-string">'px'</span>,
+				height: r.Layout.Reader.height + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'margin-left'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">3</span>] * r.Layout.Container.width/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'margin-right'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">1</span>] * r.Layout.Container.width/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>This centers the column on single column view:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-string">'padding-left'</span>: columnAdjust + <span class="hljs-string">'px'</span>
+			});
+
+			r.$header.css({
+				width: r.Layout.Reader.width + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'margin-left'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">3</span>] * r.Layout.Container.width/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'margin-right'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">1</span>] * r.Layout.Container.width/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'height'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">0</span>] * r.Layout.Container.height/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'line-height'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">0</span>] * r.Layout.Container.height/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'padding-left'</span>: columnAdjust + <span class="hljs-string">'px'</span>
+			});
+
+			r.$footer.css({
+				width: r.Layout.Reader.width + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'margin-left'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">3</span>] * r.Layout.Container.width/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'margin-right'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">1</span>] * r.Layout.Container.width/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'height'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">2</span>] * r.Layout.Container.height/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'line-height'</span>: <span class="hljs-built_in">Math</span>.floor(r.preferences.margin.value[<span class="hljs-number">2</span>] * r.Layout.Container.height/<span class="hljs-number">100</span>) + <span class="hljs-string">'px'</span>,
+				<span class="hljs-string">'padding-left'</span>: columnAdjust + <span class="hljs-string">'px'</span>
+			});
+
+			_resizeImages();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Update navigation variables</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.refreshLayout();
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Modifies some parameter related to the dimensions of the images and svg elements.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> _resizeImages = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Get SVG elements</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		$(<span class="hljs-string">'svg'</span>, r.$reader).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(index,node)</span></span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Calculate 95% of the width and height of the container.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> width = <span class="hljs-built_in">Math</span>.floor(<span class="hljs-number">0.95</span> * (r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / <span class="hljs-number">2</span>));
+			<span class="hljs-keyword">var</span> height = <span class="hljs-built_in">Math</span>.floor(<span class="hljs-number">0.95</span> * r.Layout.Reader.height);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Modify SVG params when the dimensions are higher than the view space or they are set in % as this unit is not working in IE.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span> ((node.getAttribute(<span class="hljs-string">'width'</span>) &amp;&amp; (node.getAttribute(<span class="hljs-string">'width'</span>) &gt; r.Layout.Reader.width || node.getAttribute(<span class="hljs-string">'width'</span>).indexOf(<span class="hljs-string">'%'</span>) !== -<span class="hljs-number">1</span>)) || !node.getAttribute(<span class="hljs-string">'width'</span>)) {
+				node.setAttribute(<span class="hljs-string">'width'</span>, width);
+			}
+			<span class="hljs-keyword">if</span> ((node.getAttribute(<span class="hljs-string">'height'</span>) &amp;&amp; (node.getAttribute(<span class="hljs-string">'height'</span>) &gt; r.Layout.Reader.height || node.getAttribute(<span class="hljs-string">'height'</span>).indexOf(<span class="hljs-string">'%'</span>) !== -<span class="hljs-number">1</span>)) || !node.getAttribute(<span class="hljs-string">'height'</span>)) {
+				node.setAttribute(<span class="hljs-string">'height'</span>, height);
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Modify the viewBox attribute if their dimensions are higher than the container.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			node.viewBox.baseVal.width = (node.viewBox.baseVal.width &gt; r.Layout.Reader.width) ? width : node.viewBox.baseVal.width;
+			node.viewBox.baseVal.height = (node.viewBox.baseVal.height &gt; r.Layout.Reader.height) ? height : node.viewBox.baseVal.height;
+			node.setAttribute(<span class="hljs-string">'transform'</span>, <span class="hljs-string">'scale(1)'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Modify children elements (images, rectangles, circles..) dimensions if they are higher than the container.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			$(<span class="hljs-keyword">this</span>).children().map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+				<span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).attr(<span class="hljs-string">'width'</span>) &gt; r.Layout.Reader.width) {
+					$(<span class="hljs-keyword">this</span>).attr(<span class="hljs-string">'width'</span>, width);
+				}
+				<span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).attr(<span class="hljs-string">'height'</span>) &gt; r.Layout.Reader.height) {
+					$(<span class="hljs-keyword">this</span>).attr(<span class="hljs-string">'height'</span>, height);
+				}
+			});
+			<span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).find(<span class="hljs-string">'path'</span>)) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Fix path elements dimensions.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">var</span> pathMaxWidth = <span class="hljs-number">0</span>;
+				<span class="hljs-keyword">var</span> pathMaxHeight = <span class="hljs-number">0</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Take the highest width and height.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				$(<span class="hljs-keyword">this</span>).find(<span class="hljs-string">'path'</span>).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+					<span class="hljs-keyword">var</span> pathWidth = $(<span class="hljs-keyword">this</span>)[<span class="hljs-number">0</span>].getBoundingClientRect().width;
+					<span class="hljs-keyword">var</span> pathHeight = $(<span class="hljs-keyword">this</span>)[<span class="hljs-number">0</span>].getBoundingClientRect().height;
+					pathMaxWidth = (pathWidth &gt; pathMaxWidth) ? pathWidth : pathMaxWidth;
+					pathMaxHeight = (pathHeight &gt; pathMaxHeight) ? pathHeight : pathMaxHeight;
+				});
+				<span class="hljs-keyword">if</span> (pathMaxWidth &gt; width || pathMaxHeight &gt; height) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Scale the elements to the correct proportion.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					<span class="hljs-keyword">var</span> scale = <span class="hljs-built_in">Math</span>.min(<span class="hljs-built_in">Math</span>.floor((width/pathMaxWidth)*<span class="hljs-number">10</span>)/<span class="hljs-number">10</span>,<span class="hljs-built_in">Math</span>.floor((height/pathMaxHeight)*<span class="hljs-number">10</span>)/<span class="hljs-number">10</span>);
+					$(<span class="hljs-keyword">this</span>).find(<span class="hljs-string">'path'</span>).each(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+						$(<span class="hljs-keyword">this</span>)[<span class="hljs-number">0</span>].setAttribute(<span class="hljs-string">'transform'</span>, <span class="hljs-string">'scale('</span> + scale + <span class="hljs-string">')'</span>);
+					});
+				}
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Remove SVG empty elements in some Webkit browsers is showing the content outside the SVG (Chrome).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span> ($(<span class="hljs-keyword">this</span>).children().length === <span class="hljs-number">0</span>) {
+				$(<span class="hljs-keyword">this</span>).remove();
+			}
+		});
+	};
+
+	<span class="hljs-keyword">return</span> r;
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
