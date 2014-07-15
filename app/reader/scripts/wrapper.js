@@ -67,6 +67,18 @@ var READER = (function() {
 				_send_status('goToCFI');
 			});
 		},
+		goToProgress: function goToProgress(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
+			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
+			return Reader.Navigation.goToProgress.apply(Reader.CFI, arguments).always(function goToProgressComplete(){
+				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
+				_send_status('goToProgress');
+			});
+		},
 		next: function next(){
 			if(_isLoading){
 				return $.Deferred().reject().promise();

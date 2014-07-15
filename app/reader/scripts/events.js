@@ -20,7 +20,7 @@ var Reader = (function (r) {
 		if(status.page === 0 && status.chapter === 0){
 			Reader.Notify.event(Reader.Event.FIRST_PAGE);
 		}
-		if(status.page === status.pages && status.chapter === status.chapters - 1){
+		if(status.page === (status.pages - 1) && status.chapter === status.chapters - 1){
 			Reader.Notify.event(Reader.Event.LAST_PAGE);
 		}
 		return status;
@@ -182,7 +182,7 @@ var Reader = (function (r) {
 				var status = r.Event.getStatus();
 				r.Bugsense.notify(error, url, line, {
 					Progress: status.progress + '%',
-					Page: status.page + '/' + status.pages,
+					Page: (status.page + 1) + '/' + status.pages,
 					Chapter: status.chapter + '/' + status.chapters + ' - ' + (status.cfi ? status.cfi.chapter : 'Unknown chapter'),
 					Bookmarks: status.bookmarks,
 					Book_URL: r.DOCROOT,

@@ -71,6 +71,9 @@ var Reader = (function (r) {
 			} else if (r.Navigation.isLastPageAnchor(page)) {
 				// Anchor points to the last page in the chapter, so select the last part:
 				part = parts - 1;
+			} else if (r.Navigation.isProgressAnchor(page)) {
+				// Anchor points to chapter progress, jump to the equivalent part:
+				part = (Math.ceil(children.length * r.Navigation.getProgressFromAnchor(page) / maxElements) || 1) - 1;
 			} else if (r.CFI.isValidCFI(page)) {
 				part = r.Navigation.getChapterPartFromCFI(page);
 			} else if ($.type(page) === 'string') {
@@ -91,6 +94,8 @@ var Reader = (function (r) {
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
 					.attr('data-chapter-part', part)
+					// Add the number of remaining elements for the last chapter part:
+					.attr('data-chapter-part-elements', part < parts - 1 ? undefined : children.length - part * maxElements)
 					.attr('data-chapter-parts', parts)
 					.attr('data-chapter-parts-elements', children.length)
 					.prependTo(parent);
