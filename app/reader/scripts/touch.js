@@ -16,12 +16,19 @@ var Reader = (function (r) {
 			touchDelta,
 			isVerticalScroll,
 			leftPosition,
-			navInterface;
+      waitingTap = false,
+      navInterface,
+      touchTimeout;
 
 	function resetPosition() {
 		// Move back to the original position:
 		r.setReaderLeftPosition(leftPosition, r.preferences.transitionDuration.value);
 	}
+
+  function sendUnhandledTouchEvent(touchStartData) {
+    waitingTap = false;
+    r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
+  }
 
 	r.Touch = {
 		reset: function () {
@@ -32,7 +39,6 @@ var Reader = (function (r) {
 		start: function (e) {
 			var touches = e.originalEvent.touches;
 			touchStartData = {
-				call: 'userClick',
 				clientX: touches ? touches[0].clientX : null,
 				clientY: touches ? touches[0].clientY : null,
 				time: Date.now()
@@ -63,7 +69,8 @@ var Reader = (function (r) {
 		},
 		end: function (e) {
 			var isShortDuration = Date.now() - touchStartData.time < 250,
-					promise;
+					promise,
+          touchStartDataCopy;
 			// Check if the swipe is a short flick or a swipe across more than half of the Reader:
 			if (touchDelta && (isShortDuration && Math.abs(touchDelta.x) > 20 ||
 					Math.abs(touchDelta.x) > r.Layout.Reader.width / 2)) {
@@ -79,9 +86,23 @@ var Reader = (function (r) {
 				if (touchDelta && !isVerticalScroll) {
 					resetPosition();
 				}
-				if (isShortDuration && !$(e.target).closest('a').length) {
-					r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
-				}
+				if (isShortDuration && !$(e.target).closest('a').length && !waitingTap) {
+          if ($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) {
+            waitingTap = true;
+            touchStartDataCopy = touchStartData;
+            touchTimeout = setTimeout(function () {
+              sendUnhandledTouchEvent(touchStartDataCopy);
+            }, 550);
+          } else {
+            sendUnhandledTouchEvent(touchStartData);
+          }
+				} else if (($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) && waitingTap) {
+          clearTimeout(touchTimeout);
+          waitingTap = false;
+          r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
+            src: $(e.target).attr('data-original-src')
+          }));
+        }
 			}
 			this.reset();
 		},
