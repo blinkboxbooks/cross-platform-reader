@@ -4140,7 +4140,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.9-41'
+				appversion: '0.2.10-42'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4616,7 +4616,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.9-41'
+			'version': '0.2.10-42'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4637,6 +4637,7 @@ var Reader = (function (r) {
 		ERR_CFI_INSERTION:{
 			code: 12,
 			message: 'Could not insert content at the location specified by the CFI.'
+
 		},
 		ERR_INVALID_ARGUMENT:{
 			code: 13,
@@ -4664,12 +4665,18 @@ var Reader = (function (r) {
 		},
 		UNHANDLED_TOUCH_EVENT: {
 			code: 19,
-			message: 'Unhandled touch event at given coordinates.'
+			message: 'Unhandled touch event at given coordinates.',
+      call: 'userClick'
 		},
 		NOTICE_INT_LINK: {
 			code: 20,
 			message: 'Internal link was clicked'
 		},
+    IMAGE_SELECTION_EVENT: {
+      code: 21,
+      message: 'Double tab event on an image with the given url.',
+      call: 'doubleTap'
+    },
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
@@ -4893,6 +4900,8 @@ var Reader = (function (r) {
 				var imgSrc = _parseURL(image.getAttribute('src'));
 				// Prevent premature loading of img elements:
 				image.setAttribute('data-src', imgSrc);
+        // Save original URL for the image:
+        image.setAttribute('data-original-src', _normalizeLink(image.getAttribute('src')));
 				// Use a tiny data-uri GIF as placeholder:
 				image.setAttribute('src', 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
 				// Add a placeholder class:
@@ -4923,6 +4932,8 @@ var Reader = (function (r) {
 				if (img) {
 					if (img.hasAttributeNS('http://www.w3.org/1999/xlink', 'href')) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            // Save original URL for the image:
+            img.setAttribute('data-original-src', _normalizeLink(url));
 						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
 					}
 				}
@@ -6510,12 +6521,19 @@ var Reader = (function (r) {
 			touchDelta,
 			isVerticalScroll,
 			leftPosition,
-			navInterface;
+      waitingTap = false,
+      navInterface,
+      touchTimeout;
 
 	function resetPosition() {
 		// Move back to the original position:
 		r.setReaderLeftPosition(leftPosition, r.preferences.transitionDuration.value);
 	}
+
+  function sendUnhandledTouchEvent(touchStartData) {
+    waitingTap = false;
+    r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
+  }
 
 	r.Touch = {
 		reset: function () {
@@ -6526,7 +6544,6 @@ var Reader = (function (r) {
 		start: function (e) {
 			var touches = e.originalEvent.touches;
 			touchStartData = {
-				call: 'userClick',
 				clientX: touches ? touches[0].clientX : null,
 				clientY: touches ? touches[0].clientY : null,
 				time: Date.now()
@@ -6557,7 +6574,8 @@ var Reader = (function (r) {
 		},
 		end: function (e) {
 			var isShortDuration = Date.now() - touchStartData.time < 250,
-					promise;
+					promise,
+          touchStartDataCopy;
 			// Check if the swipe is a short flick or a swipe across more than half of the Reader:
 			if (touchDelta && (isShortDuration && Math.abs(touchDelta.x) > 20 ||
 					Math.abs(touchDelta.x) > r.Layout.Reader.width / 2)) {
@@ -6573,9 +6591,23 @@ var Reader = (function (r) {
 				if (touchDelta && !isVerticalScroll) {
 					resetPosition();
 				}
-				if (isShortDuration && !$(e.target).closest('a').length) {
-					r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
-				}
+				if (isShortDuration && !$(e.target).closest('a').length && !waitingTap) {
+          if ($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) {
+            waitingTap = true;
+            touchStartDataCopy = touchStartData;
+            touchTimeout = setTimeout(function () {
+              sendUnhandledTouchEvent(touchStartDataCopy);
+            }, 550);
+          } else {
+            sendUnhandledTouchEvent(touchStartData);
+          }
+				} else if (($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) && waitingTap) {
+          clearTimeout(touchTimeout);
+          waitingTap = false;
+          r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
+            src: $(e.target).attr('data-original-src')
+          }));
+        }
 			}
 			this.reset();
 		},
