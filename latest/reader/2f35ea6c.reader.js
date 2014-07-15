@@ -4140,7 +4140,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.8-40'
+				appversion: '0.2.9-41'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4578,7 +4578,7 @@ var Reader = (function (r) {
 		if(status.page === 0 && status.chapter === 0){
 			Reader.Notify.event(Reader.Event.FIRST_PAGE);
 		}
-		if(status.page === status.pages && status.chapter === status.chapters - 1){
+		if(status.page === (status.pages - 1) && status.chapter === status.chapters - 1){
 			Reader.Notify.event(Reader.Event.LAST_PAGE);
 		}
 		return status;
@@ -4616,7 +4616,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.8-40'
+			'version': '0.2.9-41'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4733,7 +4733,7 @@ var Reader = (function (r) {
 				var status = r.Event.getStatus();
 				r.Bugsense.notify(error, url, line, {
 					Progress: status.progress + '%',
-					Page: status.page + '/' + status.pages,
+					Page: (status.page + 1) + '/' + status.pages,
 					Chapter: status.chapter + '/' + status.chapters + ' - ' + (status.cfi ? status.cfi.chapter : 'Unknown chapter'),
 					Bookmarks: status.bookmarks,
 					Book_URL: r.DOCROOT,
@@ -5485,8 +5485,7 @@ var Reader = (function (r) {
 
 	var _getColumnsNumber = function() {
 		var el = r.$reader[0];
-		// we el.scrollWidth remove 1 pixel from scroll width to return the correct number of pages when the scroll width === the column width (other wise return one extra page)
-		return Math.floor((el.scrollWidth - 1) / r.getReaderOuterWidth());
+		return Math.ceil(el.scrollWidth / r.getReaderOuterWidth());
 	};
 
 	// Refresh the content layout.
@@ -5509,6 +5508,17 @@ var Reader = (function (r) {
 	// The current book progress.
 	var _progress = 0;
 	var _totalWordCount = -1;
+
+	function calculateTotalWordCount() {
+		// Update total number of words in the book, if not already done.
+		var i;
+		if (_totalWordCount === -1 && r.Book.spine.length) {
+			_totalWordCount = 0;
+			for (i = 0; i < r.Book.spine.length; i++) {
+				_totalWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
+			}
+		}
+	}
 
 	// ## Navigation API
 	// The Navigation object exposes methods to allow the user to navigate within the book.
@@ -5608,7 +5618,7 @@ var Reader = (function (r) {
 			return defer.promise();
 		},
 		next: function() {
-			if (page < pagesByChapter) {
+			if (page < pagesByChapter - 1) {
 				return Page.next();
 			}
 			var defer = $.Deferred(),
@@ -5676,18 +5686,11 @@ var Reader = (function (r) {
 			return _progress;
 		},
 		updateProgress: function(){
-			var i = 0;
-
-			// Update total number of words in the book, if not already done.
-			if(_totalWordCount === -1 && r.Book.spine.length){
-				_totalWordCount = 0;
-				for(i = 0; i < r.Book.spine.length; i++){
-					_totalWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
-				}
-			}
+			calculateTotalWordCount();
 
 			// Get word count of all previous chapters.
-			var currentWordCount = 0;
+			var currentWordCount = 0,
+					i;
 			for(i = 0; i < chapter; i++){
 				currentWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
 			}
@@ -5717,6 +5720,34 @@ var Reader = (function (r) {
 				}
 			}
 		},
+		goToProgress: function (progress) {
+			calculateTotalWordCount();
+			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
+				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
+				return $.Deferred().reject().promise();
+			}
+			var targetWordCount = Math.ceil(progress / 100 * _totalWordCount),
+					wordCount = 0,
+					progressFloat = 0,
+					chapterWordCount,
+					progressAnchor,
+					i;
+			for (i = 0; i < r.Book.spine.length; i++) {
+				chapterWordCount = r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
+				if (wordCount + chapterWordCount >= targetWordCount) {
+					break;
+				}
+				wordCount += chapterWordCount;
+			}
+			if (chapterWordCount) {
+				progressFloat = (targetWordCount - wordCount) / chapterWordCount;
+			}
+			progressAnchor = (progressFloat * 100) + '%';
+			if (chapter !== i || !r.Navigation.isProgressInCurrentChapterPart(progressFloat)) {
+				return r.loadChapter(i, progressAnchor);
+			}
+			return r.Navigation.loadPage(progressAnchor);
+		},
 		getCurrentCFI: function(){
 			return _cfi;
 		},
@@ -5727,6 +5758,29 @@ var Reader = (function (r) {
 			r.Navigation.updateCurrentCFI();
 			r.Navigation.updateProgress();
 			r.Bookmarks.display();
+		},
+		// Returns true for a progress anchor with a chapter percentage like e.g. "50%":
+		isProgressAnchor: function (anchor) {
+			return /%$/.test(anchor);
+		},
+		// Returns a floating point number from a percentage anchor, e.g. 0.5 for "50%":
+		getProgressFromAnchor: function (anchor) {
+			return Number(anchor.slice(0, -1)) / 100;
+		},
+		// Returns the page of the current chapter for the given percentage anchor:
+		getProgressAnchorPage: function (anchor) {
+			var progress = r.Navigation.getProgressFromAnchor(anchor),
+					totalElements,
+					readElements,
+					partElements;
+			if (r.Navigation.hasChapterParts()) {
+				// Adjust the progress for the current chapter part:
+				totalElements = r.Navigation.getNumberOfChapterPartsElements();
+				readElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value;
+				partElements = r.Navigation.getNumberOfChapterPartElements();
+				progress = (progress * totalElements - readElements) / partElements;
+			}
+			return (Math.ceil(progress * pagesByChapter) || 1) - 1;
 		},
 		getLastPageAnchorName: function () {
 			return 'cpr-lastpage';
@@ -5767,8 +5821,23 @@ var Reader = (function (r) {
 		getCurrentChapterPart: function () {
 			return Number(r.Navigation.getChapterPartMarkers().attr('data-chapter-part')) || 0;
 		},
+		// Returns the number of parts the current chapter is split into:
 		getNumberOfChapterParts: function () {
 			return Number(r.Navigation.getChapterPartMarkers().attr('data-chapter-parts'));
+		},
+		// Returns the total number of elements counted for the chapter division calculation:
+		getNumberOfChapterPartsElements: function () {
+			return Number(r.Navigation.getChapterPartMarkers().attr('data-chapter-parts-elements'));
+		},
+		// Returns the number of elements counted for the current chapter part:
+		getNumberOfChapterPartElements: function () {
+			return Number(r.Navigation.getChapterPartMarkers().attr('data-chapter-part-elements')) || r.preferences.maxChapterElements.value;
+		},
+		// Returns true if the given floating point progress point is in the current chapter part:
+		isProgressInCurrentChapterPart: function (progress) {
+			return !r.Navigation.hasChapterParts() ||
+				r.Navigation.getCurrentChapterPart() ===
+					(Math.ceil(r.Navigation.getNumberOfChapterPartsElements() * progress / r.preferences.maxChapterElements.value) || 1) - 1;
 		},
 		// Returns the chapter part based on the given CFI:
 		getChapterPartFromCFI: function (cfi) {
@@ -5794,17 +5863,16 @@ var Reader = (function (r) {
 		},
 		// Calculate how much of the current chapter has been read:
 		getChapterReadFactor: function () {
-			// Add one to page and pagesByChapter to account for 0 based indices:
-			var factor = (page+1) / (pagesByChapter+1);
+			var factor = (page + 1) / pagesByChapter,
+					totalElements,
+					readElements,
+					partElements;
 			if (r.Navigation.hasChapterParts()) {
-				return (function chapterPartReadFactor(factor) {
-					var maxElements = r.preferences.maxChapterElements.value,
-							currentPart = r.Navigation.getCurrentChapterPart(),
-							totalElements = r.Navigation.getChapterPartMarkers().attr('data-chapter-parts-elements'),
-							readElements = r.preferences.maxChapterElements.value * currentPart,
-							chapterElements = currentPart + 1 === r.Navigation.getNumberOfChapterParts() ? totalElements - readElements : maxElements;
-					return (readElements + chapterElements * factor) / totalElements;
-				}(factor));
+				// Factor in the previous chapter parts, as pagesByChapter only counts the current chapter part:
+				totalElements = r.Navigation.getNumberOfChapterPartsElements();
+				readElements = r.Navigation.getCurrentChapterPart() * r.preferences.maxChapterElements.value;
+				partElements = r.Navigation.getNumberOfChapterPartElements();
+				return (readElements + partElements * factor) / totalElements;
 			}
 			return factor;
 		}
@@ -5959,16 +6027,17 @@ var Reader = (function (r) {
 			if ($.type(p) === 'string') {
 				if (r.Navigation.isLastPageAnchor(p)) {
 					// jump to the last page of the chapter:
-					page = pagesByChapter;
+					page = pagesByChapter - 1;
+				} else if (r.Navigation.isProgressAnchor(p)) {
+					// page is given as chapter progress, jump to the equivalent part:
+					page = r.Navigation.getProgressAnchorPage(p);
+				} else if (r.CFI.isValidCFI(p)) {
+					// page is given as CFI, jump to the page containing the CFI marker:
+					var pos = r.CFI.findCFIElement(p);
+					page = pos === -1 ? 0 : pos;
 				} else {
-					if (r.CFI.isValidCFI(p)) {
-						// page is given as CFI, jump to the page containing the CFI marker:
-						var pos = r.CFI.findCFIElement(p);
-						page = pos === -1 ? 0 : pos;
-					} else {
-						// page is given as element id, jump to the page containing the element:
-						page = r.moveToAnchor(p);
-					}
+					// page is given as element id, jump to the page containing the element:
+					page = r.moveToAnchor(p);
 				}
 			} else {
 				page = p || 0;
@@ -6011,8 +6080,15 @@ var Reader = (function (r) {
 			});
 		},
 		load: function(p, fixed) {
-			var isLastPage = r.Navigation.isLastPageAnchor(p),
-					selector = !isLastPage && $.type(p) === 'string' && (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+			var isString = $.type(p) === 'string',
+					isLastPage,
+					selector;
+			if (isString) {
+				isLastPage = r.Navigation.isLastPageAnchor(p);
+				if (!isLastPage && !r.Navigation.isProgressAnchor(p)) {
+					selector = (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+				}
+			}
 			Page.moveTo(p);
 			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
@@ -6138,6 +6214,9 @@ var Reader = (function (r) {
 			} else if (r.Navigation.isLastPageAnchor(page)) {
 				// Anchor points to the last page in the chapter, so select the last part:
 				part = parts - 1;
+			} else if (r.Navigation.isProgressAnchor(page)) {
+				// Anchor points to chapter progress, jump to the equivalent part:
+				part = (Math.ceil(children.length * r.Navigation.getProgressFromAnchor(page) / maxElements) || 1) - 1;
 			} else if (r.CFI.isValidCFI(page)) {
 				part = r.Navigation.getChapterPartFromCFI(page);
 			} else if ($.type(page) === 'string') {
@@ -6158,6 +6237,8 @@ var Reader = (function (r) {
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
 					.attr('data-chapter-part', part)
+					// Add the number of remaining elements for the last chapter part:
+					.attr('data-chapter-part-elements', part < parts - 1 ? undefined : children.length - part * maxElements)
 					.attr('data-chapter-parts', parts)
 					.attr('data-chapter-parts-elements', children.length)
 					.prependTo(parent);
@@ -6582,6 +6663,18 @@ var READER = (function() {
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				_isLoading = false;
 				_send_status('goToCFI');
+			});
+		},
+		goToProgress: function goToProgress(){
+			if(_isLoading){
+				return $.Deferred().reject().promise();
+			}
+			Reader.Notify.event(Reader.Event.LOADING_STARTED);
+			_isLoading = true;
+			return Reader.Navigation.goToProgress.apply(Reader.CFI, arguments).always(function goToProgressComplete(){
+				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+				_isLoading = false;
+				_send_status('goToProgress');
 			});
 		},
 		next: function next(){
