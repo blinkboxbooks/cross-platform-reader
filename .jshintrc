@@ -24,6 +24,7 @@
 		"routes": true,
 		"EPUBcfi": true,
 		"FilterJS": true,
-		"$": true
+		"$": true,
+		"READER": true
 	}
 }

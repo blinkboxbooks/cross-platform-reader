@@ -38,7 +38,9 @@ var Reader = (function (r) {
 				$.each(_bookmarks, function(i, el){
 					if($.isArray(el)){
 						$.each(el, function(index, cfi){
-							r.Bookmarks.removeBookmark(cfi);
+							if(cfi){
+								r.Bookmarks.removeBookmark(cfi);
+							}
 						});
 					}
 				});
@@ -90,7 +92,7 @@ var Reader = (function (r) {
 			if(chapter !== -1){
 				var index = $.inArray(cfi, _bookmarks[chapter]);
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
-					_bookmarks[chapter][index] = null;
+					_bookmarks[chapter].splice(index, 1);
 
 					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.$iframe.contents());
 					if($marker.length){
