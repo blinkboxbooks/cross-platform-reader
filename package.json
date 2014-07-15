@@ -1,6 +1,6 @@
 {
   "name": "CPR",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "description": "Cross Platform Reader",
 	"repository": {
 		"type": "git",
@@ -48,7 +48,7 @@
     "grunt-contrib-watch": "0.6.1",
     "grunt-contrib-connect": "0.7.1",
     "grunt-protractor-runner": "1.0.0",
-    "protractor": "0.24.1",
+    "protractor": "0.24.2",
     "jasmine-expect": "1.21.0",
     "color": "0.6.0",
     "chai": "1.9.1",

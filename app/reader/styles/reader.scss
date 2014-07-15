@@ -30,9 +30,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size:18px;
+  font-family: sans-serif;
 }
 #cpr-header {
-  color: white; // @@theme_title x
+  color: black; // @@theme_title x
   line-height: 30px; // @@header
   text-align: center;
   white-space: nowrap;
@@ -40,6 +41,7 @@
   text-overflow: ellipsis;
   width: 100%;
   font-size:18px;
+  font-family: sans-serif;
 }
 .cpr-marker {
 }
@@ -65,7 +67,7 @@ body {
   margin: 0;
   padding: 0;
   word-wrap: break-word;
-  font-family: Arial;
+  font-family: sans-serif;
   font-weight: 400;
   font-style: normal;
   text-decoration: none;
