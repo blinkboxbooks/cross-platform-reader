@@ -56,28 +56,24 @@ var Reader = (function (r) {
 				position: 'relative',
 				width: r.Layout.Reader.width + 'px',
 				height: r.Layout.Reader.height + 'px',
-				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
-				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
-				// This centers the column on single column view:
-				'padding-left': columnAdjust + 'px'
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100 + columnAdjust) + 'px',
+				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px'
 			});
 
 			r.$header.css({
 				width: r.Layout.Reader.width + 'px',
-				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100 + columnAdjust) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				'height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px',
-				'padding-left': columnAdjust + 'px'
+				'line-height': Math.floor(r.preferences.margin.value[0] * r.Layout.Container.height/100) + 'px'
 			});
 
 			r.$footer.css({
 				width: r.Layout.Reader.width + 'px',
-				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100) + 'px',
+				'margin-left': Math.floor(r.preferences.margin.value[3] * r.Layout.Container.width/100 + columnAdjust) + 'px',
 				'margin-right': Math.floor(r.preferences.margin.value[1] * r.Layout.Container.width/100) + 'px',
 				'height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px',
-				'padding-left': columnAdjust + 'px'
+				'line-height': Math.floor(r.preferences.margin.value[2] * r.Layout.Container.height/100) + 'px'
 			});
 
 			_resizeImages();
