@@ -43,7 +43,7 @@ var Reader = (function (r) {
 				clientY: touches ? touches[0].clientY : null,
 				time: Date.now()
 			};
-			leftPosition = r.getReaderLeftPosition();
+			leftPosition = r.Navigation.getPagePosition();
 		},
 		move: function (e) {
 			var touches = e.originalEvent.touches[0],
