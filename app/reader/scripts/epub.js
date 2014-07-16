@@ -27,7 +27,7 @@ var Reader = (function (r, Epub) {
 
 		// Initialisation function, called when the reader is initialised.
 		prototype.init = function(reader){
-			var elCFI = EPUBcfi.Generator.generateElementCFIComponent(reader);
+			var elCFI = EPUBcfi.generateElementCFIComponent(reader);
 
 			this.document = reader.ownerDocument;
 			this.context = elCFI.substring(2); // remove the body cfi step, i.e. /4
@@ -37,7 +37,7 @@ var Reader = (function (r, Epub) {
 		// `chapter` the current chapter
 		prototype.setUp = function(chapter, $opf){
 			var chapterId = $opf.find('spine').children()[chapter].getAttribute('idref');
-			this.opfCFI = EPUBcfi.Generator.generatePackageDocumentCFIComponent(chapterId, $opf[0]);
+			this.opfCFI = EPUBcfi.generatePackageDocumentCFIComponent(chapterId, $opf[0]);
 		};
 
 		// <a name="_clean"></a> This function will sanitize a cfi (removed dots from ID assertion)
@@ -64,8 +64,8 @@ var Reader = (function (r, Epub) {
 			var prevChapterPartMarker = r.Navigation.getPrevChapterPartMarker();
 			if (prevChapterPartMarker.length) {
 				// Get the CFI path for the first non-removed element:
-				var chapterMarkerCFI = EPUBcfi.Generator.generateElementCFIComponent(prevChapterPartMarker.next()[0], this.BLACKLIST),
-					chapterMarkerCompleteCFI = EPUBcfi.Generator.generateCompleteCFI(this.opfCFI, chapterMarkerCFI),
+				var chapterMarkerCFI = EPUBcfi.generateElementCFIComponent(prevChapterPartMarker.next()[0], this.BLACKLIST),
+					chapterMarkerCompleteCFI = EPUBcfi.generateCompleteCFI(this.opfCFI, chapterMarkerCFI),
 					markerCFIParts = chapterMarkerCompleteCFI.split('/'),
 					completeCFIParts = cfi.split('/');
 				// Check if the elCFI path points to a location inside of the set of reduced chapter part elements:
@@ -90,7 +90,7 @@ var Reader = (function (r, Epub) {
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 
-			return $(EPUBcfi.Interpreter.getTargetElement(cfi, this.document, this.BLACKLIST));
+			return $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
 		};
 
 		// Generates the CFI that targets the given element
@@ -98,12 +98,12 @@ var Reader = (function (r, Epub) {
 			var cfi;
 
 			if (el.nodeType === 3) {
-				cfi = EPUBcfi.Generator.generateCharacterOffsetCFIComponent(el, offset || 0, this.BLACKLIST);
+				cfi = EPUBcfi.generateCharacterOffsetCFIComponent(el, offset || 0, this.BLACKLIST);
 			} else {
-				cfi = EPUBcfi.Generator.generateElementCFIComponent(el, this.BLACKLIST);
+				cfi = EPUBcfi.generateElementCFIComponent(el, this.BLACKLIST);
 			}
 
-			cfi = EPUBcfi.Generator.generateCompleteCFI(this.opfCFI, cfi);
+			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
 
 			cfi = this.cleanCFI(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi);
@@ -117,7 +117,7 @@ var Reader = (function (r, Epub) {
 			cfi = this.cleanCFI(cfi);
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.Interpreter.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){
@@ -126,4 +126,4 @@ var Reader = (function (r, Epub) {
 		};
 
 		return Epub;
-	})(Reader || {}, EPUBcfi)));
+	})(Reader || {}, new EpubCFIModule())));
