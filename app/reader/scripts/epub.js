@@ -22,7 +22,6 @@ var Reader = (function (r, Epub) {
 		// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
 		prototype.BLACKLIST = ['cpr-marker', 'cpr-subchapter-link'];
-		prototype.DOT_REGEX = /\[([\w-_])*\.([\w-_])*\]/gi;
 		prototype.BODY_CFI = '!/4';
 
 		// Initialisation function, called when the reader is initialised.
@@ -38,11 +37,6 @@ var Reader = (function (r, Epub) {
 		prototype.setUp = function(chapter, $opf){
 			var chapterId = $opf.find('spine').children()[chapter].getAttribute('idref');
 			this.opfCFI = EPUBcfi.generatePackageDocumentCFIComponent(chapterId, $opf[0]);
-		};
-
-		// <a name="_clean"></a> This function will sanitize a cfi (removed dots from ID assertion)
-		prototype.cleanCFI = function(cfi){
-			return cfi.replace(this.DOT_REGEX, '');
 		};
 
 		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.
@@ -86,7 +80,6 @@ var Reader = (function (r, Epub) {
 		// Gets the element targetted by a CFI
 		prototype.getElementAt = function(cfi){
 
-			cfi = this.cleanCFI(cfi);
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 
@@ -105,7 +98,6 @@ var Reader = (function (r, Epub) {
 
 			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
 
-			cfi = this.cleanCFI(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi);
 			cfi = this.removeContext(cfi);
 
@@ -114,7 +106,6 @@ var Reader = (function (r, Epub) {
 
 		// Injects a marker in the specified position
 		prototype.injectMarker = function(cfi, marker){
-			cfi = this.cleanCFI(cfi);
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
