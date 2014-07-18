@@ -565,37 +565,6 @@ describe('CFI', function() {
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
 
-		it('should return the CFI for the current position for multiple text nodes', function () {
-			var doc = Reader.$iframe.contents()[0],
-				element = $('<span>Banana</span><span>Apple</span><span>Orange</span>').contents().appendTo(Reader.$reader);
-			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
-			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
-			spyOn(doc, 'createRange').and.returnValue({
-				setStart: $.noop,
-				getClientRects: function () {
-					return [{top: 0, left: 0}];
-				}
-			});
-			if (doc.caretRangeFromPoint) {
-				spyOn(doc, 'caretRangeFromPoint').and.returnValue({
-					startContainer: element[1],
-					startOffset: 0
-				});
-			} else if (doc.caretPositionFromPoint) {
-				spyOn(doc, 'caretPositionFromPoint').and.returnValue({
-					offsetNode: element[1],
-					offset: 0
-				});
-			}
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				// Adjust the CFI position based on the skipped text node:
-				CFI: fixtures.BOOK.BOOKMARK.CFI.replace(':0', ':' + element[0].length),
-				preview: 'AppleOrange',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
-			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
-		});
-
 		it('should return the correct label for a chapter identified via URL anchor', function () {
 			Reader.Book.load(fixtures.BOOK_2.DATA);
 			var doc = Reader.$iframe.contents()[0],

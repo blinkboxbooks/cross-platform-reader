@@ -26,21 +26,6 @@ var Reader = (function (r) {
 					cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
 					i;
 
-				// getFirstNode does not have a blacklist and the injected markers break the CFI generation.
-				// To ensure the correct CFI is generated, we must test it first. If the EPUBcfi library returns more than one text nodes, we must update the offset to include the previous text nodes.
-				// the complete CFi must not contain any '.' (processed normally, but not here)
-				var $node = r.Epub.getElementAt(cfi);
-				if($node.length > 1 && $node[0].nodeType === 3) {
-					var offset = startTextNode.offset;
-					for(i = 0; i < $node.length - 1; i++){
-						if($($node[i]).is(startTextNode.textNode)){
-							break;
-						}
-						offset += $node[i].length;
-					}
-					cfi = cfi.replace(/:\d+/, ':' + offset);
-				}
-
 				var result = {
 					CFI: cfi,
 					preview: startTextNode.preview
