@@ -190,6 +190,9 @@ var Reader = (function (r) {
 		getPage: function() {
 			return Page.get();
 		},
+		getPagePosition: function() {
+			return -1 * r.getReaderOuterWidth() * Page.get();
+		},
 		getNumberOfPages: function(){
 			return Page.getByChapter();
 		},
