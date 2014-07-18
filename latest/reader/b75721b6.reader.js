@@ -4140,7 +4140,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.10-43'
+				appversion: '0.2.11-44'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4616,7 +4616,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.10-43'
+			'version': '0.2.11-44'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5568,6 +5568,9 @@ var Reader = (function (r) {
 		},
 		getPage: function() {
 			return Page.get();
+		},
+		getPagePosition: function() {
+			return -1 * r.getReaderOuterWidth() * Page.get();
 		},
 		getNumberOfPages: function(){
 			return Page.getByChapter();
@@ -6548,7 +6551,7 @@ var Reader = (function (r) {
 				clientY: touches ? touches[0].clientY : null,
 				time: Date.now()
 			};
-			leftPosition = r.getReaderLeftPosition();
+			leftPosition = r.Navigation.getPagePosition();
 		},
 		move: function (e) {
 			var touches = e.originalEvent.touches[0],
