@@ -66,10 +66,10 @@ module.exports = function() {
 
 	this.When(/^I click "([^"]*)"$/, function (text, next) {
 		page.readerContext(function(){
-			element(by.xpath('//*[contains(text(),"'+text+'")]')).click().then(function(){
+			element(by.xpath('//*[contains(text(),"'+text+'")]')).click();
+		}).then(function(){
 				next();
 			});
-		});
 	});
 
 	this.Then(/^I expect to be on chapter (\d+)$/, function (chapter, next) {
