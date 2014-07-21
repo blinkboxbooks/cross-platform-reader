@@ -66,7 +66,7 @@ module.exports = function() {
 
 	this.When(/^I click "([^"]*)"$/, function (text, next) {
 		page.readerContext(function(){
-			element(by.xpath('//*[contains(text(),"'+text+'")]')).click();
+			element(by.xpath('//a[contains(text(),"'+text+'")]')).click();
 		}).then(function(){
 				next();
 			});
@@ -74,7 +74,7 @@ module.exports = function() {
 
 	this.Then(/^I expect to be on chapter (\d+)$/, function (chapter, next) {
 		page.status().then(function(status){
-			console.log(status);
+			expect(status.chapter).to.equal(parseInt(chapter, 10));
 			next();
 		});
 	});
