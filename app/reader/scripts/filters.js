@@ -192,7 +192,7 @@ var Reader = (function (r) {
 	// Ex: a/b/c.html -> a/b
 	var _removeLastPath = function(url){
 		var pathSeparatorIndex = url.lastIndexOf('/');
-		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : url;
+		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : '';
 	};
 
 	// Function to transform relative links
@@ -208,7 +208,7 @@ var Reader = (function (r) {
 			if(path === '..'){
 				result = _removeLastPath(result);
 			} else {
-				result += '/' + path;
+				result += (!result ? '' : '/') + path;
 			}
 		}
 		return result;

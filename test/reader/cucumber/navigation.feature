@@ -8,3 +8,10 @@ Feature: Navigating books
     When I go to chapter 2 page 0
     And I click "Title"
     Then I expect to be on chapter 1
+
+  @CR-354
+    Scenario: Issue when parsing links
+      Given I open a book
+      When I go to chapter 2 page 0
+      And I click "Dedication"
+      Then I expect to be on chapter 3
