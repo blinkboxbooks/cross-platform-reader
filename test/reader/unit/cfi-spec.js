@@ -10,6 +10,18 @@ describe('CFI', function() {
 				then: $.noop
 			};
 		});
+
+		var filter = $.fn.filter;
+
+		// Known bug in pHantomJS, where elements do not appear as visible.
+		// In order to perform the unit tests, we do not filter elements out.
+		spyOn($.fn, 'filter').and.callFake(function (args) {
+			if(args === ':visible'){
+				return this;
+			}
+			return filter.apply(this, arguments);
+		});
+
 		Reader.init({
 			container: $('<div></div>').appendTo($('body')),
 			width: 400,
