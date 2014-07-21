@@ -400,8 +400,9 @@ var Reader = (function (r) {
 	var getNextNode = function ($el) {
 		$el = $el.last();
 		var nodes = $el.parent().contents().filter(function(i, e){
-			return !$(e).hasClass(r.Epub.BLACKLIST.join(',.'));
-		}).filter(':visible');
+			return !$(e).hasClass(r.Epub.BLACKLIST.join(',.')) && // filter out elements that have a blacklisted class
+				(e.nodeType !== 1 || $(e).is(':visible')); // filter out invisible nodes;
+		});
 		var index = $.inArray($el[0], nodes);
 		if (nodes[index + 1]) {
 			var $next = $(nodes[index + 1]);

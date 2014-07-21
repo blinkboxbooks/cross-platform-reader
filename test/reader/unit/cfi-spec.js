@@ -11,13 +11,13 @@ describe('CFI', function() {
 			};
 		});
 
-		var filter = $.fn.filter;
+		var filter = $.fn.is;
 
 		// Known bug in pHantomJS, where elements do not appear as visible.
 		// In order to perform the unit tests, we do not filter elements out.
-		spyOn($.fn, 'filter').and.callFake(function (args) {
+		spyOn($.fn, 'is').and.callFake(function (args) {
 			if(args === ':visible'){
-				return this;
+				return true;
 			}
 			return filter.apply(this, arguments);
 		});
