@@ -114,11 +114,16 @@ var Reader = (function (r) {
 			code: 20,
 			message: 'Internal link was clicked'
 		},
-    IMAGE_SELECTION_EVENT: {
-      code: 21,
-      message: 'Double tab event on an image with the given url.',
-      call: 'doubleTap'
-    },
+		IMAGE_SELECTION_EVENT: {
+			code: 21,
+			message: 'Double tab event on an image with the given url.',
+			call: 'doubleTap'
+		},
+		TEXT_SELECTION_EVENT: {
+			code: 22,
+			message: 'Some text has been selected',
+			call: 'selection'
+		},
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
