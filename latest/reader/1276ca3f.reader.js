@@ -4345,7 +4345,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.14-48'
+				appversion: '0.2.15-51'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4486,6 +4486,13 @@ var Reader = (function (r) {
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
+
+		// Capture text selection events and notify client of text value.
+		var $doc = r.$iframe.contents();
+		$doc.bind('selectionchange', function(){
+			var selection = $doc[0].getSelection().toString();
+			r.Notify.event($.extend({value: selection}, r.Event.TEXT_SELECTION_EVENT));
+		});
 	};
 
 	// Load the JSON file with all the information related to this book
@@ -4812,7 +4819,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.14-48'
+			'version': '0.2.15-51'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4868,11 +4875,16 @@ var Reader = (function (r) {
 			code: 20,
 			message: 'Internal link was clicked'
 		},
-    IMAGE_SELECTION_EVENT: {
-      code: 21,
-      message: 'Double tab event on an image with the given url.',
-      call: 'doubleTap'
-    },
+		IMAGE_SELECTION_EVENT: {
+			code: 21,
+			message: 'Double tab event on an image with the given url.',
+			call: 'doubleTap'
+		},
+		TEXT_SELECTION_EVENT: {
+			code: 22,
+			message: 'Some text has been selected',
+			call: 'selection'
+		},
 		getStatus: function(){
 			return _check_page_pos($.extend({}, r.Event.STATUS, {
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
