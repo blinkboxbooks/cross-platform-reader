@@ -278,13 +278,11 @@ var Reader = (function (r) {
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
 
-		// Capture text selection events
+		// Capture text selection events and notify client of text value.
 		var $doc = r.$iframe.contents();
 		$doc.bind('selectionchange', function(){
 			var selection = $doc[0].getSelection().toString();
-			if(selection){
-				r.Notify.event($.extend({value: selection}, r.Event.TEXT_SELECTION_EVENT));
-			}
+			r.Notify.event($.extend({value: selection}, r.Event.TEXT_SELECTION_EVENT));
 		});
 	};
 
