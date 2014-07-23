@@ -4345,7 +4345,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.13-46'
+				appversion: '0.2.14-48'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4812,7 +4812,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.13-46'
+			'version': '0.2.14-48'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5154,7 +5154,7 @@ var Reader = (function (r) {
 	// Ex: a/b/c.html -> a/b
 	var _removeLastPath = function(url){
 		var pathSeparatorIndex = url.lastIndexOf('/');
-		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : url;
+		return pathSeparatorIndex !== -1 ? url.substring(0, pathSeparatorIndex) : '';
 	};
 
 	// Function to transform relative links
@@ -5170,7 +5170,7 @@ var Reader = (function (r) {
 			if(path === '..'){
 				result = _removeLastPath(result);
 			} else {
-				result += '/' + path;
+				result += (!result ? '' : '/') + path;
 			}
 		}
 		return result;
