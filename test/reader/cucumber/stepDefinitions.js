@@ -64,6 +64,21 @@ module.exports = function() {
 		});
 	});
 
+	this.When(/^I click "([^"]*)"$/, function (text, next) {
+		page.readerContext(function(){
+			element(by.xpath('//a[contains(text(),"'+text+'")]')).click();
+		}).then(function(){
+				next();
+			});
+	});
+
+	this.Then(/^I expect to be on chapter (\d+)$/, function (chapter, next) {
+		page.status().then(function(status){
+			expect(status.chapter).to.equal(parseInt(chapter, 10));
+			next();
+		});
+	});
+
 	this.Then(/^I want to bookmark the current page$/, function (next) {
 		page.bookmark().then(function(status){
 			expect(status.bookmarksInPage.length).to.equal(1);

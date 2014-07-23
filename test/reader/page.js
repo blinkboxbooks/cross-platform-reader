@@ -14,7 +14,8 @@ var Page = function(){
 		height = element(by.css('[data-test="height"]')),
 		columns = element(by.css('[data-test="columns"]')),
 		padding = element(by.css('[data-test="padding"]')),
-		reader = element(by.css('[data-test="reader"] iframe'));
+		reader = element(by.css('[data-test="reader"] iframe')),
+		window = null;
 
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
 	this.textAlign = element.all(by.css('[data-test="text-align"] option'));
@@ -24,11 +25,14 @@ var Page = function(){
 
 	this.load = function(isbn, env, publisherStyles){
 		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0');
-		browser.waitForAngular();
+
 		// wait at maximum 2 seconds for the reader to load the content (which means waiting for a status updated from the reader).
-		return browser.wait(function() {
-			return status.isPresent();
-		}, 2000);
+		return browser.getWindowHandle().then(function(handle){
+			window = handle;
+			return browser.wait(function() {
+				return status.isPresent();
+			}, 2000);
+		});
 	};
 
 	this.next = function(){
@@ -93,8 +97,8 @@ var Page = function(){
 		);
 
 		// this does not seem to work, we need to reload page t oswitch back to original window
-		ptor.switchTo().defaultContent();
 		ptor.ignoreSynchronization = false;
+		return ptor.switchTo().window(window);
 	};
 
 	this.hasErrors = function(){
