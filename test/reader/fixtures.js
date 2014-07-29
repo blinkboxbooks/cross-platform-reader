@@ -5,36 +5,42 @@ var fixtures = {
 		'BOOKMARK_CHAPTER': 4,
 		'BOOKMARK': {
 			'CFI': 'epubcfi(/6/10!/4/2[semiprologue]/2/4/2/2/1:0)',
+			'href': 'OEBPS/SemiPrologue.xhtml',
 			'preview': 'Banana',
 			'chapter': 'SemiPrologue'
 		},
 		'BOOKMARK_2_CHAPTER': 5,
 		'BOOKMARK_2': {
 			'CFI': 'epubcfi(/6/12!/4/2[chapter-1]/2/4/2/2/1:0)',
+			'href': 'OEBPS/SemiPrologue.xhtml',
 			'preview': '',
 			'chapter': 'Chapter 1'
 		},
 		'BOOKMARK_3_CHAPTER': 5,
 		'BOOKMARK_3': {
 			'CFI': 'epubcfi(/6/12!/4/2[chapter-1]/2/12/2/1:0)',
+			'href': 'OEBPS/SemiPrologue.xhtml',
 			'preview': '',
 			'chapter': 'Chapter 1'
 		},
 		'BOOKMARK_4_CHAPTER': 5,
 		'BOOKMARK_4': {
 			'CFI': 'epubcfi(/6/12!/4/2[chapter-1]/2/28/1:27)',
+			'href': 'OEBPS/SemiPrologue.xhtml',
 			'preview': '',
 			'chapter': 'Chapter 1'
 		},
 		'BOOKMARK_5_CHAPTER': 5,
 		'BOOKMARK_5': {
 			'CFI': 'epubcfi(/6/12!/4/2[chapter-1]/2/30/1:0)',
+			'href': 'OEBPS/SemiPrologue.xhtml',
 			'preview': '',
 			'chapter': 'Chapter 1'
 		},
 		'BOOKMARK_6_CHAPTER': 5,
 		'BOOKMARK_6': {
 			'CFI': 'epubcfi(/6/12!/4/2[chapter-1]/2/30/1:5)',
+			'href': 'OEBPS/SemiPrologue.xhtml',
 			'preview': '',
 			'chapter': 'Chapter 1'
 		},
@@ -299,12 +305,14 @@ var fixtures = {
 		'BOOKMARK_CHAPTER': 2,
 		'BOOKMARK': {
 			'CFI': 'epubcfi(/6/6!/4/2/5:0)',
+			'href': 'OEBPS/html/introduction.html#int02',
 			'preview': 'Banana',
 			'chapter': 'SELECT BIBLIOGRAPHY'
 		},
 		'BOOKMARK_2_CHAPTER': 3,
 		'BOOKMARK_2': {
 			'CFI': 'epubcfi(/6/8!/4/2/5:0)',
+			'href': 'OEBPS/html/book01.html#bk01ch02',
 			'preview': 'Banana',
 			'chapter': 'CHAPTER 2'
 		},

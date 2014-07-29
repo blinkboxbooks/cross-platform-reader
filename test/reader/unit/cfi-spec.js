@@ -388,11 +388,7 @@ describe('CFI', function() {
 					offset: 0
 				});
 			}
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK.BOOKMARK);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
 
@@ -418,11 +414,7 @@ describe('CFI', function() {
 					offset: 0
 				});
 			}
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK.BOOKMARK);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
 
@@ -451,7 +443,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: '&#8230;Banana',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href: fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -481,7 +474,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'BananaApple',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href: fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -511,7 +505,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: '',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href: fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -541,7 +536,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'BananaApple',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href: fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -572,7 +568,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: wordList,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -601,11 +598,7 @@ describe('CFI', function() {
 					offset: 0
 				});
 			}
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK_2.BOOKMARK.CFI,
-				preview: fixtures.BOOK_2.BOOKMARK.preview,
-				chapter : fixtures.BOOK_2.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK_2.BOOKMARK);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
 
@@ -648,7 +641,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK_2.BOOKMARK_2.CFI,
 				preview: 'BananaAppleOrange',
-				chapter : fixtures.BOOK_2.BOOKMARK_2.chapter
+				chapter : fixtures.BOOK_2.BOOKMARK_2.chapter,
+				href : fixtures.BOOK_2.BOOKMARK_2.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -692,7 +686,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK_2.BOOKMARK_2.CFI,
 				preview: 'AppleOrange',
-				chapter : fixtures.BOOK_2.BOOKMARK_2.chapter
+				chapter : fixtures.BOOK_2.BOOKMARK_2.chapter,
+				href : fixtures.BOOK_2.BOOKMARK_2.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -748,11 +743,7 @@ describe('CFI', function() {
 					offset: 0
 				});
 			}
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK.BOOKMARK);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
 
@@ -795,7 +786,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Apple',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -828,7 +820,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Apple',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -861,7 +854,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Apple',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -891,7 +885,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Image: Banana',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -921,7 +916,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Image: No description',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -951,7 +947,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Table',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 		});
@@ -982,7 +979,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: 'Image: No description',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(wrapper.find('svg')[0]);
@@ -1013,7 +1011,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: '',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(element[0]);
@@ -1044,7 +1043,8 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
 				preview: '',
-				chapter : fixtures.BOOK.BOOKMARK.chapter
+				chapter : fixtures.BOOK.BOOKMARK.chapter,
+				href : fixtures.BOOK.BOOKMARK.href
 			});
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(element[0]);
@@ -1072,11 +1072,7 @@ describe('CFI', function() {
 					offset: 0
 				});
 			}
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK.BOOKMARK);
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
 			expect(Reader.Epub.generateCFI.calls.mostRecent().args[0]).toBe(element.children().last().contents()[0]);
 		});
@@ -1126,11 +1122,7 @@ describe('CFI', function() {
 					offset: 0
 				};
 			}});
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK.BOOKMARK);
 			Object.defineProperty(doc, 'caretPositionFromPoint', {writable: true, value: null});
 			Object.defineProperty(doc, 'caretRangeFromPoint', {writable: true, value: function () {
 				return {
@@ -1138,11 +1130,7 @@ describe('CFI', function() {
 					startOffset: 0
 				};
 			}});
-			expect(Reader.CFI.getCFIObject()).toEqual({
-				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: fixtures.BOOK.BOOKMARK.preview,
-				chapter : fixtures.BOOK.BOOKMARK.chapter
-			});
+			expect(Reader.CFI.getCFIObject()).toEqual(fixtures.BOOK.BOOKMARK);
 			Object.defineProperty(doc, 'caretRangeFromPoint', {writable: true, value: null});
 			expect(Reader.CFI.getCFIObject()).toBeFalsy();
 		});
