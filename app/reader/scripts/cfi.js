@@ -70,11 +70,13 @@ var Reader = (function (r) {
 										break;
 									}
 									result.chapter = sections[j].label;
+									result.href = sections[j].href;
 								}
 							}
 						}
 					} else {
 						result.chapter = sections[0].label;
+						result.href = sections[0].href;
 					}
 				}
 				return result;
