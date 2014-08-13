@@ -3943,19 +3943,20 @@ var Reader = (function (r) {
 
 	var getNextNode = function ($el) {
 		$el = $el.last();
-		var nodes = $el.parent().contents().filter(function(i, e){
-			return !$(e).hasClass(r.Epub.BLACKLIST.join(',.')) && // filter out elements that have a blacklisted class
-				(e.nodeType !== 1 || $(e).is(':visible')); // filter out invisible nodes, only perform this test on regular nodes since :visible selector does not work on text nodes
-		});
-		var index = $.inArray($el[0], nodes);
-		if (nodes[index + 1]) {
-			var $next = $(nodes[index + 1]);
-			// ignore empty textnodes
-			if($next[0].nodeType === 3 && !$next.text().trim().length){
-				return getNextNode($next);
+		var nodes = $el.parent().contents(),
+				blacklisted = r.Epub.BLACKLIST.join(',.'),
+				i,
+				next,
+				$next;
+		for (i = nodes.index($el) + 1; i < nodes.length; i++) {
+			next = nodes[i];
+			$next = $(next);
+			if (next.nodeType === 3 && $next.text().trim().length ||                          // Return either a non-empty text node or
+				next.nodeType === 1 && !$next.hasClass(blacklisted) && $next.is(':visible')) {  // a visible, non-blacklisted element node
+				return $next;
 			}
-			return $next;
-		} else if (!$el.parent().is(r.$reader)) {
+		}
+		if (!$el.parent().is(r.$reader)) {
 			return getNextNode($el.parent());
 		}
 	};
@@ -4347,7 +4348,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.18-55'
+				appversion: '0.2.19-56'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4821,7 +4822,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.18-55'
+			'version': '0.2.19-56'
 		},
 		START_OF_BOOK : {
 			code: 8,
