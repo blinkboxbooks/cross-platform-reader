@@ -307,15 +307,13 @@ var Reader = (function (r) {
 				return el;
 			}
 			// only take into consideration DOM nodes and text nodes, ignore anything else (including comments)
-			var contents = $el.contents().filter(function(index, el){
-				return el.nodeType === 1 || el.nodeType === 3;
-			});
+			var contents = $el.contents();
 			for(var i = 0, l = contents.length; i < l; i++){
-				var $child = $(contents[i]);
-				if(!_hasClass($child, r.Epub.BLACKLIST)){
+				var child = contents[i];
+				if((child.nodeType === 1 && !_hasClass($(child), r.Epub.BLACKLIST)) || child.nodeType === 3){
 					/* reset offset since textNode changed */
 					offset = 0;
-					return findLeafNode($child[0]);
+					return findLeafNode(child);
 				}
 			}
 			return el;
