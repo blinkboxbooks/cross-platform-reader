@@ -3863,12 +3863,14 @@ var Reader = (function (r) {
 			if (el.childNodes.length === 1 && _hasClass($el.contents(), r.Epub.BLACKLIST)) { // TODO: Explore more options
 				return el;
 			}
-			for(var i = 0, l = $el.contents().length; i < l; i++){
-				var $child = $($el.contents()[i]);
-				if(!_hasClass($child, r.Epub.BLACKLIST)){
+			// only take into consideration DOM nodes and text nodes, ignore anything else (including comments)
+			var contents = $el.contents();
+			for(var i = 0, l = contents.length; i < l; i++){
+				var child = contents[i];
+				if((child.nodeType === 1 && !_hasClass($(child), r.Epub.BLACKLIST)) || child.nodeType === 3){
 					/* reset offset since textNode changed */
 					offset = 0;
-					return findLeafNode($child[0]);
+					return findLeafNode(child);
 				}
 			}
 			return el;
@@ -4348,7 +4350,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.20-57'
+				appversion: '0.2.21-58'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4822,7 +4824,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.20-57'
+			'version': '0.2.21-58'
 		},
 		START_OF_BOOK : {
 			code: 8,
