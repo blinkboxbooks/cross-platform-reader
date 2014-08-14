@@ -3640,7 +3640,7 @@ var Reader = (function (r) {
 			}
 			catch (err) {
 				// cannot generate CFI
-				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: err, call: 'getCFIObject'}));
+				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: {message: String(err), stack: err.stack}, call: 'getCFIObject'}));
 			}
 		},
 		getCFI: function() {
@@ -4348,7 +4348,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.19-56'
+				appversion: '0.2.20-57'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4822,7 +4822,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.19-56'
+			'version': '0.2.20-57'
 		},
 		START_OF_BOOK : {
 			code: 8,
