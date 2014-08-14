@@ -306,8 +306,12 @@ var Reader = (function (r) {
 			if (el.childNodes.length === 1 && _hasClass($el.contents(), r.Epub.BLACKLIST)) { // TODO: Explore more options
 				return el;
 			}
-			for(var i = 0, l = $el.contents().length; i < l; i++){
-				var $child = $($el.contents()[i]);
+			// only take into consideration DOM nodes and text nodes, ignore anything else (including comments)
+			var contents = $el.contents().filter(function(index, el){
+				return el.nodeType === 1 || el.nodeType === 3;
+			});
+			for(var i = 0, l = contents.length; i < l; i++){
+				var $child = $(contents[i]);
 				if(!_hasClass($child, r.Epub.BLACKLIST)){
 					/* reset offset since textNode changed */
 					offset = 0;
