@@ -15,3 +15,9 @@ Feature: Navigating books
       When I go to chapter 2 page 0
       And I click "Dedication"
       Then I expect to be on chapter 3
+
+	@CR-383
+		Scenario: Issue generating CFI in book 9780718192952
+			Given I open book with the ISBN of 9780718192952
+			When I go to chapter 9 page 0
+    	Then I want to bookmark the current page

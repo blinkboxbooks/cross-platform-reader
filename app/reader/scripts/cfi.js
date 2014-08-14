@@ -306,12 +306,14 @@ var Reader = (function (r) {
 			if (el.childNodes.length === 1 && _hasClass($el.contents(), r.Epub.BLACKLIST)) { // TODO: Explore more options
 				return el;
 			}
-			for(var i = 0, l = $el.contents().length; i < l; i++){
-				var $child = $($el.contents()[i]);
-				if(!_hasClass($child, r.Epub.BLACKLIST)){
+			// only take into consideration DOM nodes and text nodes, ignore anything else (including comments)
+			var contents = $el.contents();
+			for(var i = 0, l = contents.length; i < l; i++){
+				var child = contents[i];
+				if((child.nodeType === 1 && !_hasClass($(child), r.Epub.BLACKLIST)) || child.nodeType === 3){
 					/* reset offset since textNode changed */
 					offset = 0;
-					return findLeafNode($child[0]);
+					return findLeafNode(child);
 				}
 			}
 			return el;
