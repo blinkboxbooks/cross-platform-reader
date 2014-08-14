@@ -1079,9 +1079,10 @@ describe('CFI', function() {
 
 		it('should trigger an error event if generating the CFI fails', function () {
 			var doc = Reader.$iframe.contents()[0],
-				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
+				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader),
+				err = new Error('ERROR');
 			spyOn(Reader.Notify, 'error').and.callThrough();
-			spyOn(Reader.Epub, 'generateCFI').and.throwError('ERROR');
+			spyOn(Reader.Epub, 'generateCFI').and.throwError(err);
 			spyOn(doc, 'createRange').and.returnValue({
 				setStart: $.noop,
 				getClientRects: function () {
@@ -1101,7 +1102,7 @@ describe('CFI', function() {
 			}
 			expect(Reader.CFI.getCFIObject()).toBeFalsy();
 			expect(Reader.Epub.generateCFI).toHaveBeenCalled();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_CFI_GENERATION, {details: new Error('ERROR'), call: 'getCFIObject'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_CFI_GENERATION, {details: {message: String(err), stack: err.stack}, call: 'getCFIObject'}));
 		});
 
 		it('should provide cross-platform methods of retrieving the caret position', function () {
