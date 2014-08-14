@@ -83,7 +83,7 @@ var Reader = (function (r) {
 			}
 			catch (err) {
 				// cannot generate CFI
-				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: err, call: 'getCFIObject'}));
+				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: {message: String(err), stack: err.stack}, call: 'getCFIObject'}));
 			}
 		},
 		getCFI: function() {
