@@ -30,7 +30,7 @@ var Reader = (function (r) {
 		return totalWordCount;
 	}
 
-	function addSpineProgress(spine) {
+	function addProgressToSpine(spine) {
 		var totalWordCount = r.Book.totalWordCount,
 				currentWordCount = 0,
 				i,
@@ -51,7 +51,7 @@ var Reader = (function (r) {
 			$.extend(r.Book, args);
 			r.Book.$opf = $(args.opf).filter('package')
 			r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
-			addSpineProgress(r.Book.spine);
+			addProgressToSpine(r.Book.spine);
 		},
 		// <a name="reset"></a> Resets the module to default values.
 		reset: function () {
