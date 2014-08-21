@@ -23,62 +23,19 @@ var Reader = (function (r) {
 		getCFIObject: function() {
 			try {
 				var startTextNode = getFirstNode(),
-					cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
-					i;
+						cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
+						result = {
+							CFI: cfi,
+							preview: startTextNode.preview
+						},
+						chapter = r.CFI.getChapterFromCFI(result.CFI),
+						item = chapter !== -1 ? r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()) : null;
 
-				var result = {
-					CFI: cfi,
-					preview: startTextNode.preview
-				};
-
-				var chapter = r.CFI.getChapterFromCFI(result.CFI);
-				var sections = [];
-
-				var _parseItem = function(item){
-					if(item.href.indexOf(href) !== -1){
-						sections.push(item);
-					}
-					if(item.children){
-						for(var i = 0, l = item.children.length; i < l; i++){
-							_parseItem(item.children[i]);
-						}
-					}
-				};
-
-				if(chapter !== -1){
-					var href = r.Book.spine[chapter].href;
-					for(i = 0; i < r.Book.toc.length; i++){
-						_parseItem(r.Book.toc[i]);
-					}
+				if (item) {
+					result.chapter = item.label;
+					result.href = item.href;
 				}
-				if(sections.length){
-					if(sections.length > 1){
-						var currentPage = r.Navigation.getPage();
-						// if more than one match, compare page numbers of different elements and identify where the current page is
-						for(var j = 0, l = sections.length; j < l; j++){
-							// get the anchor the url is pointing at
-							var anchor = sections[j].href.split('#');
-							anchor = anchor.length > 1 ? '#'+anchor[1] : null;
-							if(!anchor){
-								continue;
-							} else {
-								var $anchor = $(anchor, r.$iframe.contents());
-								// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
-								if($anchor.length){
-									var anchorPage = r.returnPageElement($anchor);
-									if(anchorPage > currentPage){
-										break;
-									}
-									result.chapter = sections[j].label;
-									result.href = sections[j].href;
-								}
-							}
-						}
-					} else {
-						result.chapter = sections[0].label;
-						result.href = sections[0].href;
-					}
-				}
+
 				return result;
 			}
 			catch (err) {
