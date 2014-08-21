@@ -111,6 +111,9 @@ var Reader = (function (r) {
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
 		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		if (!obj.length) {
+			return -1;
+		}
 		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / r.getReaderOuterWidth());
 	};
