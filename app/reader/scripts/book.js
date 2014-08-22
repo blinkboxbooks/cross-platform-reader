@@ -91,7 +91,7 @@ var Reader = (function (r) {
 		load: function (args) {
 			r.Book.reset();
 			$.extend(r.Book, args);
-			r.Book.$opf = $(args.opf).filter('package')
+			r.Book.$opf = $(args.opf).filter('package');
 			r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
 			addLabelAndProgressToSpine(r.Book.spine);
 		},

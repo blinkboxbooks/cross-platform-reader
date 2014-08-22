@@ -23,13 +23,13 @@ var Reader = (function (r) {
 		getCFIObject: function() {
 			try {
 				var startTextNode = getFirstNode(),
-						cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
-						result = {
-							CFI: cfi,
-							preview: startTextNode.preview
-						},
-						chapter = r.CFI.getChapterFromCFI(result.CFI),
-						item = chapter !== -1 ? r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()) : null;
+					cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
+					result = {
+						CFI: cfi,
+						preview: startTextNode.preview
+					},
+					chapter = r.CFI.getChapterFromCFI(result.CFI),
+					item = chapter !== -1 ? r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()) : null;
 
 				if (item) {
 					result.chapter = item.label;
