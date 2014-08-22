@@ -3348,39 +3348,109 @@ var bugsense;
 
 var Reader = (function (r) {
 
-	r.Book = {
+	var defaultData = {
 		spine: [],
 		toc: [],
 		title: '',
 		content_path_prefix: '',
 		$opf: null,
+		totalWordCount: 0
+	};
+
+	function getTotalWordCount(spine) {
+		var totalWordCount = 0,
+				i;
+		for (i = 0; i < spine.length; i++) {
+			totalWordCount += spine[i].linear ? spine[i].wordCount : 0;
+		}
+		return totalWordCount;
+	}
+
+	function parseTOCItem(item, href, currentPage) {
+		var children = item.children,
+			result,
+			i,
+			childItem,
+			anchorId,
+			anchorPage;
+		if (item.href && item.href.indexOf(href) === 0) {
+			if (!currentPage) {
+				return item;
+			}
+			result = item;
+		}
+		if (children) {
+			for (i = 0; i < children.length; i++) {
+				childItem = parseTOCItem(children[i], href, currentPage);
+				if (childItem) {
+					if (result) {
+						anchorId = childItem.href.split('#')[1];
+						if (!anchorId) {
+							continue;
+						}
+						anchorPage = r.returnPageElement('#' + anchorId);
+						if (anchorPage === -1) {
+							continue;
+						}
+						if (anchorPage > currentPage) {
+							break;
+						}
+					}
+					result = childItem;
+				}
+			}
+		}
+		return result;
+	}
+
+	function addLabelAndProgressToSpine(spine) {
+		var totalWordCount = r.Book.totalWordCount,
+				currentWordCount = 0,
+				i,
+				spineItem,
+				tocItem;
+		for (i = 0; i < spine.length; i++) {
+			spineItem = spine[i];
+			tocItem = r.Book.getTOCItem(spineItem.href);
+			if (tocItem) {
+				spineItem.label = tocItem.label;
+			}
+			// Add +1 to the current word count of the previous chapters
+			// to identify the progress for the first word of the chapter:
+			spineItem.progress = (currentWordCount + 1) / totalWordCount * 100;
+			currentWordCount += spineItem.linear ? spineItem.wordCount : 0;
+		}
+	}
+
+	r.Book = {
 		// <a name="load"></a> Loads a book's information.
-		load: function(args){
-			r.Book.spine = args.spine || [];
-			r.Book.toc = args.toc || [];
-			r.Book.title = args.title || '';
-			r.Book.content_path_prefix = args.content_path_prefix || '';
+		load: function (args) {
+			r.Book.reset();
+			$.extend(r.Book, args);
 			r.Book.$opf = $(args.opf).filter('package');
+			r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
+			addLabelAndProgressToSpine(r.Book.spine);
 		},
 		// <a name="reset"></a> Resets the module to default values.
-		reset: function(){
-			r.Book.spine = [];
-			r.Book.toc = [];
-			r.Book.title = '';
-			r.Book.content_path_prefix = '';
-			r.Book.$opf = null;
-		},
-
-		// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
-		// <a name="getTOC"></a> Returns the TOC as a JSON string.
-		getTOC: function(){
-			return JSON.stringify(r.Book.toc);
+		reset: function () {
+			$.extend(r.Book, defaultData);
 		},
 		// <a name="getSPINE"></a> Returns the spine as a JSON string.
-		getSPINE: function(){
+		getSPINE: function () {
 			return JSON.stringify(r.Book.spine);
+		},
+		// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
+		// <a name="getTOC"></a> Returns the TOC as a JSON string.
+		getTOC: function () {
+			return JSON.stringify(r.Book.toc);
+		},
+		getTOCItem: function (href, currentPage) {
+			return parseTOCItem({children: r.Book.toc}, href, currentPage);
 		}
 	};
+
+	// Initialize the Reader with default (empty) book data:
+	r.Book.reset();
 
 	return r;
 }(Reader || {}));
@@ -3581,61 +3651,18 @@ var Reader = (function (r) {
 			try {
 				var startTextNode = getFirstNode(),
 					cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
-					i;
+					result = {
+						CFI: cfi,
+						preview: startTextNode.preview
+					},
+					chapter = r.CFI.getChapterFromCFI(result.CFI),
+					item = chapter !== -1 ? r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()) : null;
 
-				var result = {
-					CFI: cfi,
-					preview: startTextNode.preview
-				};
-
-				var chapter = r.CFI.getChapterFromCFI(result.CFI);
-				var sections = [];
-
-				var _parseItem = function(item){
-					if(item.href.indexOf(href) !== -1){
-						sections.push(item);
-					}
-					if(item.children){
-						for(var i = 0, l = item.children.length; i < l; i++){
-							_parseItem(item.children[i]);
-						}
-					}
-				};
-
-				if(chapter !== -1){
-					var href = r.Book.spine[chapter].href;
-					for(i = 0; i < r.Book.toc.length; i++){
-						_parseItem(r.Book.toc[i]);
-					}
+				if (item) {
+					result.chapter = item.label;
+					result.href = item.href;
 				}
-				if(sections.length){
-					if(sections.length > 1){
-						var currentPage = r.Navigation.getPage();
-						// if more than one match, compare page numbers of different elements and identify where the current page is
-						for(var j = 0, l = sections.length; j < l; j++){
-							// get the anchor the url is pointing at
-							var anchor = sections[j].href.split('#');
-							anchor = anchor.length > 1 ? '#'+anchor[1] : null;
-							if(!anchor){
-								continue;
-							} else {
-								var $anchor = $(anchor, r.$iframe.contents());
-								// we have to check if the element exists in the current chapter. Samples sometimes cut portions of the document, resulting in missing links
-								if($anchor.length){
-									var anchorPage = r.returnPageElement($anchor);
-									if(anchorPage > currentPage){
-										break;
-									}
-									result.chapter = sections[j].label;
-									result.href = sections[j].href;
-								}
-							}
-						}
-					} else {
-						result.chapter = sections[0].label;
-						result.href = sections[0].href;
-					}
-				}
+
 				return result;
 			}
 			catch (err) {
@@ -4350,7 +4377,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.21-58'
+				appversion: '0.2.22-59'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4824,7 +4851,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.21-58'
+			'version': '0.2.22-59'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5703,6 +5730,9 @@ var Reader = (function (r) {
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
 		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		if (!obj.length) {
+			return -1;
+		}
 		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / r.getReaderOuterWidth());
 	};
@@ -5731,18 +5761,6 @@ var Reader = (function (r) {
 
 	// The current book progress.
 	var _progress = 0;
-	var _totalWordCount = -1;
-
-	function calculateTotalWordCount() {
-		// Update total number of words in the book, if not already done.
-		var i;
-		if (_totalWordCount === -1 && r.Book.spine.length) {
-			_totalWordCount = 0;
-			for (i = 0; i < r.Book.spine.length; i++) {
-				_totalWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
-			}
-		}
-	}
 
 	// ## Navigation API
 	// The Navigation object exposes methods to allow the user to navigate within the book.
@@ -5906,29 +5924,25 @@ var Reader = (function (r) {
 			page = 0;
 			pagesByChapter = 0;
 			_cfi = null;
-			_totalWordCount = -1;
 			_progress = 0;
 		},
 		getProgress: function(){
 			return _progress;
 		},
-		updateProgress: function(){
-			calculateTotalWordCount();
-
-			// Get word count of all previous chapters.
-			var currentWordCount = 0,
-					i;
-			for(i = 0; i < chapter; i++){
-				currentWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
-			}
+		updateProgress: function () {
+			var totalWordCount = r.Book.totalWordCount,
+					spineItem = r.Book.spine.length && r.Book.spine[chapter],
+					// Get the current word count from the chapter progress
+					// (which adds one word to the number of words of previous chapters):
+					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += r.Book.spine.length && r.Book.spine[chapter].linear ? r.Book.spine[chapter].wordCount * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += spineItem && spineItem.linear ? spineItem.wordCount * r.Navigation.getChapterReadFactor() : 0;
 
 			// Calculate progress.
-			var progress = Math.floor(currentWordCount / _totalWordCount * 100);
+			var progress = currentWordCount / r.Book.totalWordCount * 100;
 			// If the progress has a valid value (is a number) AND it is different than the current one, update it and send an event notification.
-			if(progress !== _progress && !isNaN(progress)){
+			if (progress !== _progress && !isNaN(progress)) {
 				_progress = progress;
 				// Send notification to all listeners that the progress has been updated
 				// r.execEvent(r.Event.PROGRESS_UPDATED);
@@ -5937,23 +5951,18 @@ var Reader = (function (r) {
 			if (r.mobile) {
 				// Update footer and display progress.
 				var progressContainer = $('#cpr-progress', r.$iframe.contents());
-				if(!progressContainer.length){
+				if (!progressContainer.length) {
 					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}
-				if (r.sample) {
-					progressContainer.text(_progress+' % of sample');
-				} else {
-					progressContainer.text(_progress+' % read');
-				}
+				progressContainer.text(Math.floor(_progress) + (r.sample ? ' % of sample' : ' % read'));
 			}
 		},
 		goToProgress: function (progress) {
-			calculateTotalWordCount();
 			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
 				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
 				return $.Deferred().reject().promise();
 			}
-			var targetWordCount = Math.ceil(progress / 100 * _totalWordCount),
+			var targetWordCount = Math.ceil(progress / 100 * r.Book.totalWordCount),
 					wordCount = 0,
 					progressFloat = 0,
 					chapterWordCount,
