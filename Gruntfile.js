@@ -386,11 +386,10 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask('test', ['karma:unit', 'connect:test', 'protractor']);
+	grunt.registerTask('test', ['jshint', 'karma:unit', 'connect:test', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([
-			'jshint:reader',
 			'clean:reader', // clean all .tmp folders and the dist/reader folder
 			'concurrent:reader', // concatenate js files and compile sass styles
 			'cssmin:reader', // cssmin styles of the reader
@@ -410,7 +409,6 @@ module.exports = function (grunt) {
 	// NOTE Reader must be generated and available at reader/scripts/.tmp/reader.js
 	grunt.registerTask('demo', function () {
 		grunt.task.run([
-			'jshint:demo',// js hint all JS files
 			// 'test:demo', // test the application
 			'clean:demo', // delete dist directory and all its contents
 			'concurrent:demo', // compile demo sass files
@@ -442,7 +440,6 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('build', [
 		'clean:all', // start fresh
-		'jshint:test', // jshint the tests
 		'reader', // build the reader
 		'demo', // build the demo
 		// 'test', // run all tests

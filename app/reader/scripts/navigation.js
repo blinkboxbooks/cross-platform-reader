@@ -111,6 +111,9 @@ var Reader = (function (r) {
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
 		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		if (!obj.length) {
+			return -1;
+		}
 		var offset = obj.offset().left - r.$reader.offset().left;
 		return Math.floor((offset) / r.getReaderOuterWidth());
 	};
@@ -139,18 +142,6 @@ var Reader = (function (r) {
 
 	// The current book progress.
 	var _progress = 0;
-	var _totalWordCount = -1;
-
-	function calculateTotalWordCount() {
-		// Update total number of words in the book, if not already done.
-		var i;
-		if (_totalWordCount === -1 && r.Book.spine.length) {
-			_totalWordCount = 0;
-			for (i = 0; i < r.Book.spine.length; i++) {
-				_totalWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
-			}
-		}
-	}
 
 	// ## Navigation API
 	// The Navigation object exposes methods to allow the user to navigate within the book.
@@ -314,29 +305,25 @@ var Reader = (function (r) {
 			page = 0;
 			pagesByChapter = 0;
 			_cfi = null;
-			_totalWordCount = -1;
 			_progress = 0;
 		},
 		getProgress: function(){
 			return _progress;
 		},
-		updateProgress: function(){
-			calculateTotalWordCount();
-
-			// Get word count of all previous chapters.
-			var currentWordCount = 0,
-					i;
-			for(i = 0; i < chapter; i++){
-				currentWordCount += r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
-			}
+		updateProgress: function () {
+			var totalWordCount = r.Book.totalWordCount,
+					spineItem = r.Book.spine.length && r.Book.spine[chapter],
+					// Get the current word count from the chapter progress
+					// (which adds one word to the number of words of previous chapters):
+					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += r.Book.spine.length && r.Book.spine[chapter].linear ? r.Book.spine[chapter].wordCount * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += spineItem && spineItem.linear ? spineItem.wordCount * r.Navigation.getChapterReadFactor() : 0;
 
 			// Calculate progress.
-			var progress = Math.floor(currentWordCount / _totalWordCount * 100);
+			var progress = currentWordCount / r.Book.totalWordCount * 100;
 			// If the progress has a valid value (is a number) AND it is different than the current one, update it and send an event notification.
-			if(progress !== _progress && !isNaN(progress)){
+			if (progress !== _progress && !isNaN(progress)) {
 				_progress = progress;
 				// Send notification to all listeners that the progress has been updated
 				// r.execEvent(r.Event.PROGRESS_UPDATED);
@@ -345,23 +332,18 @@ var Reader = (function (r) {
 			if (r.mobile) {
 				// Update footer and display progress.
 				var progressContainer = $('#cpr-progress', r.$iframe.contents());
-				if(!progressContainer.length){
+				if (!progressContainer.length) {
 					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}
-				if (r.sample) {
-					progressContainer.text(_progress+' % of sample');
-				} else {
-					progressContainer.text(_progress+' % read');
-				}
+				progressContainer.text(Math.floor(_progress) + (r.sample ? ' % of sample' : ' % read'));
 			}
 		},
 		goToProgress: function (progress) {
-			calculateTotalWordCount();
 			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
 				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
 				return $.Deferred().reject().promise();
 			}
-			var targetWordCount = Math.ceil(progress / 100 * _totalWordCount),
+			var targetWordCount = Math.ceil(progress / 100 * r.Book.totalWordCount),
 					wordCount = 0,
 					progressFloat = 0,
 					chapterWordCount,

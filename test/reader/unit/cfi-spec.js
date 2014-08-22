@@ -612,7 +612,7 @@ describe('CFI', function() {
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(1);
 			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
-				switch(el.prop('id')) {
+				switch(Reader.$reader.find(el).prop('id')) {
 					case 'bk01ch01':
 						return 0;
 					case 'bk01ch02':
@@ -659,7 +659,7 @@ describe('CFI', function() {
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(1);
 			spyOn(Reader, 'returnPageElement').and.callFake(function (el) {
-				switch(el.prop('id')) {
+				switch(Reader.$reader.find(el).prop('id')) {
 					case 'bk01ch02':
 						return 1;
 					case 'bk01ch03':
