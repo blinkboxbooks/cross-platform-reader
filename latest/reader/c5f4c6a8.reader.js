@@ -3435,14 +3435,13 @@ var Reader = (function (r) {
 		reset: function () {
 			$.extend(r.Book, defaultData);
 		},
-		// <a name="getSPINE"></a> Returns the spine as a JSON string.
+		// <a name="getSPINE"></a> Returns the spine as an array.
 		getSPINE: function () {
-			return JSON.stringify(r.Book.spine);
+			return r.Book.spine;
 		},
-		// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
-		// <a name="getTOC"></a> Returns the TOC as a JSON string.
+		// <a name="getTOC"></a> Returns the TOC as an array.
 		getTOC: function () {
-			return JSON.stringify(r.Book.toc);
+			return r.Book.toc;
 		},
 		getTOCItem: function (href, currentPage) {
 			return parseTOCItem({children: r.Book.toc}, href, currentPage);
@@ -4377,7 +4376,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.2.22-59'
+				appversion: '0.3.1-61'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4851,7 +4850,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.2.22-59'
+			'version': '0.3.1-61'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4917,8 +4916,9 @@ var Reader = (function (r) {
 			message: 'Some text has been selected',
 			call: 'selection'
 		},
-		getStatus: function(){
-			return _check_page_pos($.extend({}, r.Event.STATUS, {
+		getStatus: function (call) {
+			var data = {
+				'call': call || '',
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
 				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
 				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
@@ -4941,7 +4941,12 @@ var Reader = (function (r) {
 					columns: r.Layout.Reader.columns,
 					padding: r.Layout.Reader.padding
 				}
-			}));
+			};
+			if (call === 'init') {
+				data.spine = Reader.Book.getSPINE();
+				data.toc = Reader.Book.getTOC();
+			}
+			return _check_page_pos($.extend({}, r.Event.STATUS, data));
 		}
 	};
 
@@ -6864,9 +6869,7 @@ var READER = (function() {
 
 	// Generates an object summarizing the reader status.
 	var _send_status = function(call){
-		Reader.Notify.event($.extend({}, Reader.Event.getStatus(), {
-			'call': call || ''
-		}));
+		Reader.Notify.event($.extend({}, Reader.Event.getStatus(call)));
 	};
 
 	// Wrap a reader action so that it will return the reader status after the action is performed
@@ -7012,8 +7015,6 @@ var READER = (function() {
 			);
 		},
 		getProgress: Reader.Navigation.getProgress,
-		getTOC: Reader.Book.getTOC,
-		getSPINE: Reader.Book.getSPINE,
 		getBookmarks: Reader.Bookmarks.getBookmarks,
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, 'setBookmarks'),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
