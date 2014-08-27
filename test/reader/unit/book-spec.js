@@ -33,14 +33,14 @@ describe('Book', function() {
 		expect(Reader.Book.$opf).toBeNull();
 	});
 
-	it('should provide a Book.getTOC method to retrieve a JSON string representation of the book TOC', function () {
+	it('should provide a Book.getTOC method to retrieve the book TOC as an array', function () {
 		Reader.Book.load(fixtures.BOOK.DATA);
-		expect(Reader.Book.getTOC()).toEqual(JSON.stringify(fixtures.BOOK.DATA.toc));
+		expect(Reader.Book.getTOC()).toEqual(fixtures.BOOK.DATA.toc);
 	});
 
-	it('should provide a Book.getSPINE method to retrieve a JSON string representation of the book spine', function () {
+	it('should provide a Book.getSPINE method to retrieve the book spine as an array', function () {
 		Reader.Book.load(fixtures.BOOK.DATA);
-		expect(Reader.Book.getSPINE()).toEqual(JSON.stringify(fixtures.BOOK.DATA.spine));
+		expect(Reader.Book.getSPINE()).toEqual(fixtures.BOOK.DATA.spine);
 	});
 
 });

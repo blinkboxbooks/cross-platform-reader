@@ -9,9 +9,7 @@ var READER = (function() {
 
 	// Generates an object summarizing the reader status.
 	var _send_status = function(call){
-		Reader.Notify.event($.extend({}, Reader.Event.getStatus(), {
-			'call': call || ''
-		}));
+		Reader.Notify.event($.extend({}, Reader.Event.getStatus(call)));
 	};
 
 	// Wrap a reader action so that it will return the reader status after the action is performed
@@ -157,8 +155,6 @@ var READER = (function() {
 			);
 		},
 		getProgress: Reader.Navigation.getProgress,
-		getTOC: Reader.Book.getTOC,
-		getSPINE: Reader.Book.getSPINE,
 		getBookmarks: Reader.Bookmarks.getBookmarks,
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, 'setBookmarks'),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
