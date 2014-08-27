@@ -124,8 +124,9 @@ var Reader = (function (r) {
 			message: 'Some text has been selected',
 			call: 'selection'
 		},
-		getStatus: function(){
-			return _check_page_pos($.extend({}, r.Event.STATUS, {
+		getStatus: function (call) {
+			var data = {
+				'call': call || '',
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
 				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
 				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
@@ -148,7 +149,12 @@ var Reader = (function (r) {
 					columns: r.Layout.Reader.columns,
 					padding: r.Layout.Reader.padding
 				}
-			}));
+			};
+			if (call === 'init') {
+				data.spine = Reader.Book.getSPINE();
+				data.toc = Reader.Book.getTOC();
+			}
+			return _check_page_pos($.extend({}, r.Event.STATUS, data));
 		}
 	};
 

@@ -99,14 +99,13 @@ var Reader = (function (r) {
 		reset: function () {
 			$.extend(r.Book, defaultData);
 		},
-		// <a name="getSPINE"></a> Returns the spine as a JSON string.
+		// <a name="getSPINE"></a> Returns the spine as an array.
 		getSPINE: function () {
-			return JSON.stringify(r.Book.spine);
+			return r.Book.spine;
 		},
-		// This function returns a stringified version of the table of contents. It is mainly used on mobile readers.
-		// <a name="getTOC"></a> Returns the TOC as a JSON string.
+		// <a name="getTOC"></a> Returns the TOC as an array.
 		getTOC: function () {
-			return JSON.stringify(r.Book.toc);
+			return r.Book.toc;
 		},
 		getTOCItem: function (href, currentPage) {
 			return parseTOCItem({children: r.Book.toc}, href, currentPage);
