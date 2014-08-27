@@ -107,6 +107,18 @@ var Page = function(){
 		});
 	};
 
+	/**
+	 * Clicks a link with the given text within the reader
+	 * */
+	this.clickLink = function(text){
+		return this.readerContext(function(){
+			return element(by.xpath('//a[contains(text(),"'+text+'")]')).click();
+		}).then(function(){
+				return browser.wait(function() {
+					return status.isPresent();
+				}, 2000);
+			});
+	};
 
 	/**
 	 * This function will loop through the entire book by either calling next or previous repeatedly.

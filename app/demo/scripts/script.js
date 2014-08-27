@@ -53,6 +53,9 @@ angular.module('app', ['ngRoute'])
 				case 16: // cannot remove bookmark
 					$p.attr('data-test', 'error');
 					break;
+				case 20: // internal link clicked
+					$('[data-test="status"]').removeAttr('data-test');
+					break;
 			}
 			$('#log .panel-body').prepend($p);
 		}
