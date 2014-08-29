@@ -81,8 +81,8 @@ var Reader = (function (r) {
 		// Enable bugsense reporting
 		_setBugsense();
 
-		// Start the party.
-		return loadInfo();
+		// Start the party:
+		return r.Book.load({}).then(initializeBook);
 	};
 
 	function _getTransitionEndProperty() {
@@ -304,114 +304,13 @@ var Reader = (function (r) {
 		});
 	}
 
-	function getManifestItem($opf, id) {
-		// Searching via #id might fail with invalid id properties, so we use an attribute selector instead:
-		return $opf.find('manifest item[id="' + id + '"]');
-	}
-
-	function getPathPrefix(opfPath, $opf) {
-		var pathPrefix = opfPath.split('/').slice(0, -1).join('/'),
-				spineItemId,
-				spineItemHref;
-		// If the path prefix is empty, set its value to the path of the first element in the spine:
-		if (!pathPrefix) {
-			spineItemId = $opf.find('spine itemref').attr('idref');
-			spineItemHref = getManifestItem($opf, spineItemId).attr('href');
-			// Check if the path has more then one component:
-			if (spineItemHref.indexOf('/') !== -1) {
-				pathPrefix = spineItemHref.split('/')[0];
-			}
-		}
-		// Add a trailing slash if we have a path prefix:
-		return pathPrefix && pathPrefix + '/';
-	}
-
-	function getTitleFromOPF($opf) {
-		return $opf.find('dc\\:title').first().text();
-	}
-
-	function getSpineFromOPF($opf, pathPrefix) {
-		return $.map($opf.find('spine itemref'), function (itemref) {
-			var id = itemref.getAttribute('idref'),
-					$item = getManifestItem($opf, id);
-			return {
-				itemId: id,
-				href: pathPrefix + $item.attr('href'),
-				// The default is "yes", so unlike it's "no", the spine item is linear:
-				linear: itemref.getAttribute('linear') === 'no' ? false : true,
-				mediaType: $item.attr('media-type')
-			};
-		});
-	}
-
-	function getTOCFromNavMap(navMap, pathPrefix) {
-		return $.map(navMap.children('navPoint'), function (navPoint) {
-			var $navPoint = $(navPoint),
-					data = {
-					// active: true, // false if HTML file is not available, e.g. in samples
-					href: pathPrefix + $navPoint.children('content').attr('src'),
-					itemId: navPoint.id,
-					label: $navPoint.children('navLabel').children('text').text(),
-					playOrder: $navPoint.attr('playOrder')
-				},
-				children = getTOCFromNavMap($navPoint, pathPrefix);
-			if (children.length) {
-				data.children = children;
-			}
-			return data;
-		});
-	}
-
-	// Load book meta data if book-info.json is not available:
-	function loadBookMetaData() {
-		var defer = $.Deferred();
-		loadFile(r.ROOTFILE_INFO, 'xml').then(function rootFileLoaded(rootDoc) {
-			var opfPath = $(rootDoc).find('rootfile').attr('full-path');
-			loadFile(opfPath).then(function opfFileLoaded(opfDoc) {
-				var $opf = $(opfDoc),
-						pathPrefix = getPathPrefix(opfPath, $opf),
-						tocId = $opf.find('spine').attr('toc'),
-						// Url of EPUB v3 TOC document:
-						//navHref = $opf.find('manifest item[properties="nav"]').attr('href'),
-						// Url of EPUB v2 TOC document:
-						ncxHref = getManifestItem($opf, tocId).attr('href');
-				loadFile(pathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
-					defer.resolve({
-						title: getTitleFromOPF($opf),
-						spine: getSpineFromOPF($opf, pathPrefix),
-						toc: getTOCFromNavMap($(ncxDoc).find('navMap'), pathPrefix),
-						content_path_prefix: getPathPrefix(opfPath, $opf),
-						$opf: $opf.filter('package')
-					});
-				}, defer.reject);
-			}, defer.reject);
-		}, defer.reject);
-		return defer.promise();
-	}
-
-	// Load book meta data from book-info.json:
-	function loadBookInfo() {
-		var defer = $.Deferred();
-		loadFile(r.INF, 'json').then(function bookInfoLoaded(data) {
-			loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
-				var $opf = $(opfDoc);
-				data.content_path_prefix = getPathPrefix(data.opfPath, $opf);
-				data.$opf = $opf.filter('package');
-				defer.resolve(data);
-			}, defer.reject);
-		}, defer.reject);
-		return defer.promise();
-	}
-
-	function initializeBook(data) {
-		// Save book meta data:
-		r.Book.load(data);
+	function initializeBook() {
 		// Use startCFI if _initCFI is not already set:
-		_initCFI = _initCFI || data.startCfi;
+		_initCFI = _initCFI || r.Book.startCfi;
 		// Validate initCFI (chapter exists):
 		var chapter = r.CFI.getChapterFromCFI(_initCFI),
 				promise;
-		if (chapter === -1 || chapter >= data.spine.length) {
+		if (chapter === -1 || chapter >= r.Book.spine.length) {
 			chapter = 0;
 			_initCFI = null;
 		}
@@ -423,41 +322,6 @@ var Reader = (function (r) {
 		_initURL = null;
 		_initCFI = null;
 		return promise;
-	}
-
-	function loadInfo() {
-		var defer = $.Deferred();
-		loadBookInfo().then(
-			// book-info.json is available:
-			function (data) {
-				initializeBook(data)
-					.then(defer.resolve, defer.reject);
-			},
-			// book-info.json not available:
-			function () {
-				loadBookMetaData()
-					.done(initializeBook)
-					.then(defer.resolve, defer.reject);
-			}
-		);
-		// notify client that info promise has been processed
-		defer.notify();
-		return defer.promise();
-	}
-
-	// Get a file from the server and display its content
-	//
-	// * `resource`
-	// * `callback`
-	function loadFile(resource, type) {
-		var defer = $.Deferred();
-		$.ajax({
-			url: r.DOCROOT+'/'+resource,
-			dataType: (type) ? type : 'text'
-		}).then(defer.resolve, function(err){
-				defer.reject($.extend({}, r.Event.ERR_MISSING_FILE, {details: err.responseText}));
-			});
-		return defer.promise();
 	}
 
 	// Load a chapter with the index from the spine of this chapter
@@ -492,7 +356,7 @@ var Reader = (function (r) {
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		}
 
-		loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
+		r.Book.loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {
 			// setReaderOpacity returns a promise, but we don't rely on the fade in
