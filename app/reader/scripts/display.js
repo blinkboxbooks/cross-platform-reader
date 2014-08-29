@@ -286,67 +286,142 @@ var Reader = (function (r) {
 		});
 	};
 
-	// Load the JSON file with all the information related to this book
-	//
-	// * `resource`
+	function getManifestItem($opf, id) {
+		// Searching via #id might fail with invalid id properties, so we use an attribute selector instead:
+		return $opf.find('manifest item[id="' + id + '"]');
+	}
+
+	function getPathPrefix(opfPath, $opf) {
+		var pathPrefix = opfPath.split('/').slice(0, -1).join('/'),
+				spineItemId,
+				spineItemHref;
+		// If the path prefix is empty, set its value to the path of the first element in the spine:
+		if (!pathPrefix) {
+			spineItemId = $opf.find('spine itemref').attr('idref');
+			spineItemHref = getManifestItem($opf, spineItemId).attr('href');
+			// Check if the path has more then one component:
+			if (spineItemHref.indexOf('/') !== -1) {
+				pathPrefix = spineItemHref.split('/')[0];
+			}
+		}
+		// Add a trailing slash if we have a path prefix:
+		return pathPrefix && pathPrefix + '/';
+	}
+
+	function getTitleFromOPF($opf) {
+		return $opf.find('dc\\:title').first().text();
+	}
+
+	function getSpineFromOPF($opf, pathPrefix) {
+		return $.map($opf.find('spine itemref'), function (itemref) {
+			var id = itemref.getAttribute('idref'),
+					$item = getManifestItem($opf, id);
+			return {
+				itemId: id,
+				href: pathPrefix + $item.attr('href'),
+				// The default is "yes", so unlike it's "no", the spine item is linear:
+				linear: itemref.getAttribute('linear') === 'no' ? false : true,
+				mediaType: $item.attr('media-type')
+			};
+		});
+	}
+
+	function getTOCFromNavMap(navMap, pathPrefix) {
+		return $.map(navMap.children('navPoint'), function (navPoint) {
+			var $navPoint = $(navPoint),
+					data = {
+					// active: true, // false if HTML file is not available, e.g. in samples
+					href: pathPrefix + $navPoint.children('content').attr('src'),
+					itemId: navPoint.id,
+					label: $navPoint.children('navLabel').children('text').text(),
+					playOrder: $navPoint.attr('playOrder')
+				},
+				children = getTOCFromNavMap($navPoint, pathPrefix);
+			if (children.length) {
+				data.children = children;
+			}
+			return data;
+		});
+	}
+
+	// Load book meta data if book-info.json is not available:
+	function loadBookMetaData() {
+		var defer = $.Deferred();
+		loadFile(r.ROOTFILE_INFO, 'xml').then(function rootFileLoaded(rootDoc) {
+			var opfPath = $(rootDoc).find('rootfile').attr('full-path');
+			loadFile(opfPath).then(function opfFileLoaded(opfDoc) {
+				var $opf = $(opfDoc),
+						pathPrefix = getPathPrefix(opfPath, $opf),
+						tocId = $opf.find('spine').attr('toc'),
+						// Url of EPUB v3 TOC document:
+						//navHref = $opf.find('manifest item[properties="nav"]').attr('href'),
+						// Url of EPUB v2 TOC document:
+						ncxHref = getManifestItem($opf, tocId).attr('href');
+				loadFile(pathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
+					defer.resolve({
+						title: getTitleFromOPF($opf),
+						spine: getSpineFromOPF($opf, pathPrefix),
+						toc: getTOCFromNavMap($(ncxDoc).find('navMap'), pathPrefix),
+						content_path_prefix: getPathPrefix(opfPath, $opf),
+						$opf: $opf.filter('package')
+					});
+				}, defer.reject);
+			}, defer.reject);
+		}, defer.reject);
+		return defer.promise();
+	}
+
+	// Load book meta data from book-info.json:
+	function loadBookInfo() {
+		var defer = $.Deferred();
+		loadFile(r.INF, 'json').then(function bookInfoLoaded(data) {
+			loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
+				var $opf = $(opfDoc);
+				data.content_path_prefix = getPathPrefix(data.opfPath, $opf);
+				data.$opf = $opf.filter('package');
+				defer.resolve(data);
+			}, defer.reject);
+		}, defer.reject);
+		return defer.promise();
+	}
+
+	function initializeBook(data) {
+		// Save book meta data:
+		r.Book.load(data);
+		// Check for startCFI, save it if and only if initCFI is null
+		_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
+		// Validate initCFI (chapter exists)
+		var chapter = r.CFI.getChapterFromCFI(_initCFI),
+				promise;
+		if(chapter === -1 || chapter >= data.spine.length){
+			chapter = 0;
+			_initCFI = null;
+		}
+		if (_initCFI === null) {
+			// if initURL is null, load the first chapter, otherwise load the specified chapter
+			promise = !!_initURL ? r.Navigation.loadChapter(_initURL) : r.loadChapter(0);
+		} else {
+			// load the chapter specified by the CFI, otherwise load chapter 0
+			promise = r.loadChapter(chapter);
+		}
+		return promise;
+	}
+
 	var loadInfo = function() {
 		var defer = $.Deferred();
-		loadFile(r.INF, 'json').then(function bookInfoLoaded(data){
-			// Check for startCFI, save it if and only if initCFI is null
-			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
-
-			// Validate initCFI (chapter exists)
-			var chapter = r.CFI.getChapterFromCFI(_initCFI);
-			if(chapter === -1 || chapter >= data.spine.length){
-				chapter = 0;
-				_initCFI = null;
+		loadBookInfo().then(
+			// book-info.json is available:
+			function (data) {
+				initializeBook(data)
+					.then(defer.resolve, defer.reject);
+			},
+			// book-info.json not available:
+			function () {
+				loadBookMetaData()
+					.done(initializeBook)
+					.then(defer.resolve, defer.reject);
 			}
-
-			// todo calculate path prefix in book?
-			var path_prefix = '';
-
-			// If the OPF is in a folder...
-			if (data.opfPath.indexOf('/') !== -1) {
-				var pathComponents = data.opfPath.split('/');
-				for (var i = 0; i < (pathComponents.length-1); i++){
-					if (i !== 0) {
-						path_prefix += '/';
-					}
-					path_prefix  += pathComponents[i];
-				}
-			}
-			// If the PATH is empty set its value with the path of the first element in the spine.
-			if (path_prefix === '') {
-				// Check the path has more then one component.
-				if (data.spine[0].href.indexOf('/') !== -1) {
-					path_prefix = data.spine[0].href.split('/')[0];
-				}
-			}
-			// Set OPF
-			if (data.opfPath !== '') {
-				loadFile(data.opfPath).then(function opfFileLoaded(opf){
-					// save book metadata
-					r.Book.load({
-						title: data.title,
-						spine: data.spine,
-						toc: data.toc,
-						content_path_prefix: path_prefix,
-						opf: opf
-					});
-
-					var promise; // promise object to return
-					if(_initCFI === null){
-						// if initURL is null, load the first chapter, otherwise load the specified chapter
-						promise = !!_initURL ? r.Navigation.loadChapter(_initURL) : r.loadChapter(0);
-					} else {
-						// load the chapter specified by the CFI, otherwise load chapter 0
-						promise = r.loadChapter(chapter);
-					}
-					promise.then(defer.resolve, defer.reject);
-				}, defer.reject);
-			}
-			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
-		}, defer.reject);
+		);
 		// notify client that info promise has been processed
 		defer.notify();
 		return defer.promise();
@@ -362,7 +437,7 @@ var Reader = (function (r) {
 			url: r.DOCROOT+'/'+resource,
 			dataType: (type) ? type : 'text'
 		}).then(defer.resolve, function(err){
-				defer.reject($.extend({}, r.Event.ERR_MISSING_FILE, {details: err}));
+				defer.reject($.extend({}, r.Event.ERR_MISSING_FILE, {details: err.responseText}));
 			});
 		return defer.promise();
 	};
@@ -377,7 +452,7 @@ var Reader = (function (r) {
 			chapterUrl = r.Book.spine[chapterNumber].href;
 		} else {
 			// If it is not, add it and load the chapter
-			chapterUrl = r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href;
+			chapterUrl = r.Book.content_path_prefix + r.Book.spine[chapterNumber].href;
 		}
 
 		r.Epub.setUp(chapterNumber, r.Book.$opf);

@@ -91,9 +91,9 @@ var Reader = (function (r) {
 		load: function (args) {
 			r.Book.reset();
 			$.extend(r.Book, args);
-			r.Book.$opf = $(args.opf).filter('package');
 			r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
 			addLabelAndProgressToSpine(r.Book.spine);
+			r.Navigation.setNumberOfChapters(r.Book.spine.length);
 		},
 		// <a name="reset"></a> Resets the module to default values.
 		reset: function () {

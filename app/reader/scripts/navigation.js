@@ -27,7 +27,6 @@ var Reader = (function (r) {
 	// Reset method for the reader.
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
 	r.reset = function(){
-		r.INF = 'META-INF/book-info.json';
 		r.DOCROOT = '';
 		r.mobile = false;
 
