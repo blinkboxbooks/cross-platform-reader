@@ -47,6 +47,10 @@ var Reader = (function (r) {
 		return $opf.find('dc\\:title').first().text();
 	}
 
+	function getAuthorFromOPF($opf) {
+		return $opf.find('dc\\:creator').first().text();
+	}
+
 	function getSpineFromOPF($opf, pathPrefix) {
 		return $.map($opf.find('spine itemref'), function (itemref) {
 			var id = itemref.getAttribute('idref'),
@@ -107,6 +111,7 @@ var Reader = (function (r) {
 				loadFile(pathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
 					defer.resolve($.extend(args, {
 						title: getTitleFromOPF($opf),
+						author: getAuthorFromOPF($opf),
 						spine: getSpineFromOPF($opf, pathPrefix),
 						toc: getTOCFromNavMap($(ncxDoc).find('navMap'), pathPrefix),
 						content_path_prefix: getPathPrefix(opfPath, $opf),
