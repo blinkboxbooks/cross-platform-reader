@@ -16,6 +16,7 @@ var Reader = (function (r) {
 		spine: [],
 		toc: [],
 		title: '',
+		author: '',
 		content_path_prefix: '',
 		$opf: null,
 		totalWordCount: 0
