@@ -139,6 +139,9 @@ angular.module('app', ['ngRoute'])
 			themes: ['light', 'transparent','dark', 'sepia']
 		};
 
+		$scope.initCFI = $routeParams.initCFI;
+		$scope.initURL = $routeParams.initURL;
+
 		$scope.handlers = {
 			prev: function(){
 				$('[data-test="status"]').removeAttr('data-test');
@@ -193,7 +196,9 @@ angular.module('app', ['ngRoute'])
 					url: val,
 					bookmarks: [],
 					listener: function(e){ $timeout(function(){_log(e);}); },
-					preferences: $scope.preferences
+					preferences: $scope.preferences,
+					initCFI: $scope.initCFI,
+					initURL: $scope.initURL
 				});
 
 				// watch for new watches

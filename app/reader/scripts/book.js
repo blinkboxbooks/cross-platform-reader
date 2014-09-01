@@ -92,7 +92,7 @@ var Reader = (function (r) {
 	}
 
 	// Load book meta data if book-info.json is not available:
-	function loadBookMetaData() {
+	function loadBookMetaData(args) {
 		var defer = $.Deferred();
 		loadFile(r.ROOTFILE_INFO, 'xml').then(function rootFileLoaded(rootDoc) {
 			var opfPath = $(rootDoc).find('rootfile').attr('full-path');
@@ -105,13 +105,13 @@ var Reader = (function (r) {
 				// Url of EPUB v2 TOC document:
 					ncxHref = getManifestItem($opf, tocId).attr('href');
 				loadFile(pathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
-					defer.resolve({
+					defer.resolve($.extend(args, {
 						title: getTitleFromOPF($opf),
 						spine: getSpineFromOPF($opf, pathPrefix),
 						toc: getTOCFromNavMap($(ncxDoc).find('navMap'), pathPrefix),
 						content_path_prefix: getPathPrefix(opfPath, $opf),
 						$opf: $opf.filter('package')
-					});
+					}));
 				}, defer.reject);
 			}, defer.reject);
 		}, defer.reject);
@@ -119,28 +119,28 @@ var Reader = (function (r) {
 	}
 
 	// Load book meta data from book-info.json:
-	function loadBookInfo() {
+	function loadBookInfo(args) {
 		var defer = $.Deferred();
 		loadFile(r.INF, 'json').then(function bookInfoLoaded(data) {
 			loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
 				var $opf = $(opfDoc);
 				data.content_path_prefix = getPathPrefix(data.opfPath, $opf);
 				data.$opf = $opf.filter('package');
-				defer.resolve(data);
+				defer.resolve($.extend(args, data));
 			}, defer.reject);
 		}, defer.reject);
 		return defer.promise();
 	}
 
 	// Wrapper function to load book meta data from book-info.json or EPUB meta files:
-	function loadBookData() {
+	function loadBookData(args) {
 		var defer = $.Deferred();
-		loadBookInfo().then(
+		loadBookInfo(args).then(
 			// book-info.json is available:
 			defer.resolve,
 			// book-info.json not available:
 			function () {
-				loadBookMetaData()
+				loadBookMetaData(args)
 					.then(defer.resolve, defer.reject);
 			}
 		);
@@ -219,6 +219,7 @@ var Reader = (function (r) {
 		r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
 		addLabelAndProgressToSpine(r.Book.spine);
 		r.Navigation.setNumberOfChapters(r.Book.spine.length);
+		return r.Book;
 	}
 
 	r.Book = {
@@ -226,10 +227,9 @@ var Reader = (function (r) {
 		load: function (args) {
 			r.Book.reset();
 			if (!args.spine) {
-				return loadBookData().then(initializeBookData);
+				return loadBookData(args).then(initializeBookData);
 			}
-			initializeBookData(args);
-			return $.Deferred().resolve().promise();
+			return $.Deferred().resolve(initializeBookData(args)).promise();
 		},
 		// <a name="reset"></a> Resets the module to default values.
 		reset: function () {

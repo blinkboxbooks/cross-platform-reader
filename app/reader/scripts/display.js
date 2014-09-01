@@ -11,19 +11,17 @@
 var Reader = (function (r) {
 	'use strict';
 
-	var _initCFI = null,
-			_initURL = null;
-
 	// **Init function**
 	//
 	// Assign parameters to the global variables.
 	//
 	// * `param` Contains the parameters: container (id), chapters, padding, url, mobile, dimensions (width and height) etc.
 	r.init = function(param) {
-		r.reset(); // Reset the reader values.
-		if (!param) { param = {}; }
-		_initCFI = null;
-		_initURL = null;
+		r.reset();
+
+		if (!param) {
+			param = {};
+		}
 
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
@@ -59,10 +57,6 @@ var Reader = (function (r) {
 		// Initialize the touch module:
 		r.Touch.init(r.$iframe.contents());
 
-		// Set the initial position.
-		_initCFI = param.hasOwnProperty('initCFI') ? param.initCFI : _initCFI;
-		_initURL = param.hasOwnProperty('initURL') ? param.initURL : _initURL;
-
 		// Resize the container with the width and height (if they exist).
 		_createContainer(param.width, param.height, param.columns, param.padding);
 
@@ -82,7 +76,10 @@ var Reader = (function (r) {
 		_setBugsense();
 
 		// Start the party:
-		return r.Book.load({}).then(initializeBook);
+		return r.Book.load({
+			initCFI: param.initCFI,
+			initURL: param.initURL
+		}).then(initializeBook);
 	};
 
 	function _getTransitionEndProperty() {
@@ -304,23 +301,21 @@ var Reader = (function (r) {
 		});
 	}
 
-	function initializeBook() {
-		// Use startCFI if _initCFI is not already set:
-		_initCFI = _initCFI || r.Book.startCfi;
-		// Validate initCFI (chapter exists):
-		var chapter = r.CFI.getChapterFromCFI(_initCFI),
+	function initializeBook(book) {
+		// Use startCFI if initCFI is not already set:
+		var initCFI = book.initCFI || book.startCfi;
+		var chapter = r.CFI.getChapterFromCFI(initCFI),
 				promise;
-		if (chapter === -1 || chapter >= r.Book.spine.length) {
+		// Validate initCFI (chapter exists):
+		if (chapter === -1 || chapter >= book.spine.length) {
 			chapter = 0;
-			_initCFI = null;
+			initCFI = null;
 		}
-		if (_initCFI) {
-			promise = r.loadChapter(chapter, _initCFI);
+		if (initCFI) {
+			promise = r.loadChapter(chapter, initCFI);
 		} else {
-			promise = _initURL ? r.Navigation.loadChapter(_initURL) : r.loadChapter(0);
+			promise = book.initURL ? r.Navigation.loadChapter(book.initURL) : r.loadChapter(0);
 		}
-		_initURL = null;
-		_initCFI = null;
 		return promise;
 	}
 
