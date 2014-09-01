@@ -1,14 +1,6 @@
 'use strict';
 
 // Sub module for managing a book's meta-information (url, title, spine, isbn)
-//
-// * `spine`
-// * `toc`
-// * `title`
-// * `load`
-// * `reset`
-// * [`getTOC`](#getTOC)
-// * [`getSPINE`](#getSPINE)
 
 var Reader = (function (r) {
 
@@ -17,7 +9,7 @@ var Reader = (function (r) {
 		toc: [],
 		title: '',
 		author: '',
-		content_path_prefix: '',
+		contentPathPrefix: '',
 		$opf: null,
 		totalWordCount: 0
 	};
@@ -115,7 +107,7 @@ var Reader = (function (r) {
 						author: getAuthorFromOPF($opf),
 						spine: getSpineFromOPF($opf, pathPrefix),
 						toc: getTOCFromNavMap($(ncxDoc).find('navMap'), pathPrefix),
-						content_path_prefix: getPathPrefix(opfPath, $opf),
+						contentPathPrefix: getPathPrefix(opfPath, $opf),
 						$opf: $opf.filter('package')
 					}));
 				}, defer.reject);
@@ -130,7 +122,7 @@ var Reader = (function (r) {
 		loadFile(r.INF, 'json').then(function bookInfoLoaded(data) {
 			loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
 				var $opf = $(opfDoc);
-				data.content_path_prefix = getPathPrefix(data.opfPath, $opf);
+				data.contentPathPrefix = getPathPrefix(data.opfPath, $opf);
 				data.$opf = $opf.filter('package');
 				defer.resolve($.extend(args, data));
 			}, defer.reject);

@@ -13,7 +13,7 @@ describe('Book', function() {
 		expect(Reader.Book.spine).toBe(fixtures.BOOK.DATA.spine);
 		expect(Reader.Book.toc).toBe(fixtures.BOOK.DATA.toc);
 		expect(Reader.Book.title).toBe(fixtures.BOOK.DATA.title);
-		expect(Reader.Book.content_path_prefix).toBe(fixtures.BOOK.DATA.content_path_prefix);
+		expect(Reader.Book.contentPathPrefix).toBe(fixtures.BOOK.DATA.contentPathPrefix);
 		expect(Reader.Book.$opf.length).toBe($(fixtures.BOOK.DATA.opf).filter('package').length);
 	});
 
@@ -23,7 +23,7 @@ describe('Book', function() {
 		expect(Reader.Book.spine).toEqual([]);
 		expect(Reader.Book.toc).toEqual([]);
 		expect(Reader.Book.title).toBe('');
-		expect(Reader.Book.content_path_prefix).toBe('');
+		expect(Reader.Book.contentPathPrefix).toBe('');
 		expect(Reader.Book.$opf).toBeNull();
 	});
 

@@ -325,11 +325,11 @@ var Reader = (function (r) {
 			chapterUrl;
 
 		// Check if the PATH is in the href value from the spine...
-		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
+		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.contentPathPrefix) !== -1)) {
 			chapterUrl = r.Book.spine[chapterNumber].href;
 		} else {
 			// If it is not, add it and load the chapter
-			chapterUrl = r.Book.content_path_prefix + r.Book.spine[chapterNumber].href;
+			chapterUrl = r.Book.contentPathPrefix + r.Book.spine[chapterNumber].href;
 		}
 
 		r.Epub.setUp(chapterNumber, r.Book.$opf);
