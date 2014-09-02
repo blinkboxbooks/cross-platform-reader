@@ -32,6 +32,20 @@ var Reader = (function (r) {
 	r.listener = null;
 	// User-set preferences that are related to the display options.
 	var i, rule;
+
+	// Helper function to restrict the bounds of the given preference:
+	function restrictBounds(value) {
+		/*jshint validthis:true */
+		value = Number(value) || 0;
+		if (value > this.max) {
+			return this.max;
+		}
+		if (value < this.min) {
+			return this.min;
+		}
+		return value;
+	}
+
 	r.preferences = {
 		publisherStyles: {
 			value: true
@@ -40,62 +54,26 @@ var Reader = (function (r) {
 			min: 1,
 			max: 10,
 			value: 5,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.maxParallelRequests.max) {
-					return r.preferences.maxParallelRequests.max;
-				}
-				if (value < r.preferences.maxParallelRequests.min) {
-					return r.preferences.maxParallelRequests.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		maxChapterElements: {
 			min: 100,
 			max: 10000,
 			value: 200,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.maxChapterElements.max) {
-					return r.preferences.maxChapterElements.max;
-				}
-				if (value < r.preferences.maxChapterElements.min) {
-					return r.preferences.maxChapterElements.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
 		preloadRange: {
 			min: 1,
 			max: 10,
 			value: 2,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.preloadRange.max) {
-					return r.preferences.preloadRange.max;
-				}
-				if (value < r.preferences.preloadRange.min) {
-					return r.preferences.preloadRange.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		transitionDuration: {
 			min: 0,
 			max: 1,
 			value: 0.3,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.transitionDuration.max) {
-					return r.preferences.transitionDuration.max;
-				}
-				if (value < r.preferences.transitionDuration.min) {
-					return r.preferences.transitionDuration.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		transitionTimingFunction: {
 			value: 'ease-in-out'
@@ -106,6 +84,7 @@ var Reader = (function (r) {
 			max: 20,
 			unit: 0.1,
 			value: 1.6,
+			clear: restrictBounds,
 			applyRules: function(){
 				for(i = 0; i< r.preferences.lineHeight.rules.length; i++){
 					rule = r.preferences.lineHeight.rules[i];
@@ -119,6 +98,7 @@ var Reader = (function (r) {
 			max: 15,
 			unit: 0.1,
 			value: 1,
+			clear: restrictBounds,
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontSize.rules.length; i++){
 					rule = r.preferences.fontSize.rules[i];
@@ -129,6 +109,9 @@ var Reader = (function (r) {
 		fontFamily : {
 			rules: [],
 			value: '',
+			clear: function (value) {
+				return typeof(value) === 'string' ? value : this.value;
+			},
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontFamily.rules.length; i++){
 					rule = r.preferences.fontFamily.rules[i];

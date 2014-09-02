@@ -132,116 +132,76 @@ var Reader = (function (r) {
 	//
 	// * `args` an Object containing valid preference values.
 
-	r.setPreferences = function(args){
-		if(typeof args === 'object'){
-			var value, updated = false;
+	r.setPreferences = function (args) {
+		if (typeof args !== 'object') {
+			return r.preferences;
+		}
+		var updated = false,
+				pref,
+				value,
+				prop;
 
-			// Enable/Disable publisher styles.
-			if(args.hasOwnProperty('publisherStyles')){
-				value = Boolean(args.publisherStyles);
-				if (value !== r.preferences.publisherStyles.value) {
-					r.preferences.publisherStyles.value = value;
-					if (value) {
-						r.addPublisherStyles().then(function () {
-							r.refreshLayout();
-						});
-					} else {
-						r.resetPublisherStyles();
-						r.refreshLayout();
-					}
+		function refresh() {
+			r.refreshLayout();
+		}
+
+		for (prop in args) {
+			if (args.hasOwnProperty(prop)) {
+				pref = r.preferences[prop];
+				value = args[prop];
+				switch (prop) {
+					case 'maxParallelRequests':
+					case 'maxChapterElements':
+					case 'preloadRange':
+					case 'transitionDuration':
+						pref.value = pref.clear(value);
+						break;
+					case 'lineHeight':
+					case 'fontSize':
+					case 'textAlign':
+					case 'fontFamily':
+					case 'theme':
+						value = pref.clear(value);
+						if (pref.value !== value) {
+							pref.value = value;
+							updated = true;
+						}
+						break;
+					case 'transitionTimingFunction':
+						pref.value = value;
+						r.$reader.css('transition-timing-function', value);
+						break;
+					case 'publisherStyles':
+						value = Boolean(value);
+						if (value !== pref.value) {
+							pref.value = value;
+							if (value) {
+								r.addPublisherStyles().then(refresh);
+							} else {
+								r.resetPublisherStyles();
+								r.refreshLayout();
+							}
+						}
+						break;
+					case 'margin':
+						value = pref.clear(value);
+						if (value !== pref.value) {
+							pref.value = value;
+							r.Layout.resizeContainer();
+							updated = true;
+						}
+						break;
 				}
 			}
+		}
 
-			// Set max parallel requests (within bounds).
-			// Updating parallel requests does not need any styles update nor a layout refresh,
-			// as it will only take effect on the next book load.
-			if(args.hasOwnProperty('maxParallelRequests')){
-				r.preferences.maxParallelRequests.value = r.preferences.maxParallelRequests.clear(args.maxParallelRequests);
-			}
-
-			// Set max chapter elements (within bounds).
-			// Updating max chapter elements does not need any styles update nor a layout refresh,
-			// as it will only take effect on the next chapter load.
-			if(args.hasOwnProperty('maxChapterElements')){
-				r.preferences.maxChapterElements.value = r.preferences.maxChapterElements.clear(args.maxChapterElements);
-			}
-
-			// Set preload range (within bounds).
-			// Updating preload range does not need any styles update nor a layout refresh.
-			if(args.hasOwnProperty('preloadRange')){
-				r.preferences.preloadRange.value = r.preferences.preloadRange.clear(args.preloadRange);
-			}
-
-			// Set transition duration (within bounds).
-			// Updating transition duration does not need any styles update nor a layout refresh.
-			if(args.hasOwnProperty('transitionDuration')){
-				r.preferences.transitionDuration.value = r.preferences.transitionDuration.clear(args.transitionDuration);
-			}
-
-			// Set transition timing function.
-			if(args.hasOwnProperty('transitionTimingFunction')){
-				r.preferences.transitionTimingFunction.value = args.transitionTimingFunction;
-				r.$reader.css('transition-timing-function', args.transitionTimingFunction);
-			}
-
-			// Set line height if all conditions are met
-			if(args.hasOwnProperty('lineHeight')){
-				value = parseFloat(args.lineHeight) || r.preferences.lineHeight.value;
-				if(r.preferences.lineHeight.value !== value && r.preferences.lineHeight.max >= value && r.preferences.lineHeight.min <= value){
-					r.preferences.lineHeight.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('fontSize')){
-				value = parseFloat(args.fontSize) || r.preferences.fontSize.value;
-				if(r.preferences.fontSize.value !== value && r.preferences.fontSize.max >= value && r.preferences.fontSize.min <= value){
-					r.preferences.fontSize.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('textAlign')){
-				value = r.preferences.textAlign.clear(args.textAlign);
-				if(r.preferences.textAlign.value !== value){
-					r.preferences.textAlign.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('fontFamily')){
-				value = typeof(args.fontFamily) === 'string' ? args.fontFamily : r.preferences.fontFamily.value;
-				if(r.preferences.fontFamily.value !== value){
-					r.preferences.fontFamily.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('margin')){
-				value = r.preferences.margin.clear(args.margin);
-				if(value !== r.preferences.margin.value){
-					r.preferences.margin.value = value;
-					r.Layout.resizeContainer();
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('theme')){
-				value = r.preferences.theme.clear(args.theme);
-				if(value !== r.preferences.theme.value){
-					r.preferences.theme.value = value;
-					updated = true;
-				}
-			}
-
-			if(updated){
-				r.preferences.applyAll();
-
-				// Update variables that are dependant on styles.
-				r.refreshLayout();
-			}
+		if (updated) {
+			r.preferences.applyAll();
+			// Update variables that are dependant on styles.
+			r.refreshLayout();
 		}
 		return r.preferences;
 	};
+
 	return r;
 }(Reader || {}));
