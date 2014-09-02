@@ -130,6 +130,89 @@ var Reader = (function (r) {
 		return defer.promise();
 	}
 
+	// Count the number of words in the given HTML string:
+	function countWords(str) {
+		str = str
+			// Replace the title element, as we don't count its contents:
+			.replace(/<title>[^<]+<\/title>/i, '')
+			// Replace all HTML elements with single spaces:
+			.replace(/(<[^>]+>)/gi, ' ');
+		// Convert all HTML entities to their textual representation,
+		// so that whitespace entities are not counted as text:
+		str = $('<p>').html(str).text();
+		// Calculate the word matches:
+		var match = str.match(/\s+\S+/g);
+		return match ? match.length : 0;
+	}
+
+	// Count the number of images in the given HTML string:
+	function countImages(str) {
+		var result = str.match(/<img/gi);
+		return result ? result.length : 0;
+	}
+
+	// Strip any HTML comments from the given HTML string:
+	function stripHTMLComments(str) {
+		return str.replace(/<!--.*?-->/g, '');
+	}
+
+	// Function to handle a given number of parallel requests:
+	function parallelRequestsHandler(list, request) {
+		var defer = $.Deferred(),
+				count = list.length,
+				index = 0,
+				maxRequests = r.preferences.maxParallelRequests.value,
+				pendingRequests = 0,
+				handleResponse = function () {
+					pendingRequests--;
+					initRequests();
+				},
+				sendRequests = function () {
+					while (index < count && pendingRequests < maxRequests) {
+						pendingRequests++;
+						request(list[index++]).always(handleResponse);
+					}
+				},
+				initRequests = function () {
+					if (index === count) {
+						if (!pendingRequests) {
+							defer.resolve(list);
+						}
+					} else {
+						sendRequests();
+					}
+				};
+		initRequests();
+		return defer.promise();
+	}
+
+	// Function to parse a chapter in the spine to calculate word- and image- count:
+	function parseChapter(spineItem) {
+		if (spineItem.active === false) {
+			// Given file is not available in the EPUB
+			return $.Deferred().reject().promise();
+		}
+		return loadFile(spineItem.href)
+			.done(function (result) {
+				result = stripHTMLComments(result);
+				spineItem.imageCount = countImages(result);
+				if (spineItem.wordCount === undefined) {
+					spineItem.wordCount = countWords(result);
+				}
+			})
+			.fail(function () {
+				// Given file is not available in the EPUB:
+				spineItem.active = false;
+			});
+	}
+
+	// Function to parse each chapter in the spine to calculate word- and image- count:
+	function parseChapters(data) {
+		return parallelRequestsHandler(data.spine, parseChapter).then(function () {
+			return data;
+		});
+	}
+
 	// Wrapper function to load book meta data from book-info.json or EPUB meta files:
 	function loadBookData(args) {
 		var defer = $.Deferred();
@@ -144,7 +227,7 @@ var Reader = (function (r) {
 		);
 		// notify client that info promise has been processed
 		defer.notify();
-		return defer.promise();
+		return defer.promise().then(parseChapters);
 	}
 
 	function getTotalWordCount(spine) {

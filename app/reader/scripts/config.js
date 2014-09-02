@@ -36,6 +36,21 @@ var Reader = (function (r) {
 		publisherStyles: {
 			value: true
 		},
+		maxParallelRequests: {
+			min: 1,
+			max: 10,
+			value: 5,
+			clear: function (value) {
+				value = Number(value) || 0;
+				if (value > r.preferences.maxParallelRequests.max) {
+					return r.preferences.maxParallelRequests.max;
+				}
+				if (value < r.preferences.maxParallelRequests.min) {
+					return r.preferences.maxParallelRequests.min;
+				}
+				return value;
+			}
+		},
 		maxChapterElements: {
 			min: 100,
 			max: 10000,

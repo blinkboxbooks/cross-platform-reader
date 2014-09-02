@@ -5,6 +5,7 @@
 
 // The **Formatting** options available to the user.
 //
+// * [`setMaxParallelRequests`](#setMaxParallelRequests)
 // * [`setMaxChapterElements`](#setMaxChapterElements)
 // * [`setPreloadRange`](#setPreloadRange)
 // * [`setTransitionDuration`](#setTransitionDuration)
@@ -29,6 +30,11 @@ var Reader = (function (r) {
 	// <a name="disablePublisherStyles"></a>
 	r.disablePublisherStyles = function(){
 		return r.setPreferences({publisherStyles: false});
+	};
+
+	// <a name="setMaxParallelRequests"></a> Set max parallel requests (within bounds).
+	r.setMaxParallelRequests = function(value){
+		return r.setPreferences({maxParallelRequests: value});
 	};
 
 	// <a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).
@@ -144,6 +150,13 @@ var Reader = (function (r) {
 						r.refreshLayout();
 					}
 				}
+			}
+
+			// Set max parallel requests (within bounds).
+			// Updating parallel requests does not need any styles update nor a layout refresh,
+			// as it will only take effect on the next book load.
+			if(args.hasOwnProperty('maxParallelRequests')){
+				r.preferences.maxParallelRequests.value = r.preferences.maxParallelRequests.clear(args.maxParallelRequests);
 			}
 
 			// Set max chapter elements (within bounds).
