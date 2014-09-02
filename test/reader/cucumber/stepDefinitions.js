@@ -21,19 +21,21 @@ module.exports = function() {
 		chapter = parseInt(chapter, 10);
 		pageNumber = parseInt(pageNumber, 10);
 
-		var found = false;
+		var found = false, _status;
 
 		// loop through the book until the specified location is found
 		page.loop(function(status){
+			_status = status;
 			if(status.chapter === chapter && status.page === pageNumber){
 				found = true;
-				return protractor.promise.rejected(); // stop loop
+				return protractor.promise.rejected('found'); // stop loop
 			} else {
 				if(status.chapter > chapter || (status.chapter === chapter && status.page > pageNumber)){
-					return protractor.promise.rejected(); // stop loop
+					return protractor.promise.rejected('moved away'); // stop loop
 				}
 			}
 		}).then(function(){
+				console.log(_status);
 				if(found){
 					next();
 				}	else {
