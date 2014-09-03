@@ -32,6 +32,11 @@ var Reader = (function (r) {
 		return r.setPreferences({publisherStyles: false});
 	};
 
+	// <a name="setImageWordCount"></a> Set image word count.
+	r.setImageWordCount = function(value){
+		return r.setPreferences({imageWordCount: value});
+	};
+
 	// <a name="setMaxParallelRequests"></a> Set max parallel requests (within bounds).
 	r.setMaxParallelRequests = function(value){
 		return r.setPreferences({maxParallelRequests: value});

@@ -62,7 +62,8 @@ describe('Navigation', function() {
 
 			_previousStatus = status;
 		}, true).then(function(){
-			expect(_previousStatus.progress).toBe(0);
+			// _previousStatus.progress will not be 0,
+			// as we count progress for the displayed page (bottom right).
 			expect(page.hasErrors()).toBe(false);
 		});
 	});

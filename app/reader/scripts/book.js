@@ -146,9 +146,9 @@ var Reader = (function (r) {
 		return match ? match.length : 0;
 	}
 
-	// Count the number of images in the given HTML string:
+	// Count the number of images (and SVG elements) in the given HTML string:
 	function countImages(str) {
-		var result = str.match(/<img/gi);
+		var result = str.match(/(<img)|(<svg)/gi);
 		return result ? result.length : 0;
 	}
 
@@ -239,10 +239,8 @@ var Reader = (function (r) {
 				i = 0,
 				item;
 		while ((item = spine[i++])) {
-			if (item.linear) {
-				wordCount += item.wordCount;
-				imageCount += item.imageCount;
-			}
+			wordCount += item.wordCount;
+			imageCount += item.imageCount;
 		}
 		book.totalWordCount = wordCount;
 		book.totalImageCount = imageCount;
@@ -289,8 +287,8 @@ var Reader = (function (r) {
 
 	function addLabelAndProgressToSpine(book) {
 		var spine = book.spine,
-				totalWordCount = book.totalWordCount,
-				currentWordCount = 0,
+				totalCount = book.getTotalWordCount(),
+				currentCount = 0,
 				i,
 				spineItem,
 				tocItem;
@@ -302,24 +300,25 @@ var Reader = (function (r) {
 			}
 			// Add +1 to the current word count of the previous chapters
 			// to identify the progress for the first word of the chapter:
-			spineItem.progress = (currentWordCount + 1) / totalWordCount * 100;
-			currentWordCount += spineItem.linear ? spineItem.wordCount : 0;
+			spineItem.progress = (currentCount + 1) / totalCount * 100;
+			currentCount += book.getWordCount(spineItem);
 		}
 	}
 
 	function initializeBookData(args) {
-		$.extend(r.Book, args);
-		calculateTotals(r.Book);
-		addLabelAndProgressToSpine(r.Book);
-		r.Navigation.setNumberOfChapters(r.Book.spine.length);
-		return r.Book;
+		var book = r.Book;
+		$.extend(book, args);
+		calculateTotals(book);
+		addLabelAndProgressToSpine(book);
+		r.Navigation.setNumberOfChapters(book.spine.length);
+		return book;
 	}
 
 	r.Book = {
 		// Method to load the book information.
 		// Uses the given arguments and loads any missing data:
 		load: function (args) {
-			r.Book.reset();
+			this.reset();
 			if (!args.spine) {
 				return loadBookData(args).then(initializeBookData);
 			}
@@ -327,11 +326,19 @@ var Reader = (function (r) {
 		},
 		// Method to reset the module to default values:
 		reset: function () {
-			$.extend(r.Book, defaultData);
+			$.extend(this, defaultData);
 		},
 		// Method to retrieve the associated TOC item for a given href and optional currentPage:
 		getTOCItem: function (href, currentPage) {
-			return parseTOCItem({children: r.Book.toc}, href, currentPage);
+			return parseTOCItem({children: this.toc}, href, currentPage);
+		},
+		// Method to retrieve the total word count of a book (takes image count into account):
+		getTotalWordCount: function () {
+			return this.totalWordCount + this.totalImageCount * r.preferences.imageWordCount.value;
+		},
+		// Method to retrieve the word count of a chapter (takes image count into account):
+		getWordCount: function (spineItem) {
+			return spineItem.wordCount + spineItem.imageCount * r.preferences.imageWordCount.value;
 		},
 		loadFile: loadFile
 	};
