@@ -31,7 +31,7 @@ var Page = function(){
 			window = handle;
 			return browser.wait(function() {
 				return status.isPresent();
-			}, 2000);
+			}, 60000);
 		});
 	};
 
@@ -44,7 +44,7 @@ var Page = function(){
 
 				browser.wait(function() {
 					return status.isPresent();
-				}, 2000);
+				}, 60000);
 
 				return status.getText().then(function(e){
 					return JSON.parse(e);
@@ -62,7 +62,7 @@ var Page = function(){
 
 				browser.wait(function() {
 					return status.isPresent();
-				}, 2000);
+				}, 60000);
 
 				return status.getText().then(function(e){
 					return JSON.parse(e);
@@ -119,7 +119,7 @@ var Page = function(){
 		}).then(function(){
 				return browser.wait(function() {
 					return status.isPresent();
-				}, 2000);
+				}, 60000);
 			});
 	};
 
