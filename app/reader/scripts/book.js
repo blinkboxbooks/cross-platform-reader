@@ -231,7 +231,7 @@ var Reader = (function (r) {
 		return defer.promise().then(parseChapters);
 	}
 
-	// Method to count the total for the given spine item property:
+	// Function to count the total for the given spine item property:
 	function countTotal(spine, prop) {
 		var count = 0,
 				i = 0,
@@ -242,6 +242,8 @@ var Reader = (function (r) {
 		return count;
 	}
 
+	// Function to retrieve the associated TOC item for a given href and optional currentPage.
+	// The search starts from the given TOC item to simplify recursion:
 	function parseTOCItem(item, href, currentPage) {
 		var children = item.children,
 			result,
@@ -308,7 +310,8 @@ var Reader = (function (r) {
 	}
 
 	r.Book = {
-		// <a name="load"></a> Loads a book's information.
+		// Method to load the book information.
+		// Uses the given arguments and loads any missing data:
 		load: function (args) {
 			r.Book.reset();
 			if (!args.spine) {
@@ -316,10 +319,11 @@ var Reader = (function (r) {
 			}
 			return $.Deferred().resolve(initializeBookData(args)).promise();
 		},
-		// <a name="reset"></a> Resets the module to default values.
+		// Method to reset the module to default values:
 		reset: function () {
 			$.extend(r.Book, defaultData);
 		},
+		// Method to retrieve the associated TOC item for a given href and optional currentPage:
 		getTOCItem: function (href, currentPage) {
 			return parseTOCItem({children: r.Book.toc}, href, currentPage);
 		},
