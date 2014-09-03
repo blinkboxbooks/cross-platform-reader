@@ -11,7 +11,8 @@ var Reader = (function (r) {
 		author: '',
 		contentPathPrefix: '',
 		$opf: null,
-		totalWordCount: 0
+		totalWordCount: 0,
+		totalImageCount: 0
 	};
 
 	function getManifestItem($opf, id) {
@@ -230,13 +231,15 @@ var Reader = (function (r) {
 		return defer.promise().then(parseChapters);
 	}
 
-	function getTotalWordCount(spine) {
-		var totalWordCount = 0,
-				i;
-		for (i = 0; i < spine.length; i++) {
-			totalWordCount += spine[i].linear ? spine[i].wordCount : 0;
+	// Method to count the total for the given spine item property:
+	function countTotal(spine, prop) {
+		var count = 0,
+				i = 0,
+				item;
+		while ((item = spine[i++])) {
+			count += item.linear ? item[prop] : 0;
 		}
-		return totalWordCount;
+		return count;
 	}
 
 	function parseTOCItem(item, href, currentPage) {
@@ -297,7 +300,8 @@ var Reader = (function (r) {
 
 	function initializeBookData(args) {
 		$.extend(r.Book, args);
-		r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
+		r.Book.totalWordCount = countTotal(r.Book.spine, 'wordCount');
+		r.Book.totalImageCount = countTotal(r.Book.spine, 'imageCount');
 		addLabelAndProgressToSpine(r.Book.spine);
 		r.Navigation.setNumberOfChapters(r.Book.spine.length);
 		return r.Book;
