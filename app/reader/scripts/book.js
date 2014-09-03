@@ -231,15 +231,21 @@ var Reader = (function (r) {
 		return defer.promise().then(parseChapters);
 	}
 
-	// Function to count the total for the given spine item property:
-	function countTotal(spine, prop) {
-		var count = 0,
+	// Function to count the total word- and image- count for the given book data:
+	function calculateTotals(book) {
+		var spine = book.spine,
+				wordCount = 0,
+				imageCount = 0,
 				i = 0,
 				item;
 		while ((item = spine[i++])) {
-			count += item.linear ? item[prop] : 0;
+			if (item.linear) {
+				wordCount += item.wordCount;
+				imageCount += item.imageCount;
+			}
 		}
-		return count;
+		book.totalWordCount = wordCount;
+		book.totalImageCount = imageCount;
 	}
 
 	// Function to retrieve the associated TOC item for a given href and optional currentPage.
@@ -281,15 +287,16 @@ var Reader = (function (r) {
 		return result;
 	}
 
-	function addLabelAndProgressToSpine(spine) {
-		var totalWordCount = r.Book.totalWordCount,
+	function addLabelAndProgressToSpine(book) {
+		var spine = book.spine,
+				totalWordCount = book.totalWordCount,
 				currentWordCount = 0,
 				i,
 				spineItem,
 				tocItem;
 		for (i = 0; i < spine.length; i++) {
 			spineItem = spine[i];
-			tocItem = r.Book.getTOCItem(spineItem.href);
+			tocItem = book.getTOCItem(spineItem.href);
 			if (tocItem) {
 				spineItem.label = tocItem.label;
 			}
@@ -302,9 +309,8 @@ var Reader = (function (r) {
 
 	function initializeBookData(args) {
 		$.extend(r.Book, args);
-		r.Book.totalWordCount = countTotal(r.Book.spine, 'wordCount');
-		r.Book.totalImageCount = countTotal(r.Book.spine, 'imageCount');
-		addLabelAndProgressToSpine(r.Book.spine);
+		calculateTotals(r.Book);
+		addLabelAndProgressToSpine(r.Book);
 		r.Navigation.setNumberOfChapters(r.Book.spine.length);
 		return r.Book;
 	}
