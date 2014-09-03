@@ -162,7 +162,7 @@ var Page = function(){
 				return status();
 			});
 		});
-	};
+	}.bind(this);
 
 	this.setFontSize = function(value){
 		return _input(fontSize, value);
