@@ -50,6 +50,12 @@ var Reader = (function (r) {
 		publisherStyles: {
 			value: true
 		},
+		imageWordCount: {
+			min: 1,
+			max: 1000,
+			value: 100,
+			clear: restrictBounds
+		},
 		maxParallelRequests: {
 			min: 1,
 			max: 10,

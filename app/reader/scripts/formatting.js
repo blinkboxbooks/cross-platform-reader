@@ -150,12 +150,6 @@ var Reader = (function (r) {
 				pref = r.preferences[prop];
 				value = args[prop];
 				switch (prop) {
-					case 'maxParallelRequests':
-					case 'maxChapterElements':
-					case 'preloadRange':
-					case 'transitionDuration':
-						pref.value = pref.clear(value);
-						break;
 					case 'lineHeight':
 					case 'fontSize':
 					case 'textAlign':
@@ -191,6 +185,8 @@ var Reader = (function (r) {
 							updated = true;
 						}
 						break;
+					default:
+						pref.value = pref.clear(value);
 				}
 			}
 		}
