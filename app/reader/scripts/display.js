@@ -76,10 +76,9 @@ var Reader = (function (r) {
 		_setBugsense();
 
 		// Start the party:
-		return r.Book.load({
-			initCFI: param.initCFI,
-			initURL: param.initURL
-		}).then(initializeBook);
+		return r.Book.load(param.book).then(function (book) {
+			return initializeBook(book, param);
+		});
 	};
 
 	function _getTransitionEndProperty() {
@@ -301,9 +300,9 @@ var Reader = (function (r) {
 		});
 	}
 
-	function initializeBook(book) {
+	function initializeBook(book, param) {
 		// Use startCFI if initCFI is not already set:
-		var initCFI = book.initCFI || book.startCfi;
+		var initCFI = param.initCFI || book.startCfi;
 		var chapter = r.CFI.getChapterFromCFI(initCFI),
 				promise;
 		// Validate initCFI (chapter exists):
@@ -314,7 +313,7 @@ var Reader = (function (r) {
 		if (initCFI) {
 			promise = r.loadChapter(chapter, initCFI);
 		} else {
-			promise = book.initURL ? r.Navigation.loadChapter(book.initURL) : r.loadChapter(0);
+			promise = param.initURL ? r.Navigation.loadChapter(param.initURL) : r.loadChapter(0);
 		}
 		return promise;
 	}

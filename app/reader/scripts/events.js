@@ -151,8 +151,7 @@ var Reader = (function (r) {
 				}
 			};
 			if (call === 'init') {
-				data.spine = Reader.Book.spine;
-				data.toc = Reader.Book.toc;
+				data.book = r.Book.getData();
 			}
 			return _check_page_pos($.extend({}, r.Event.STATUS, data));
 		}

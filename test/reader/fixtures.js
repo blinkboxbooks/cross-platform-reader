@@ -1889,9 +1889,7 @@ var fixtures = {
 fixtures.BOOK.DATA.title = fixtures.BOOK.DATA_RAW.title;
 fixtures.BOOK.DATA.spine = fixtures.BOOK.DATA_RAW.spine;
 fixtures.BOOK.DATA.toc = fixtures.BOOK.DATA_RAW.toc;
-fixtures.BOOK.DATA.$opf = $(fixtures.BOOK.DATA.opf).filter('package');
 
 fixtures.BOOK_2.DATA.title = fixtures.BOOK_2.DATA_RAW.title;
 fixtures.BOOK_2.DATA.spine = fixtures.BOOK_2.DATA_RAW.spine;
 fixtures.BOOK_2.DATA.toc = fixtures.BOOK_2.DATA_RAW.toc;
-fixtures.BOOK_2.DATA.$opf = $(fixtures.BOOK_2.DATA.opf).filter('package');

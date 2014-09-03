@@ -5,21 +5,27 @@
 var Reader = (function (r) {
 
 	var defaultData = {
+		// This version number identifies the data format:
+		version: '2.0.0',
 		spine: [],
 		toc: [],
 		title: '',
 		author: '',
+		opfPath: '',
 		contentPathPrefix: '',
 		$opf: null,
 		totalWordCount: 0,
-		totalImageCount: 0
+		totalImageCount: 0,
+		sample: false
 	};
 
+	// Retrieves the item with the given id from the OPF manifest:
 	function getManifestItem($opf, id) {
 		// Searching via #id might fail with invalid id properties, so we use an attribute selector instead:
 		return $opf.find('manifest item[id="' + id + '"]');
 	}
 
+	// Calculates the path prefix for book resources:
 	function getPathPrefix(opfPath, $opf) {
 		var pathPrefix = opfPath.split('/').slice(0, -1).join('/'),
 			spineItemId,
@@ -59,6 +65,7 @@ var Reader = (function (r) {
 		});
 	}
 
+	// Retrieves the TOC from a given navMap entry point (recursive function):
 	function getTOCFromNavMap(navMap, pathPrefix) {
 		return $.map(navMap.children('navPoint'), function (navPoint) {
 			var $navPoint = $(navPoint),
@@ -89,46 +96,63 @@ var Reader = (function (r) {
 		return defer.promise();
 	}
 
+	// Retrieve the opfPath from the root file:
+	function loadOpfPath(data) {
+		return loadFile(r.ROOTFILE_INFO, 'xml').then(function rootFileLoaded(rootDoc) {
+			data.opfPath = $(rootDoc).find('rootfile').attr('full-path');
+			return data;
+		});
+	}
+
+	// Load opfFile and store $opf and contentPathPrefix in the given data object:
+	function loadOpfData(data) {
+		if (data.opf) {
+			// OPF data is provided via XML string
+			data.$opf = $(data.opf).filter('package');
+			return $.Deferred().resolve(data).promise();
+		}
+		return loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
+			data.$opf = $(opfDoc).filter('package');
+			data.contentPathPrefix = getPathPrefix(data.opfPath, data.$opf);
+			return data;
+		});
+	}
+
+	// Function to load the TOC data from the EPUB2 NCX (TOC) file.
+	function loadTOCData(data) {
+		var tocId = data.$opf.find('spine').attr('toc'),
+				ncxHref = getManifestItem(data.$opf, tocId).attr('href');
+		// The ncx file is part of EPUB v2.
+		// To retrieve the Url of an EPUB v3 TOC document:
+		// navHref = $opf.find('manifest item[properties="nav"]').attr('href'),
+		return loadFile(data.contentPathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
+			data.toc = getTOCFromNavMap($(ncxDoc).find('navMap'), data.contentPathPrefix);
+			return data;
+		});
+	}
+
 	// Load book meta data if book-info.json is not available:
 	function loadBookMetaData(args) {
-		var defer = $.Deferred();
-		loadFile(r.ROOTFILE_INFO, 'xml').then(function rootFileLoaded(rootDoc) {
-			var opfPath = $(rootDoc).find('rootfile').attr('full-path');
-			loadFile(opfPath).then(function opfFileLoaded(opfDoc) {
-				var $opf = $(opfDoc),
-					pathPrefix = getPathPrefix(opfPath, $opf),
-					tocId = $opf.find('spine').attr('toc'),
-				// Url of EPUB v3 TOC document:
-				//navHref = $opf.find('manifest item[properties="nav"]').attr('href'),
-				// Url of EPUB v2 TOC document:
-					ncxHref = getManifestItem($opf, tocId).attr('href');
-				loadFile(pathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
-					defer.resolve($.extend(args, {
-						title: getTitleFromOPF($opf),
-						author: getAuthorFromOPF($opf),
-						spine: getSpineFromOPF($opf, pathPrefix),
-						toc: getTOCFromNavMap($(ncxDoc).find('navMap'), pathPrefix),
-						contentPathPrefix: getPathPrefix(opfPath, $opf),
-						$opf: $opf.filter('package')
-					}));
-				}, defer.reject);
-			}, defer.reject);
-		}, defer.reject);
-		return defer.promise();
+		return loadOpfPath({})
+			.then(loadOpfData)
+			.then(loadTOCData)
+			.then(function (data) {
+				var $opf = data.$opf;
+				return $.extend(data, {
+					title: getTitleFromOPF($opf),
+					author: getAuthorFromOPF($opf),
+					spine: getSpineFromOPF($opf, data.contentPathPrefix)
+				}, args);
+			});
 	}
 
 	// Load book meta data from book-info.json:
 	function loadBookInfo(args) {
-		var defer = $.Deferred();
-		loadFile(r.INF, 'json').then(function bookInfoLoaded(data) {
-			loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
-				var $opf = $(opfDoc);
-				data.contentPathPrefix = getPathPrefix(data.opfPath, $opf);
-				data.$opf = $opf.filter('package');
-				defer.resolve($.extend(args, data));
-			}, defer.reject);
-		}, defer.reject);
-		return defer.promise();
+		return loadFile(r.INF, 'json')
+			.then(loadOpfData)
+			.then(function (data) {
+				return $.extend(data, args);
+			});
 	}
 
 	// Count the number of words in the given HTML string:
@@ -217,18 +241,27 @@ var Reader = (function (r) {
 	// Wrapper function to load book meta data from book-info.json or EPUB meta files:
 	function loadBookData(args) {
 		var defer = $.Deferred();
-		loadBookInfo(args).then(
-			// book-info.json is available:
-			defer.resolve,
-			// book-info.json not available:
-			function () {
-				loadBookMetaData(args)
-					.then(defer.resolve, defer.reject);
-			}
-		);
-		// notify client that info promise has been processed
+		// Notify the client that loading has been started:
 		defer.notify();
-		return defer.promise().then(parseChapters);
+		if (args.spine) {
+			// Book data is provided via arguments, so we only load the opfData:
+			loadOpfData($.extend({}, args))
+				.then(defer.resolve, defer.reject);
+			return defer.promise();
+		} else {
+			// Try loading book-info.json:
+			loadBookInfo(args).then(
+				defer.resolve,
+				function () {
+					// book-info.json not available, load meta data manually:
+					loadBookMetaData(args)
+						.then(defer.resolve, defer.reject);
+				}
+			);
+			// If the Book data is not provided via arguments,
+			// parse the chapters for the word/image count:
+			return defer.promise().then(parseChapters);
+		}
 	}
 
 	// Function to count the total word- and image- count for the given book data:
@@ -285,6 +318,7 @@ var Reader = (function (r) {
 		return result;
 	}
 
+	// Adds labels from TOC and progress information to the spine:
 	function addLabelAndProgressToSpine(book) {
 		var spine = book.spine,
 				totalCount = book.getTotalWordCount(),
@@ -305,9 +339,10 @@ var Reader = (function (r) {
 		}
 	}
 
-	function initializeBookData(args) {
+	// Initialize the book with the given data:
+	function initializeBookData(data) {
 		var book = r.Book;
-		$.extend(book, args);
+		$.extend(book, data);
 		calculateTotals(book);
 		addLabelAndProgressToSpine(book);
 		r.Navigation.setNumberOfChapters(book.spine.length);
@@ -315,32 +350,43 @@ var Reader = (function (r) {
 	}
 
 	r.Book = {
-		// Method to load the book information.
+		// Method to load a file from the book resources:
+		loadFile: loadFile,
+		// Load the book information.
 		// Uses the given arguments and loads any missing data:
 		load: function (args) {
 			this.reset();
-			if (!args.spine) {
-				return loadBookData(args).then(initializeBookData);
-			}
-			return $.Deferred().resolve(initializeBookData(args)).promise();
+			return loadBookData(args || {}).then(initializeBookData);
 		},
-		// Method to reset the module to default values:
+		// Reset the module to default values:
 		reset: function () {
 			$.extend(this, defaultData);
 		},
-		// Method to retrieve the associated TOC item for a given href and optional currentPage:
+		// Retrieve the associated TOC item for a given href and optional currentPage:
 		getTOCItem: function (href, currentPage) {
 			return parseTOCItem({children: this.toc}, href, currentPage);
 		},
-		// Method to retrieve the total word count of a book (takes image count into account):
+		// Retrieve the total word count of a book (takes image count into account):
 		getTotalWordCount: function () {
 			return this.totalWordCount + this.totalImageCount * r.preferences.imageWordCount.value;
 		},
-		// Method to retrieve the word count of a chapter (takes image count into account):
+		// Retrieve the word count of a chapter (takes image count into account):
 		getWordCount: function (spineItem) {
 			return spineItem.wordCount + spineItem.imageCount * r.preferences.imageWordCount.value;
 		},
-		loadFile: loadFile
+		// Export the book data that can be converted to JSON:
+		getData: function () {
+			var data = {},
+					prop,
+					value;
+			for (prop in this) {
+				value = this[prop];
+				if (this.hasOwnProperty(prop) && typeof value !== 'function' && !(value instanceof $)) {
+					data[prop] = value;
+				}
+			}
+			return data;
+		}
 	};
 
 	// Initialize the Reader with default (empty) book data:
