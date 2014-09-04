@@ -33,6 +33,11 @@ var Reader = (function (r) {
 	};
 
 	// <a name="setImageWordCount"></a> Set image word count.
+	r.setLoadProgressData = function(value){
+		return r.setPreferences({loadProgressData: value});
+	};
+
+	// <a name="setImageWordCount"></a> Set image word count.
 	r.setImageWordCount = function(value){
 		return r.setPreferences({imageWordCount: value});
 	};

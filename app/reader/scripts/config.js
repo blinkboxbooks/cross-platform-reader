@@ -50,6 +50,12 @@ var Reader = (function (r) {
 		publisherStyles: {
 			value: true
 		},
+		loadProgressData: {
+			min: 0,
+			max: 2,
+			value: 2, // 0 -> disabled, 1 -> load progress on book load, 2 -> load progress after initial chapter load
+			clear: restrictBounds
+		},
 		imageWordCount: {
 			min: 1,
 			max: 1000,

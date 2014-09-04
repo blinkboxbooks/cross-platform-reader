@@ -258,9 +258,15 @@ var Reader = (function (r) {
 						.then(defer.resolve, defer.reject);
 				}
 			);
-			// If the Book data is not provided via arguments,
-			// parse the chapters for the word/image count:
-			return defer.promise().then(parseChapters);
+			// Book data is not provided via arguments
+			return defer.promise().then(function (data) {
+				// loadProgressData === 1 -> load progress data on Book load
+				if (r.preferences.loadProgressData.value === 1) {
+					// Parse the chapters for the word/image count:
+					return parseChapters(data);
+				}
+				return data;
+			});
 		}
 	}
 
@@ -323,14 +329,15 @@ var Reader = (function (r) {
 		var spine = book.spine,
 				totalCount = book.getTotalWordCount(),
 				currentCount = 0,
-				i,
+				i = 0,
 				spineItem,
 				tocItem;
-		for (i = 0; i < spine.length; i++) {
-			spineItem = spine[i];
-			tocItem = book.getTOCItem(spineItem.href);
-			if (tocItem) {
-				spineItem.label = tocItem.label;
+		while ((spineItem = spine[i++])) {
+			if (spineItem.label === undefined) {
+				tocItem = book.getTOCItem(spineItem.href);
+				if (tocItem) {
+					spineItem.label = tocItem.label;
+				}
 			}
 			// Add +1 to the current word count of the previous chapters
 			// to identify the progress for the first word of the chapter:
@@ -358,6 +365,10 @@ var Reader = (function (r) {
 			this.reset();
 			return loadBookData(args || {}).then(initializeBookData);
 		},
+		// Load the spine progress data (word- and image count):
+		loadProgressData: function () {
+			return parseChapters(this).then(initializeBookData);
+		},
 		// Reset the module to default values:
 		reset: function () {
 			$.extend(this, defaultData);
@@ -368,11 +379,11 @@ var Reader = (function (r) {
 		},
 		// Retrieve the total word count of a book (takes image count into account):
 		getTotalWordCount: function () {
-			return this.totalWordCount + this.totalImageCount * r.preferences.imageWordCount.value;
+			return this.totalWordCount + (this.totalImageCount || 0) * r.preferences.imageWordCount.value;
 		},
 		// Retrieve the word count of a chapter (takes image count into account):
 		getWordCount: function (spineItem) {
-			return spineItem.wordCount + spineItem.imageCount * r.preferences.imageWordCount.value;
+			return spineItem.wordCount + (spineItem.imageCount || 0) * r.preferences.imageWordCount.value;
 		},
 		// Export the book data that can be converted to JSON:
 		getData: function () {

@@ -315,6 +315,14 @@ var Reader = (function (r) {
 		} else {
 			promise = param.initURL ? r.Navigation.loadChapter(param.initURL) : r.loadChapter(0);
 		}
+		if (r.preferences.loadProgressData.value === 2) {
+			// Load the spine progress data after loading the initial chapter:
+			promise.then(function () {
+				r.Book.loadProgressData().then(function () {
+					r.Notify.event($.extend({}, Reader.Event.getStatus('progressLoad'), {call: 'progressLoad'}));
+				});
+			});
+		}
 		return promise;
 	}
 
