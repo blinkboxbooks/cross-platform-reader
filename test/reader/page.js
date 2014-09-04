@@ -35,17 +35,15 @@ var Page = function(){
 	};
 
 	this.next = function(){
-		console.log('next');
 		var status = this.status;
 		return nextButton.isEnabled().then(function(isEnabled){
 			if(isEnabled){
-				console.log('next click');
 				return nextButton.click().then(function(){
 					return status();
 				});
 			}
 			// button is not clickable, cannot go next, reject
-			return protractor.promise.rejected('next not enabled');
+			return protractor.promise.rejected();
 		});
 	};
 
@@ -63,7 +61,6 @@ var Page = function(){
 	};
 
 	this.status = function(){
-		console.log('status');
 		return browser.wait(function() {
 			return status.isPresent();
 		}, 60000).then(function(){
@@ -132,20 +129,11 @@ var Page = function(){
 			if(protractor.promise.isPromise(promise)){
 				promise.then(function(){
 					// the action will be rejected if the action cannot be completed (exp calling next on the last page)
-					_action().then(_loop, function(e){
-						console.log(e);
-						_defer.fulfill(e);
-					});
-				}, function(e){
-					console.log(e);
-					_defer.fulfill(e);
-				});
+					_action().then(_loop, _defer.fulfill);
+				}, _defer.fulfill);
 			} else {
 				// the action will be rejected if the action cannot be completed (exp calling next on the last page)
-				_action().then(_loop, function(e){
-					console.log(e);
-					_defer.fulfill(e);
-				});
+				_action().then(_loop, _defer.fulfill);
 			}
 		};
 
