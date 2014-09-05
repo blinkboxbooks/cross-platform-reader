@@ -319,6 +319,7 @@ var Reader = (function (r) {
 			// Load the spine progress data after loading the initial chapter:
 			promise.then(function () {
 				r.Book.loadProgressData().then(function () {
+					r.Navigation.updateProgress();
 					r.Notify.event($.extend({}, Reader.Event.getStatus('progressLoad'), {call: 'progressLoad'}));
 				});
 			});
