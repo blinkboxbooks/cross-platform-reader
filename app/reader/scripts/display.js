@@ -290,14 +290,12 @@ var Reader = (function (r) {
 	// Load a chapter with the index from the spine of this chapter
 	r.loadChapter = function(chapterNumber, page) {
 		var defer = $.Deferred(),
-			chapterUrl;
+				chapterUrl = r.Book.spine[chapterNumber].href;
 
-		// Check if the PATH is in the href value from the spine...
-		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.contentPathPrefix) !== -1)) {
-			chapterUrl = r.Book.spine[chapterNumber].href;
-		} else {
-			// If it is not, add it and load the chapter
-			chapterUrl = r.Book.contentPathPrefix + r.Book.spine[chapterNumber].href;
+		// TODO: Find out if this is still required, as spine item links should already include the contentPathPrefix
+		// Check if the url includes the contentPathPrefix, if not, add it:
+		if (chapterUrl.indexOf(r.Book.contentPathPrefix) !== 0) {
+			chapterUrl = r.Book.contentPathPrefix + chapterUrl;
 		}
 
 		r.Epub.setUp(chapterNumber, r.Book.$opf);
@@ -306,6 +304,7 @@ var Reader = (function (r) {
 
 		// success handler for load chapter
 		function loadChapterSuccess(data){
+			// The url param is required for the chapter divide:
 			displayContent({content: data, page: page, url: chapterUrl}).then(function(){
 
 				r.Navigation.setNumberOfPages();
