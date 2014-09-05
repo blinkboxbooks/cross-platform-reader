@@ -224,6 +224,7 @@ var Reader = (function (r) {
 				if (spineItem.wordCount === undefined) {
 					spineItem.wordCount = countWords(result);
 				}
+				spineItem.active = true;
 			})
 			.fail(function () {
 				// Given file is not available in the EPUB:
@@ -278,8 +279,11 @@ var Reader = (function (r) {
 				i = 0,
 				item;
 		while ((item = spine[i++])) {
-			wordCount += item.wordCount;
-			imageCount += item.imageCount;
+			// Check if the spine item is available (explicit type check as the active property might be undefined):
+			if (item.active !== false) {
+				wordCount += item.wordCount;
+				imageCount += item.imageCount;
+			}
 		}
 		book.totalWordCount = wordCount;
 		book.totalImageCount = imageCount;
@@ -339,10 +343,13 @@ var Reader = (function (r) {
 					spineItem.label = tocItem.label;
 				}
 			}
-			// Add +1 to the current word count of the previous chapters
-			// to identify the progress for the first word of the chapter:
-			spineItem.progress = (currentCount + 1) / totalCount * 100;
-			currentCount += book.getWordCount(spineItem);
+			// Check if the spine item is available (explicit type check as the active property might be undefined):
+			if (spineItem.active !== false) {
+				// Add +1 to the current word count of the previous chapters
+				// to identify the progress for the first word of the chapter:
+				spineItem.progress = (currentCount + 1) / totalCount * 100;
+				currentCount += book.getWordCount(spineItem);
+			}
 		}
 	}
 
