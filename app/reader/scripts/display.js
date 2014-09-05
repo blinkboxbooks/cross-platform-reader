@@ -146,7 +146,8 @@ var Reader = (function (r) {
 	// Capture all the links in the reader
 	function _clickHandler(e) {
 		/*jshint validthis:true */
-		var url = this.getAttribute('href'),
+		// Retrieve the encoded relative version of the url:
+		var url = this.href.split('/').slice(-this.getAttribute('href').split('/').length).join('/'),
 				type = this.getAttribute('data-link-type');
 		e.preventDefault();
 		e.stopPropagation();
