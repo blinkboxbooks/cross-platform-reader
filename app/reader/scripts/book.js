@@ -384,6 +384,19 @@ var Reader = (function (r) {
 		getTOCItem: function (href, currentPage) {
 			return parseTOCItem({children: this.toc}, href, currentPage);
 		},
+		// Get the spine index for the given URL:
+		getSpineIndex: function (url) {
+			var spine = this.spine,
+					i = 0,
+					item;
+			while ((item = spine[i])) {
+				if (item.active !== false && item.href.indexOf(url.split('#')[0]) === 0) {
+					return i;
+				}
+				i++;
+			}
+			return -1;
+		},
 		// Retrieve the total word count of a book (takes image count into account):
 		getTotalWordCount: function () {
 			return this.totalWordCount + (this.totalImageCount || 0) * r.preferences.imageWordCount.value;

@@ -220,27 +220,24 @@ var Reader = (function (r) {
 		getChapterDocName: function() {
 			return Chapter.getDocName();
 		},
-		loadChapter: function(url){
-			/* TODO refactor with checkURL has they share code */
-			var u = url.split('#')[0];
-			var a = url.split('#')[1];
-			if(u.indexOf('/') !== -1) {
-				// Take only the file name from the URL.
-				u = u.substr(u.lastIndexOf('/') + 1);
+		loadChapter: function (anchorUrl) {
+			var spine = r.Book.spine,
+					urlParts = anchorUrl.split('#'),
+					url = urlParts[0],
+					anchor = urlParts[1],
+					index;
+			if (anchor && (!url || spine[chapter].href.indexOf(url) === 0) &&
+				!r.Navigation.isChapterPartAnchor(anchor)) {
+				// URL points to current chapter (and chapter part)
+				return r.Navigation.loadPage(anchor);
 			}
-			// Check the spine
-			for (var j=0; j<r.Book.spine.length;j++) {
-				// URL is in the Spine and it has a chapter number.
-				if (r.Book.spine[j].href.indexOf(u) !== -1) {
-					r.Navigation.setChapter(j);
-					return r.loadChapter(j,a);
-				}
+			index = r.Book.getSpineIndex(url);
+			if (index !== -1) {
+				return r.loadChapter(index, anchor);
 			}
-
-			// Chapter does not exist
-			var defer = $.Deferred();
-			defer.reject($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Specified chapter does not exist.', call: 'loadChapter'}));
-			return defer.promise();
+			return $.Deferred().reject(
+					$.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Specified chapter does not exist.', call: 'loadChapter', href: anchorUrl})
+			).promise();
 		},
 		next: function() {
 			if (page < pagesByChapter - 1) {

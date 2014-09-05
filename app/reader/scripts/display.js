@@ -143,77 +143,36 @@ var Reader = (function (r) {
 		}
 	}
 
-	// Check and load an URL if it is in the spine or the TOC.
-	function _checkURL(url) {
-		var findURL = false;
-		// The URL.
-		var u = url[0];
-		// The anchor.
-		var a = url[1];
-		// Link is in the actual chapter.
-		var chapter = r.Navigation.getChapter();
-		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			// If the anchor points to another chapter part, reload the chapter,
-			// else simply go to the page with the given anchor:
-			if (!r.Navigation.isChapterPartAnchor(a)) {
-				r.Navigation.loadPage(a);
-				return true;
-			}
-		}
-		// Check the table of contents...
-		for (var i=0; i<r.Book.toc.length; i++) {
-			if (r.Book.toc[i].href.indexOf(u) !== -1 && r.Book.toc[i].active === true) { findURL = true; }
-		}
-
-		var _load = function(j,a){
-			r.Notify.event(r.Event.LOADING_STARTED);
-			r.loadChapter(j,a).always(function clickLoadComplete(){
-				r.Notify.event(r.Event.LOADING_COMPLETE);
-			}).then(
-				function clickLoadSuccess(){
-					r.Notify.event($.extend({}, Reader.Event.getStatus(), {call: 'clickLoad'}));
-				},
-				function clickLoadError(err){
-					r.Notify.error(err);
-				}
-			);
-		};
-
-		// Check the spine...
-		for (var j=0; j<r.Book.spine.length;j++) {
-			// URL is in the Spine and it has a chapter number...
-			if (r.Book.spine[j].href.indexOf(u) !== -1) {
-				r.Navigation.setChapter(j);
-				r.Navigation.setPage(0);
-
-				// since this is a user generated even, we must handle callbacks here
-				_load(j,a);
-				return true;
-			}
-		}
-		return findURL;
-	}
-
 	// Capture all the links in the reader
 	function _clickHandler(e) {
 		/*jshint validthis:true */
+		var url = this.getAttribute('href'),
+				type = this.getAttribute('data-link-type');
 		e.preventDefault();
-		if (this.getAttribute('data-link-type') === 'external') {
-			// External link, notify client about it
-			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
-		} else if (this.getAttribute('data-link-type') === 'internal') {
-			// Internal link, notify client about it
-			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
-			// Internal link
-			// Reduce the URL to the name file (remove anchors ids)
-			var url = this.getAttribute('href').split('#');
-			// Check if the link exists in the spine and ask the user
-			if (!_checkURL(url)) {
-				r.Notify.event($.extend({}, Reader.Event.CONTENT_NOT_AVAILABLE, {call: 'userClick'}));
-			}
+		e.stopPropagation();
+		if (type === 'external') {
+			// External link, notify client about it:
+			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href: url}));
+		} else if (type === 'internal') {
+			// Internal link, notify client about it:
+			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href: url}));
+			// Load the given URL:
+			r.Notify.event(r.Event.LOADING_STARTED);
+			r.Navigation.loadChapter(url)
+				.always(function () {
+					r.Notify.event(r.Event.LOADING_COMPLETE);
+				})
+				.done(function () {
+					r.Notify.event($.extend({}, Reader.Event.getStatus(), {call: 'clickLoad', href: url}));
+				})
+				.fail(function (error) {
+					if (error && error.code === r.Event.ERR_INVALID_ARGUMENT.code) {
+						r.Notify.event($.extend({}, Reader.Event.CONTENT_NOT_AVAILABLE, {call: 'userClick', href: url}));
+					} else {
+						r.Notify.error(error);
+					}
+				});
 		}
-		// Stop event propagation
-		if (e.stopPropagation) { e.stopPropagation(); }
 	}
 
 	// Display HTML content
