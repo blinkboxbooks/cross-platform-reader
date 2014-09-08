@@ -22,39 +22,27 @@ var Reader = (function (r) {
 	// Retrieves the item with the given id from the OPF manifest:
 	function getManifestItem($opf, id) {
 		// Searching via #id might fail with invalid id properties, so we use an attribute selector instead:
-		return $opf.find('manifest item[id="' + id + '"]');
+		return $opf.children('manifest').children('item[id="' + id + '"]');
 	}
 
-	// Calculates the path prefix for book resources:
-	function getPathPrefix(opfPath, $opf) {
-		var pathPrefix = opfPath.split('/').slice(0, -1).join('/'),
-			spineItemId,
-			spineItemHref;
-		// If the path prefix is empty, set its value to the path of the first element in the spine:
-		if (!pathPrefix) {
-			spineItemId = $opf.find('spine itemref').attr('idref');
-			spineItemHref = getManifestItem($opf, spineItemId).attr('href');
-			// Check if the path has more then one component:
-			if (spineItemHref.indexOf('/') !== -1) {
-				pathPrefix = spineItemHref.split('/')[0];
-			}
-		}
-		// Add a trailing slash if we have a path prefix:
-		return pathPrefix && pathPrefix + '/';
-	}
-
+	// Retrieves the title from the OPF document:
+	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1
 	function getTitleFromOPF($opf) {
-		return $opf.find('dc\\:title').first().text();
+		return $opf.children('metadata').children('dc\\:title').first().text();
 	}
 
+	// Retrieves the author from the OPF document:
+	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2
 	function getAuthorFromOPF($opf) {
-		return $opf.find('dc\\:creator').first().text();
+		return $opf.children('metadata').children('dc\\:creator').first().text();
 	}
 
+	// Retrieves the spine data from the OPF document:
+	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
 	function getSpineFromOPF($opf, pathPrefix) {
-		return $.map($opf.find('spine itemref'), function (itemref) {
+		return $.map($opf.children('spine').children('itemref'), function (itemref) {
 			var id = itemref.getAttribute('idref'),
-				$item = getManifestItem($opf, id);
+					$item = getManifestItem($opf, id);
 			return {
 				itemId: id,
 				href: pathPrefix + $item.attr('href'),
@@ -72,11 +60,26 @@ var Reader = (function (r) {
 				data = {
 					// active: true, // false if HTML file is not available, e.g. in samples
 					href: pathPrefix + $navPoint.children('content').attr('src'),
-					itemId: navPoint.id,
-					label: $navPoint.children('navLabel').children('text').text(),
-					playOrder: $navPoint.attr('playOrder')
+					label: $navPoint.children('navLabel').children('text').text()
 				},
 				children = getTOCFromNavMap($navPoint, pathPrefix);
+			if (children.length) {
+				data.children = children;
+			}
+			return data;
+		});
+	}
+
+	// Retrieves the TOC from a given collection of list items (recursive function):
+	function getTOCFromNavList(navList, pathPrefix) {
+		return $.map(navList, function (listItem) {
+			var $listItem = $(listItem),
+				data = {
+					// active: true, // false if HTML file is not available, e.g. in samples
+					href: pathPrefix + $listItem.children('a').attr('href'),
+					label: $listItem.children('a,span').text()
+				},
+				children = getTOCFromNavList($listItem.children('ol').children('li'), pathPrefix);
 			if (children.length) {
 				data.children = children;
 			}
@@ -112,21 +115,31 @@ var Reader = (function (r) {
 			return $.Deferred().resolve(data).promise();
 		}
 		return loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
+			var pathPrefix = data.opfPath.split('/').slice(0, -1).join('/');
+			// Add a trailing slash if we have a path prefix:
+			data.contentPathPrefix = pathPrefix && pathPrefix + '/';
 			data.$opf = $(opfDoc).filter('package');
-			data.contentPathPrefix = getPathPrefix(data.opfPath, data.$opf);
 			return data;
 		});
 	}
 
-	// Function to load the TOC data from the EPUB2 NCX (TOC) file.
+	// Function to load the TOC data from the EPUB2 NCX file or the EPUB3 navigation document:
 	function loadTOCData(data) {
-		var tocId = data.$opf.find('spine').attr('toc'),
-				ncxHref = getManifestItem(data.$opf, tocId).attr('href');
-		// The ncx file is part of EPUB v2.
-		// To retrieve the Url of an EPUB v3 TOC document:
-		// navHref = $opf.find('manifest item[properties="nav"]').attr('href'),
-		return loadFile(data.contentPathPrefix + ncxHref, 'xml').then(function tocFileLoaded(ncxDoc) {
-			data.toc = getTOCFromNavMap($(ncxDoc).find('navMap'), data.contentPathPrefix);
+		var navHref = data.$opf.children('manifest').children('item[properties="nav"]').attr('href'),
+				ncxHref = !navHref && getManifestItem(data.$opf, data.$opf.children('spine').attr('toc')).attr('href');
+		if (navHref) {
+			// EPUB v3 navigation document:
+			// http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav
+			return loadFile(data.contentPathPrefix + navHref).then(function navDocLoaded(navDoc) {
+				var navList = $(navDoc).filter('nav[epub\\:type="toc"]').children('ol').children('li');
+				data.toc = getTOCFromNavList(navList, data.contentPathPrefix);
+				return data;
+			});
+		}
+		// EPUB2 NCX file:
+		// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
+		return loadFile(data.contentPathPrefix + ncxHref, 'xml').then(function ncxFileLoaded(ncxDoc) {
+			data.toc = getTOCFromNavMap($(ncxDoc).children('ncx').children('navMap'), data.contentPathPrefix);
 			return data;
 		});
 	}
