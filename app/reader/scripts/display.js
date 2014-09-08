@@ -292,12 +292,6 @@ var Reader = (function (r) {
 		var defer = $.Deferred(),
 				chapterUrl = r.Book.spine[chapterNumber].href;
 
-		// TODO: Find out if this is still required, as spine item links should already include the contentPathPrefix
-		// Check if the url includes the contentPathPrefix, if not, add it:
-		if (chapterUrl.indexOf(r.Book.contentPathPrefix) !== 0) {
-			chapterUrl = r.Book.contentPathPrefix + chapterUrl;
-		}
-
 		r.Epub.setUp(chapterNumber, r.Book.$opf);
 		r.Navigation.setChapter(chapterNumber);
 		r.setReaderOpacity(0);
