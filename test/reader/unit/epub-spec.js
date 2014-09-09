@@ -9,6 +9,7 @@ describe('Epub', function() {
 		expect(Epub.generateCFI).toBeFunction();
 		expect(Epub.getElementAt).toBeFunction();
 		expect(Epub.injectMarker).toBeFunction();
+		expect(Epub.generateRangeCFI).toBeFunction();
 	});
 
 });

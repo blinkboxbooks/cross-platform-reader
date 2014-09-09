@@ -104,6 +104,24 @@ var Reader = (function (r, Epub) {
 			return cfi;
 		};
 
+		// Generate CFI range for a DOM range element
+		prototype.generateRangeCFI = function(range){
+			var isOffset = range.startContainer.nodeType === 3 || range.endContainer.nodeType === 3, cfi;
+
+			if(isOffset){
+				cfi = EPUBcfi.generateCharOffsetRangeComponent(range.startContainer, range.startOffset, range.endContainer, range.endOffset, this.BLACKLIST);
+			} else {
+				cfi = EPUBcfi.generateElementRangeComponent(range.startContainer, range.endContainer, this.BLACKLIST);
+			}
+
+			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
+
+			cfi = this.normalizeChapterPartCFI(cfi);
+			cfi = this.removeContext(cfi);
+
+			return cfi;
+		};
+
 		// Injects a marker in the specified position
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
