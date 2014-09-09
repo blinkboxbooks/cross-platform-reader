@@ -53,6 +53,9 @@ angular.module('app', ['ngRoute'])
 				case 16: // cannot remove bookmark
 					$p.attr('data-test', 'error');
 					break;
+				case 20: // internal link clicked
+					$('[data-test="status"]').removeAttr('data-test');
+					break;
 			}
 			$('#log .panel-body').prepend($p);
 		}
@@ -167,6 +170,14 @@ angular.module('app', ['ngRoute'])
 				} else {
 					READER.setBookmark();
 				}
+			},
+			preferences: function(preferences){
+				$('[data-test="status"]').removeAttr('data-test');
+				READER.setPreferences(preferences);
+			},
+			layout: function(layout){
+				$('[data-test="status"]').removeAttr('data-test');
+				READER.resizeContainer(layout);
 			}
 		};
 
@@ -204,8 +215,8 @@ angular.module('app', ['ngRoute'])
 				// watch for new watches
 				if(!_isWatching){
 					promise.then(function(){
-						$scope.$watch('preferences', READER.setPreferences, true);
-						$scope.$watch('layout', READER.resizeContainer, true);
+						$scope.$watch('preferences', $scope.handlers.preferences, true);
+						$scope.$watch('layout', $scope.handlers.layout, true);
 					});
 					_isWatching = true;
 				}

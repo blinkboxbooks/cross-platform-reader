@@ -27,25 +27,19 @@ var Page = function(){
 		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0');
 
 		// wait at maximum 2 seconds for the reader to load the content (which means waiting for a status updated from the reader).
+		var status = this.status;
 		return browser.getWindowHandle().then(function(handle){
 			window = handle;
-			return browser.wait(function() {
-				return status.isPresent();
-			}, 2000);
+			return status();
 		});
 	};
 
 	this.next = function(){
+		var status = this.status;
 		return nextButton.isEnabled().then(function(isEnabled){
 			if(isEnabled){
-				nextButton.click();
-
-				browser.wait(function() {
-					return status.isPresent();
-				}, 2000);
-
-				return status.getText().then(function(e){
-					return JSON.parse(e);
+				return nextButton.click().then(function(){
+					return status();
 				});
 			}
 			// button is not clickable, cannot go next, reject
@@ -54,16 +48,11 @@ var Page = function(){
 	};
 
 	this.prev = function(){
+		var status = this.status;
 		return prevButton.isEnabled().then(function(isEnabled){
 			if(isEnabled){
-				prevButton.click();
-
-				browser.wait(function() {
-					return status.isPresent();
-				}, 2000);
-
-				return status.getText().then(function(e){
-					return JSON.parse(e);
+				return prevButton.click().then(function(){
+					return status();
 				});
 			}
 			// button is not clickable, cannot go next, reject
@@ -72,9 +61,13 @@ var Page = function(){
 	};
 
 	this.status = function(){
-		return status.getText().then(function(e){
-			return JSON.parse(e);
-		});
+		return browser.wait(function() {
+			return status.isPresent();
+		}, 60000).then(function(){
+				return status.getText().then(function(e){
+					return JSON.parse(e);
+				});
+			});
 	};
 
 	/**
@@ -107,6 +100,17 @@ var Page = function(){
 		});
 	};
 
+	/**
+	 * Clicks a link with the given text within the reader
+	 * */
+	this.clickLink = function(text){
+		var status = this.status;
+		return this.readerContext(function(){
+			return element(by.xpath('//a[contains(text(),"'+text+'")]')).click();
+		}).then(function(){
+				return status();
+			});
+	};
 
 	/**
 	 * This function will loop through the entire book by either calling next or previous repeatedly.
@@ -117,7 +121,7 @@ var Page = function(){
 	this.loop = function(callback, reverse){
 
 		var _defer = protractor.promise.defer(),
-			_action = !reverse ? this.next : this.prev;
+			_action = !reverse ? this.next.bind(this) : this.prev.bind(this);
 
 		var	_loop = function(status){
 			var promise = callback(status);
@@ -140,10 +144,13 @@ var Page = function(){
 
 	// clears an input and sets the specified value
 	var _input = function(el, value){
+		var status = this.status;
 		return el.clear().then(function(){
-			return el.sendKeys(value);
+			return el.sendKeys(value).then(function(){
+				return status();
+			});
 		});
-	};
+	}.bind(this);
 
 	this.setFontSize = function(value){
 		return _input(fontSize, value);
