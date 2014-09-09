@@ -101,7 +101,7 @@ var Reader = (function (r) {
 
 	// Retrieve the opfPath from the root file:
 	function loadOpfPath(data) {
-		return loadFile(r.ROOTFILE_INFO, 'xml').then(function rootFileLoaded(rootDoc) {
+		return loadFile(r.ROOTFILE_INFO_PATH, 'xml').then(function rootFileLoaded(rootDoc) {
 			data.opfPath = $(rootDoc).find('rootfile').attr('full-path');
 			return data;
 		});
@@ -161,7 +161,11 @@ var Reader = (function (r) {
 
 	// Load book meta data from book-info.json:
 	function loadBookInfo(args) {
-		return loadFile(r.INF, 'json')
+		// Check if the book info is available (explicit type check as the property might be undefined):
+		if (args.hasBookInfo === false) {
+			return $.Deferred().reject().promise();
+		}
+		return loadFile(r.BOOK_INFO_PATH, 'json')
 			.then(loadOpfData)
 			.then(function (data) {
 				return $.extend(data, args);
@@ -226,6 +230,7 @@ var Reader = (function (r) {
 
 	// Function to parse a chapter in the spine to calculate word- and image- count:
 	function parseChapter(spineItem) {
+		// Check if the spine item is available (explicit type check as the active property might be undefined):
 		if (spineItem.active === false) {
 			// Given file is not available in the EPUB
 			return $.Deferred().reject().promise();
@@ -267,6 +272,7 @@ var Reader = (function (r) {
 			loadBookInfo(args).then(
 				defer.resolve,
 				function () {
+					args.hasBookInfo = false;
 					// book-info.json not available, load meta data manually:
 					loadBookMetaData(args)
 						.then(defer.resolve, defer.reject);
@@ -403,6 +409,7 @@ var Reader = (function (r) {
 					i = 0,
 					item;
 			while ((item = spine[i])) {
+				// Check if the spine item is available (explicit type check as the active property might be undefined):
 				if (item.active !== false && item.href.indexOf(url.split('#')[0]) === 0) {
 					return i;
 				}

@@ -13,8 +13,8 @@ var Reader = (function (r) {
 
 	// Constants
 	r.DOCROOT = '';
-	r.INF = 'META-INF/book-info.json';
-	r.ROOTFILE_INFO = 'META-INF/container.xml';
+	r.BOOK_INFO_PATH = 'META-INF/book-info.json';
+	r.ROOTFILE_INFO_PATH = 'META-INF/container.xml';
 
 	// Initial settings.
 	r.$iframe = null;
