@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>book.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="book.html">
+                book.js
+              </a>
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="epub.html">
+                epub.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="touch.html">
+                touch.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>book.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Sub module for managing a book’s meta-information (url, title, spine, isbn)</p>
+<ul>
+<li><code>spine</code></li>
+<li><code>toc</code></li>
+<li><code>title</code></li>
+<li><code>load</code></li>
+<li><code>reset</code></li>
+<li><a href="#getTOC"><code>getTOC</code></a></li>
+<li><a href="#getSPINE"><code>getSPINE</code></a></li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> </span>{
+
+	<span class="hljs-keyword">var</span> defaultData = {
+		spine: [],
+		toc: [],
+		title: <span class="hljs-string">''</span>,
+		content_path_prefix: <span class="hljs-string">''</span>,
+		$opf: <span class="hljs-literal">null</span>,
+		totalWordCount: <span class="hljs-number">0</span>
+	};
+
+	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getTotalWordCount</span><span class="hljs-params">(spine)</span> </span>{
+		<span class="hljs-keyword">var</span> totalWordCount = <span class="hljs-number">0</span>,
+				i;
+		<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; spine.length; i++) {
+			totalWordCount += spine[i].linear ? spine[i].wordCount : <span class="hljs-number">0</span>;
+		}
+		<span class="hljs-keyword">return</span> totalWordCount;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parseTOCItem</span><span class="hljs-params">(item, href, currentPage)</span> </span>{
+		<span class="hljs-keyword">var</span> children = item.children,
+			result,
+			i,
+			childItem,
+			anchorId,
+			anchorPage;
+		<span class="hljs-keyword">if</span> (item.href &amp;&amp; item.href.indexOf(href) === <span class="hljs-number">0</span>) {
+			<span class="hljs-keyword">if</span> (!currentPage) {
+				<span class="hljs-keyword">return</span> item;
+			}
+			result = item;
+		}
+		<span class="hljs-keyword">if</span> (children) {
+			<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; children.length; i++) {
+				childItem = parseTOCItem(children[i], href, currentPage);
+				<span class="hljs-keyword">if</span> (childItem) {
+					<span class="hljs-keyword">if</span> (result) {
+						anchorId = childItem.href.split(<span class="hljs-string">'#'</span>)[<span class="hljs-number">1</span>];
+						<span class="hljs-keyword">if</span> (!anchorId) {
+							<span class="hljs-keyword">continue</span>;
+						}
+						anchorPage = r.returnPageElement(<span class="hljs-string">'#'</span> + anchorId);
+						<span class="hljs-keyword">if</span> (anchorPage === -<span class="hljs-number">1</span>) {
+							<span class="hljs-keyword">continue</span>;
+						}
+						<span class="hljs-keyword">if</span> (anchorPage &gt; currentPage) {
+							<span class="hljs-keyword">break</span>;
+						}
+					}
+					result = childItem;
+				}
+			}
+		}
+		<span class="hljs-keyword">return</span> result;
+	}
+
+	<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">addLabelAndProgressToSpine</span><span class="hljs-params">(spine)</span> </span>{
+		<span class="hljs-keyword">var</span> totalWordCount = r.Book.totalWordCount,
+				currentWordCount = <span class="hljs-number">0</span>,
+				i,
+				spineItem,
+				tocItem;
+		<span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; spine.length; i++) {
+			spineItem = spine[i];
+			tocItem = r.Book.getTOCItem(spineItem.href);
+			<span class="hljs-keyword">if</span> (tocItem) {
+				spineItem.label = tocItem.label;
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Add +1 to the current word count of the previous chapters
+to identify the progress for the first word of the chapter:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			spineItem.progress = (currentWordCount + <span class="hljs-number">1</span>) / totalWordCount * <span class="hljs-number">100</span>;
+			currentWordCount += spineItem.linear ? spineItem.wordCount : <span class="hljs-number">0</span>;
+		}
+	}
+
+	r.Book = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><a name="load"></a> Loads a book’s information.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		load: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(args)</span> </span>{
+			r.Book.reset();
+			$.extend(r.Book, args);
+			r.Book.$opf = $(args.opf).filter(<span class="hljs-string">'package'</span>);
+			r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
+			addLabelAndProgressToSpine(r.Book.spine);
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p><a name="reset"></a> Resets the module to default values.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		reset: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+			$.extend(r.Book, defaultData);
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p><a name="getSPINE"></a> Returns the spine as an array.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		getSPINE: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">return</span> r.Book.spine;
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p><a name="getTOC"></a> Returns the TOC as an array.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		getTOC: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">return</span> r.Book.toc;
+		},
+		getTOCItem: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(href, currentPage)</span> </span>{
+			<span class="hljs-keyword">return</span> parseTOCItem({children: r.Book.toc}, href, currentPage);
+		}
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Initialize the Reader with default (empty) book data:</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.Book.reset();
+
+	<span class="hljs-keyword">return</span> r;
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
