@@ -40,4 +40,14 @@ describe('Epub', function() {
 		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[textRange],/1:'+startOffset+',/1:'+endOffset+')');
 	});
 
+	it('should generate range cfi for text nodes', function(){
+		var range = $dom[0].createRange(),
+			$node = $dom.find('#nodeRange span');
+
+		range.setStart($node[0]);
+		range.setEnd($node[1]);
+
+		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[nodeRange],/2,/4)');
+	});
+
 });
