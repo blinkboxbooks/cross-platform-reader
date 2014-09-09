@@ -65,9 +65,7 @@ module.exports = function() {
 	});
 
 	this.When(/^I click "([^"]*)"$/, function (text, next) {
-		page.readerContext(function(){
-			element(by.xpath('//a[contains(text(),"'+text+'")]')).click();
-		}).then(function(){
+		page.clickLink(text).then(function(){
 				next();
 			});
 	});

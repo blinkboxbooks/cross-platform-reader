@@ -77,8 +77,10 @@ describe('Formatting', function() {
 			page.fontFamily.then(function(options){
 				options.forEach(function(option){
 					option.click().getText().then(function(value){
-						page.readerContext(function(contents){
-							expect(contents.getCssValue('font-family')).toContain(value);
+						page.status().then(function(){
+							page.readerContext(function(contents){
+								expect(contents.getCssValue('font-family')).toContain(value);
+							});
 						});
 					});
 				});
@@ -99,8 +101,10 @@ describe('Formatting', function() {
 			page.textAlign.then(function(options){
 				options.forEach(function(option){
 					option.click().getText().then(function(value){
-						page.readerContext(function(contents){
-							expect(contents.getCssValue('text-align')).toEqual(value);
+						page.status().then(function(){
+							page.readerContext(function(contents){
+								expect(contents.getCssValue('text-align')).toEqual(value);
+							});
 						});
 					});
 				});
@@ -142,9 +146,11 @@ describe('Formatting', function() {
 			page.theme.then(function(options){
 				options.forEach(function(option){
 					option.click().getText().then(function(value){
-						page.readerContext(function(contents, body){
-							expect(body.getCssValue('backgroundColor')).toEqualColor(_themes[value].background);
-							expect(contents.getCssValue('color')).toEqualColor(_themes[value].color);
+						page.status().then(function(){
+							page.readerContext(function(contents, body){
+								expect(body.getCssValue('backgroundColor')).toEqualColor(_themes[value].background);
+								expect(contents.getCssValue('color')).toEqualColor(_themes[value].color);
+							});
 						});
 					});
 				});
@@ -180,17 +186,19 @@ describe('Formatting', function() {
 			page.margin.then(function(options){
 				options.forEach(function(option){
 					option.click().getText().then(function(value){
-						page.readerContext(function(contents, body, reader, header, footer, container){
-							var expected = {
-								marginLeft: Math.floor(_margin[value][1]/100 * _width) + 'px',
-								marginRight: Math.floor(_margin[value][3]/100 * _width) + 'px'
-							};
-							expect(header.getCssValue('margin-left')).toEqual(expected.marginLeft);
-							expect(header.getCssValue('margin-right')).toEqual(expected.marginRight);
-							expect(footer.getCssValue('margin-left')).toEqual(expected.marginLeft);
-							expect(footer.getCssValue('margin-right')).toEqual(expected.marginRight);
-							expect(container.getCssValue('margin-left')).toEqual(expected.marginLeft);
-							expect(container.getCssValue('margin-right')).toEqual(expected.marginRight);
+						page.status().then(function(){
+							page.readerContext(function(contents, body, reader, header, footer, container){
+								var expected = {
+									marginLeft: Math.floor(_margin[value][1]/100 * _width) + 'px',
+									marginRight: Math.floor(_margin[value][3]/100 * _width) + 'px'
+								};
+								expect(header.getCssValue('margin-left')).toEqual(expected.marginLeft);
+								expect(header.getCssValue('margin-right')).toEqual(expected.marginRight);
+								expect(footer.getCssValue('margin-left')).toEqual(expected.marginLeft);
+								expect(footer.getCssValue('margin-right')).toEqual(expected.marginRight);
+								expect(container.getCssValue('margin-left')).toEqual(expected.marginLeft);
+								expect(container.getCssValue('margin-right')).toEqual(expected.marginRight);
+							});
 						});
 					});
 				});
