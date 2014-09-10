@@ -146,14 +146,11 @@ var Reader = (function (r) {
 
 	r.Highlights = {
 		setHighlight: function(cfi){
-			var selection, range;
-
 			if(!cfi){
 				// if cfi is not preset, we assume the current selection needs to be highlighted
-				selection = r.$iframe.contents()[0].getSelection();
+				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
-					range = selection.getRangeAt(0);
-					console.log(range);
+					console.log(r.Epub.generateRangeCFI(selection.getRangeAt(0)));
 				} else {
 					// no selected text
 					return false;
