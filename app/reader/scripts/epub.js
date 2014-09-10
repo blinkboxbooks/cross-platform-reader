@@ -129,6 +129,13 @@ var Reader = (function (r, Epub) {
 			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
 		};
 
+		// Injects a marker in the specified range
+		prototype.injectRangeMarker = function(cfi, marker){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
+		};
+
 		prototype.reset = function(){
 			this.opfCFI = null;
 			this.context = null;
