@@ -8,7 +8,7 @@ var READER = (function() {
 	// The goal is to make the reader as client-ignorant as possible.
 
 	var _isLoading = false;
-	
+
 	// Generates an object summarizing the reader status.
 	function sendStatus(call) {
 		Reader.Notify.event($.extend({}, Reader.Event.getStatus(call)));

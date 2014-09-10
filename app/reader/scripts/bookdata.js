@@ -144,6 +144,27 @@ var Reader = (function (r) {
 		}
 	};
 
+	r.Highlights = {
+		setHighlight: function(cfi){
+			var selection, range;
+
+			if(!cfi){
+				// if cfi is not preset, we assume the current selection needs to be highlighted
+				selection = r.$iframe.contents()[0].getSelection();
+				if(selection.rangeCount > 0 && !selection.isCollapsed){
+					range = selection.getRangeAt(0);
+					console.log(range);
+				} else {
+					// no selected text
+					return false;
+				}
+			}
+
+			// setting highlight failed
+			return false;
+		}
+	};
+
 	// Debug flag, used to log various events for debugging purposes
 	var _debug = false;
 	r.Debug = {
