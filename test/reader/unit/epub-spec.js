@@ -9,6 +9,15 @@ describe('Epub', function() {
 		Epub = Reader.Epub;
 		Epub.setUp(0, $(fixtures.BOOK.DATA.opf).filter('package'));
 
+		// create a demo document for test
+		$dom = $((new window.DOMParser()).parseFromString('<html>' +
+			'<body>' +
+				'<div id="textRange">Text node</div>' +
+				'<div id="nodeRange">' +
+					'<span></span><span></span>' +
+				'</div>' +
+			'</body></html>', 'text/xml'));
+
 		// stub out these methods used by the epub module as they are out of scope of this test
 		spyOn(Epub, 'normalizeChapterPartCFI').and.callFake(function(args){
 			return args;
@@ -16,10 +25,10 @@ describe('Epub', function() {
 		spyOn(Epub, 'removeContext').and.callFake(function(args){
 			return args;
 		});
-
-		// create a demo document to test
-		$dom = $((new window.DOMParser()).parseFromString('<html><body><div id="textRange">Text node</div><div id="nodeRange"><span></span><span></span></div></body></html>', 'text/xml'));
-
+		// workaround PhantomJS. manipulating dom nodes using a range from a different document throws a WRONG_DOCUMENT_ERR that does not exist in other browsers.
+		spyOn(document, 'createRange').and.callFake(function(){
+			return $dom[0].createRange();
+		});
 	});
 
 	it('should initialise Epub manager API', function(){
@@ -40,14 +49,14 @@ describe('Epub', function() {
 		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[textRange],/1:'+startOffset+',/1:'+endOffset+')');
 	});
 
-	it('should generate range cfi for text nodes', function(){
+	it('should generate range cfi for normal nodes', function(){
 		var range = $dom[0].createRange(),
 			$node = $dom.find('#nodeRange span');
 
 		range.setStart($node[0]);
 		range.setEnd($node[1]);
 
-		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[nodeRange],/2,/4)');
+		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/4)');
 	});
 
 });
