@@ -66,10 +66,21 @@ describe('Epub', function() {
 		var range = $dom[0].createRange(),
 			$node = $dom.find('#nodeRange span');
 
-		range.setStart($node[0]);
-		range.setEnd($node[1]);
+		range.setStart($node[0], 0);
+		range.setEnd($node[1], 0);
 
 		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/4)');
+	});
+
+	xit('should generate range cfi for a text node and a normal node', function(){
+		var range = $dom[0].createRange(),
+			text = $dom.find('#textRange').contents()[0],
+			node = $dom.find('#nodeRange span').first()[0];
+
+		range.setStart(text, 0);
+		range.setEnd(node, 0);
+
+		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2,/2[textRange]/1:0,/4[nodeRange]/2)');
 	});
 
 	it('should inject marker for a range CFI', function(){

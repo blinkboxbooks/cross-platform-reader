@@ -22,6 +22,7 @@
 		"beforeEach": false,
 		"describe": false,
 		"it": false,
+		"xit": false,
 		"expect": false,
 		"spyOn": false,
 		"$": false,
