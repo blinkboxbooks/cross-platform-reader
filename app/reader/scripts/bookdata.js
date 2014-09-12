@@ -150,15 +150,16 @@ var Reader = (function (r) {
 				// if cfi is not preset, we assume the current selection needs to be highlighted
 				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
-					console.log(r.Epub.generateRangeCFI(selection.getRangeAt(0)));
+					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
 				} else {
 					// no selected text
 					return false;
 				}
 			}
 
+			r.Epub.injectRangeMarker(cfi, '<i class="cpr-marker"></i>');
 			// setting highlight failed
-			return false;
+			return cfi;
 		}
 	};
 

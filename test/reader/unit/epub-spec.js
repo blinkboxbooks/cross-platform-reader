@@ -90,7 +90,7 @@ describe('Epub', function() {
 		range.setStart($node.contents()[0], startOffset);
 		range.setEnd($node.contents()[0], endOffset);
 
-		Epub.injectRangeMarker(Epub.generateRangeCFI(range), '<i></i>');
+		Epub.injectRangeMarker(Epub.generateRangeCFI(range), '<i class="'+Epub.BLACKLIST[0]+'"></i>');
 	});
 
 });
