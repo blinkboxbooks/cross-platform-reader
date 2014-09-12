@@ -106,7 +106,6 @@ var Reader = (function (r, Epub) {
 
 		// Generate CFI range for a DOM range element
 		prototype.generateRangeCFI = function(range){
-			console.log(range);
 			var isOffset = range.startContainer.nodeType === 3 || range.endContainer.nodeType === 3, cfi;
 
 			if(isOffset){
