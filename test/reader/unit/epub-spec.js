@@ -52,45 +52,53 @@ describe('Epub', function() {
 		expect(Epub.injectRangeMarker).toBeFunction();
 	});
 
-	it('should generate range cfi for text nodes', function(){
-		var range = $dom[0].createRange(),
-			$node = $dom.find('#textRange'), startOffset = 0, endOffset = 1;
+	describe('Range CFI', function(){
+		it('should generate range cfi for text nodes', function(){
+			var range = $dom[0].createRange(),
+				$node = $dom.find('#textRange'), startOffset = 0, endOffset = 1;
 
-		range.setStart($node.contents()[0], startOffset);
-		range.setEnd($node.contents()[0], endOffset);
+			range.setStart($node.contents()[0], startOffset);
+			range.setEnd($node.contents()[0], endOffset);
 
-		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[textRange],/1:'+startOffset+',/1:'+endOffset+')');
+			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[textRange],/1:'+startOffset+',/1:'+endOffset+')');
+		});
+
+		it('should generate range cfi for normal nodes', function(){
+			var range = $dom[0].createRange(),
+				$node = $dom.find('#nodeRange span');
+
+			range.setStart($node[0], 0);
+			range.setEnd($node[1], 0);
+
+			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/4)');
+		});
+
+		it('should generate range cfi for a text node and a normal node', function(){
+			var range = $dom[0].createRange(),
+				text = $dom.find('#textRange').contents()[0],
+				node = $dom.find('#nodeRange span').first()[0];
+
+			range.setStart(text, 0);
+			range.setEnd(node, 0);
+
+			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2,/2[textRange]/1:0,/4[nodeRange]/2)');
+		});
+
+		it('should inject marker for a range CFI', function(){
+			var range = $dom[0].createRange(),
+				$node = $dom.find('#textRange'), startOffset = 0, endOffset = 1;
+
+			range.setStart($node.contents()[0], startOffset);
+			range.setEnd($node.contents()[0], endOffset);
+
+			Epub.injectRangeMarker(Epub.generateRangeCFI(range), '<i class="'+Epub.BLACKLIST[0]+'"></i>');
+		});
 	});
 
-	it('should generate range cfi for normal nodes', function(){
-		var range = $dom[0].createRange(),
-			$node = $dom.find('#nodeRange span');
-
-		range.setStart($node[0], 0);
-		range.setEnd($node[1], 0);
-
-		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/4)');
+	describe('CFIs', function(){
+		it('should generate CFI for a text node', null);
+		it('should generate CFI for a full node', null);
+		it('should inject marker given a CFI', null);
+		it('should generate CFI for a text node with a marker', null);
 	});
-
-	xit('should generate range cfi for a text node and a normal node', function(){
-		var range = $dom[0].createRange(),
-			text = $dom.find('#textRange').contents()[0],
-			node = $dom.find('#nodeRange span').first()[0];
-
-		range.setStart(text, 0);
-		range.setEnd(node, 0);
-
-		expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2,/2[textRange]/1:0,/4[nodeRange]/2)');
-	});
-
-	it('should inject marker for a range CFI', function(){
-		var range = $dom[0].createRange(),
-			$node = $dom.find('#textRange'), startOffset = 0, endOffset = 1;
-
-		range.setStart($node.contents()[0], startOffset);
-		range.setEnd($node.contents()[0], endOffset);
-
-		Epub.injectRangeMarker(Epub.generateRangeCFI(range), '<i class="'+Epub.BLACKLIST[0]+'"></i>');
-	});
-
 });
