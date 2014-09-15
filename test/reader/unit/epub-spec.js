@@ -97,16 +97,39 @@ describe('Epub', function() {
 	});
 
 	describe('CFIs', function(){
-		it('should generate CFI for a text node', null);
-		it('should generate CFI for a full node', null);
-		it('should inject marker given a CFI', null);
-		it('should generate CFI for a text node with a marker', function(){
-			var $text = $dom.find('#textRange').contents()[0], offsets = [0, 1, 4, 6];
+		it('should generate CFI for a text node', function(){
+			var text = $dom.find('#textRange').contents()[0];
 
+			expect(Epub.generateCFI(text, 0)).toEqual('epubcfi(/6/2!/2/2[textRange]/1:0)');
+		});
+
+		it('should generate CFI for a full node', function(){
+			var node = $dom.find('#nodeRange span');
+
+			expect(Epub.generateCFI(node[0])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/2)');
+			expect(Epub.generateCFI(node[1])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/4)');
+		});
+
+		it('should inject marker given a CFI', function(){
+			var $text = $dom.find('#textRange');
+
+			expect($text.contents().length).toEqual(1);
 			Epub.injectMarker('epubcfi(/6/2!/2/2[textRange]/1:1)', marker);
-			offsets.forEach(function(offset){
-				expect(Epub.generateCFI($text, offset)).toEqual('epubcfi(/6/2!/2/2[textRange]/1:'+offset+')');
-			});
+			expect($text.contents().length).toEqual(3);
+			expect($text.find('.' + Epub.BLACKLIST[0]).length).toEqual(1);
+		});
+
+		/*
+		 * The text node is split into two text nodes by the marker node.
+		 * The CFI generated should blacklist of the marker, and treat the text node as one.
+		 * Therefore the offset should be the length of the first text node + the given offset
+		 * */
+		it('should generate CFI for a text node with a marker', function(){
+			Epub.injectMarker('epubcfi(/6/2!/2/2[textRange]/1:1)', marker);
+
+			var text = $dom.find('#textRange').contents()[2];
+
+			expect(Epub.generateCFI(text, 1)).toEqual('epubcfi(/6/2!/2/2[textRange]/1:2)');
 		});
 	});
 });
