@@ -2,12 +2,13 @@
 
 describe('Epub', function() {
 
-	var Epub, $dom;
+	var Epub, $dom, marker;
 
 	beforeEach(function(){
 		// set up epub
 		Epub = Reader.Epub;
 		Epub.setUp(0, $(fixtures.BOOK.DATA.opf).filter('package'));
+		marker = '<i class="'+Epub.BLACKLIST[0]+'"></i>';
 
 		// create a demo document for test
 		$dom = $((new window.DOMParser()).parseFromString('<html>' +
@@ -91,7 +92,7 @@ describe('Epub', function() {
 			range.setStart($node.contents()[0], startOffset);
 			range.setEnd($node.contents()[0], endOffset);
 
-			Epub.injectRangeMarker(Epub.generateRangeCFI(range), '<i class="'+Epub.BLACKLIST[0]+'"></i>');
+			Epub.injectRangeMarker(Epub.generateRangeCFI(range), marker);
 		});
 	});
 
@@ -99,6 +100,13 @@ describe('Epub', function() {
 		it('should generate CFI for a text node', null);
 		it('should generate CFI for a full node', null);
 		it('should inject marker given a CFI', null);
-		it('should generate CFI for a text node with a marker', null);
+		it('should generate CFI for a text node with a marker', function(){
+			var $text = $dom.find('#textRange').contents()[0], offsets = [0, 1, 4, 6];
+
+			Epub.injectMarker('epubcfi(/6/2!/2/2[textRange]/1:1)', marker);
+			offsets.forEach(function(offset){
+				expect(Epub.generateCFI($text, offset)).toEqual('epubcfi(/6/2!/2/2[textRange]/1:'+offset+')');
+			});
+		});
 	});
 });
