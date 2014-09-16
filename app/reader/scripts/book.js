@@ -21,8 +21,8 @@ var Reader = (function (r) {
 
 	// Retrieves the item with the given id from the OPF manifest:
 	function getManifestItem($opf, id) {
-		// Searching via #id might fail with invalid id properties, so we use an attribute selector instead:
-		return $opf.children('manifest').children('item[id="' + id + '"]');
+		// Escape dots in the given id to get a valid id selector:
+		return $opf.find('#' + id.replace(/\./g, '\\.'));
 	}
 
 	// Retrieves the title from the OPF document:
