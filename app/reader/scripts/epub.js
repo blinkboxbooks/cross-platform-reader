@@ -106,16 +106,10 @@ var Reader = (function (r, Epub) {
 
 		// Generate CFI range for a DOM range element
 		prototype.generateRangeCFI = function(range){
-			var isOffset = range.startContainer.nodeType === 3 || range.endContainer.nodeType === 3, cfi;
+			var cfi;
 
-			if(isOffset){
-				cfi = EPUBcfi.generateCharOffsetRangeComponent(range.startContainer, range.startOffset, range.endContainer, range.endOffset, this.BLACKLIST);
-			} else {
-				cfi = EPUBcfi.generateElementRangeComponent(range.startContainer, range.endContainer, this.BLACKLIST);
-			}
-
+			cfi = EPUBcfi.generateRangeComponent(range.startContainer, range.startOffset, range.endContainer, range.endOffset, this.BLACKLIST);
 			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
-
 			cfi = this.normalizeChapterPartCFI(cfi);
 			cfi = this.removeContext(cfi);
 
