@@ -2,7 +2,7 @@
 
 describe('Epub', function() {
 
-	var Epub, $dom, marker;
+	var Epub, $dom, $node, $dots, text, marker;
 
 	beforeEach(function(){
 		// set up epub
@@ -17,7 +17,12 @@ describe('Epub', function() {
 				'<div id="nodeRange">' +
 					'<span></span><span></span>' +
 				'</div>' +
+				'<div id="dots.dots..dots">Text node</div>' +
 			'</body></html>', 'text/xml'));
+
+		$node = $dom.find('#nodeRange span');
+		$dots = $dom.find('#dots\\.dots\\.\\.dots');
+		text = $dom.find('#textRange').contents()[0];
 
 		// stub out these methods used by the epub module as they are out of scope of this test
 		spyOn(Epub, 'normalizeChapterPartCFI').and.callFake(function(cfi){
@@ -56,17 +61,16 @@ describe('Epub', function() {
 	describe('Range CFI', function(){
 		it('should generate range cfi for text nodes', function(){
 			var range = $dom[0].createRange(),
-				$node = $dom.find('#textRange'), startOffset = 0, endOffset = 1;
+				startOffset = 0, endOffset = 1;
 
-			range.setStart($node.contents()[0], startOffset);
-			range.setEnd($node.contents()[0], endOffset);
+			range.setStart(text, startOffset);
+			range.setEnd(text, endOffset);
 
 			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/2[textRange],/1:'+startOffset+',/1:'+endOffset+')');
 		});
 
 		it('should generate range cfi for normal nodes', function(){
-			var range = $dom[0].createRange(),
-				$node = $dom.find('#nodeRange span');
+			var range = $dom[0].createRange();
 
 			range.setStart($node[0], 0);
 			range.setEnd($node[1], 0);
@@ -75,22 +79,20 @@ describe('Epub', function() {
 		});
 
 		it('should generate range cfi for a text node and a normal node', function(){
-			var range = $dom[0].createRange(),
-				text = $dom.find('#textRange').contents()[0],
-				node = $dom.find('#nodeRange span').first()[0];
+			var range = $dom[0].createRange();
 
 			range.setStart(text, 0);
-			range.setEnd(node, 0);
+			range.setEnd($node.first()[0], 0);
 
 			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2,/2[textRange]/1:0,/4[nodeRange]/2)');
 		});
 
 		it('should inject marker for a range CFI', function(){
 			var range = $dom[0].createRange(),
-				$node = $dom.find('#textRange'), startOffset = 0, endOffset = 1;
+				startOffset = 0, endOffset = 1;
 
-			range.setStart($node.contents()[0], startOffset);
-			range.setEnd($node.contents()[0], endOffset);
+			range.setStart(text, startOffset);
+			range.setEnd(text, endOffset);
 
 			Epub.injectRangeMarker(Epub.generateRangeCFI(range), marker);
 		});
@@ -98,16 +100,16 @@ describe('Epub', function() {
 
 	describe('CFIs', function(){
 		it('should generate CFI for a text node', function(){
-			var text = $dom.find('#textRange').contents()[0];
-
 			expect(Epub.generateCFI(text, 0)).toEqual('epubcfi(/6/2!/2/2[textRange]/1:0)');
 		});
 
 		it('should generate CFI for a full node', function(){
-			var node = $dom.find('#nodeRange span');
+			expect(Epub.generateCFI($node[0])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/2)');
+			expect(Epub.generateCFI($node[1])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/4)');
+		});
 
-			expect(Epub.generateCFI(node[0])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/2)');
-			expect(Epub.generateCFI(node[1])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/4)');
+		it('should generate CFI for a full node with dots within an ID', function(){
+			expect(Epub.generateCFI($dots.contents()[0], 0)).toEqual('epubcfi(/6/2!/2/6[dots.dots..dots]/1:0)');
 		});
 
 		it('should inject marker given a CFI', function(){
@@ -117,6 +119,13 @@ describe('Epub', function() {
 			Epub.injectMarker('epubcfi(/6/2!/2/2[textRange]/1:1)', marker);
 			expect($text.contents().length).toEqual(3);
 			expect($text.find('.' + Epub.BLACKLIST[0]).length).toEqual(1);
+		});
+
+		it('should inject marker in a text node with a parent that contains dots in the ID', function(){
+			expect($dots.contents().length).toEqual(1);
+			Epub.injectMarker('epubcfi(/6/2!/2/6[dots.dots..dots]/1:1)', marker);
+			expect($dots.contents().length).toEqual(3);
+			expect($dots.find('.' + Epub.BLACKLIST[0]).length).toEqual(1);
 		});
 
 		/*
