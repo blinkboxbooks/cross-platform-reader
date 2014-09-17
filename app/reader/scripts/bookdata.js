@@ -157,7 +157,6 @@ var Reader = (function (r) {
 				}
 			}
 
-			r.Epub.injectRangeMarker(cfi, '<i class="cpr-marker"></i>');
 			// setting highlight failed
 			return cfi;
 		}

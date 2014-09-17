@@ -136,4 +136,4 @@ var Reader = (function (r, Epub) {
 		};
 
 		return Epub;
-	})(Reader || {}, new EpubCFIModule())));
+	})(Reader || {}, EPUBcfi)));
