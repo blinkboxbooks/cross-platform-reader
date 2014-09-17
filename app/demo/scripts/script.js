@@ -169,12 +169,9 @@ angular.module('app', ['ngRoute'])
 				READER.next();
 				$scope.book.hasPrevious = true;
 			},
-			cfi: function(){
-				try{
-					_log(decodeURIComponent(READER.getCFI()));
-				} catch(e){
-					_log(e);
-				}
+			highlight: function(){
+				$('[data-test="status"]').removeAttr('data-test');
+				READER.setHighlight();
 			},
 			bookmark: function(){
 				$('[data-test="status"]').removeAttr('data-test');
@@ -245,7 +242,9 @@ angular.module('app', ['ngRoute'])
 		$scope.$on('keydown:37', function(){
 			$timeout($scope.handlers.prev);
 		});
-
+		$scope.$on('keydown:72', function(){
+			$timeout($scope.handlers.highlight);
+		});
 	})
 	// Service to access to the API of Catalogue
 	.factory('Book', function($http, $q) {
