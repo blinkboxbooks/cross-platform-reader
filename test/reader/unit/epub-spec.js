@@ -2,7 +2,7 @@
 
 describe('Epub', function() {
 
-	var Epub, $dom, $node, $dots, text, marker;
+	var Epub, $dom, $nodes, $node, $dots, text, marker;
 
 	beforeEach(function(){
 		// set up epub
@@ -15,12 +15,13 @@ describe('Epub', function() {
 			'<body>' +
 				'<div id="textRange">Text node</div>' +
 				'<div id="nodeRange">' +
-					'<span></span><span></span>' +
+					'<span></span>Text node<span></span>' +
 				'</div>' +
 				'<div id="dots.dots..dots">Text node</div>' +
 			'</body></html>', 'text/xml'));
 
-		$node = $dom.find('#nodeRange span');
+		$node = $dom.find('#nodeRange');
+		$nodes = $dom.find('#nodeRange span');
 		$dots = $dom.find('#dots\\.dots\\.\\.dots');
 		text = $dom.find('#textRange').contents()[0];
 
@@ -72,8 +73,8 @@ describe('Epub', function() {
 		it('should generate range cfi for normal nodes', function(){
 			var range = $dom[0].createRange();
 
-			range.setStart($node[0], 0);
-			range.setEnd($node[1], 0);
+			range.setStart($nodes[0], 0);
+			range.setEnd($nodes[1], 0);
 
 			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/4)');
 		});
@@ -82,14 +83,27 @@ describe('Epub', function() {
 			var range = $dom[0].createRange();
 
 			range.setStart(text, 0);
-			range.setEnd($node.first()[0], 0);
+			range.setEnd($nodes.first()[0], 0);
 
 			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2,/2[textRange]/1:0,/4[nodeRange]/2)');
+		});
 
-			range.setStart($node.first()[0], 0);
+		it('should generate range cfi for an element node and a text node', function(){
+			var range = $dom[0].createRange();
+
+			range.setStart($nodes.first()[0], 0);
 			range.setEnd($dots.contents()[0], 0);
 
 			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2,/4[nodeRange]/2,/6[dots.dots..dots]/1:0)');
+		});
+
+		it('should generate range cfi for an element node and a text node with the same parent', function(){
+			var range = $dom[0].createRange();
+
+			range.setStart($node.contents()[0], 0);
+			range.setEnd($node.contents()[1], 1);
+
+			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/1:1)');
 		});
 
 		it('should inject marker for a range CFI', function(){
@@ -109,8 +123,8 @@ describe('Epub', function() {
 		});
 
 		it('should generate CFI for a full node', function(){
-			expect(Epub.generateCFI($node[0])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/2)');
-			expect(Epub.generateCFI($node[1])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/4)');
+			expect(Epub.generateCFI($nodes[0])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/2)');
+			expect(Epub.generateCFI($nodes[1])).toEqual('epubcfi(/6/2!/2/4[nodeRange]/4)');
 		});
 
 		it('should generate CFI for a full node with dots within an ID', function(){
