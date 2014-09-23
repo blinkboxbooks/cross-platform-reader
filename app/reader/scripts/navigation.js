@@ -514,7 +514,7 @@ var Reader = (function (r) {
 				// Images before the nearestElement:
 				before: nearestIndex,
 				// Images after the nearestElement, including the nearestElement itself if it is an image to be loaded:
-				after: images.length ? images.length - nearestIndex - ($(nearestElement).is(imgSelector) ? 0 : 1) : 0
+				after: images.length - nearestIndex - ($(nearestElement).is(imgSelector) ? 0 : 1)
 			};
 		}
 		// If the reverse argument is set, reverse the order of the elements,
