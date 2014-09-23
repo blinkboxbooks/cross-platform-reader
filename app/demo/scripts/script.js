@@ -42,6 +42,7 @@ angular.module('app', ['ngRoute'])
 					$p.attr('data-test', 'status');
 					/*jshint -W020 */
 					status = e;
+					$('#progress').text(e.progress.toFixed(2) + ' %');
 					break;
 				case 9: // reader missing a file
 				case 10: // parsing failed
