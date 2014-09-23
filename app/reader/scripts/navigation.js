@@ -476,9 +476,7 @@ var Reader = (function (r) {
 		},
 		// Calculate how much of the current chapter has been read:
 		getChapterReadFactor: function () {
-			var imagesToLoad = getImagesToLoad(false, _cfi && r.CFI.getCFISelector(_cfi.CFI), true),
-					// Count each image to load as an additional page to estimate the real page read factor:
-					factor = (page + 1 + imagesToLoad.before) / (pagesByChapter + imagesToLoad.after),
+			var factor = (page + 1) / pagesByChapter,
 					totalElements,
 					readElements,
 					partElements;
@@ -494,7 +492,7 @@ var Reader = (function (r) {
 	};
 
 	// Returns images in the ideal loading order:
-	function getImagesToLoad(reverse, nearestSelector, countOnly) {
+	function getImagesToLoad(reverse, nearestSelector) {
 		// nearestSelector is the selector for the element identifying the current position,
 		// e.g. a CFI marker as data attribute selector or an element id to identify an anchor in the current document:
 		var nearestElement = nearestSelector && $(nearestSelector, r.$reader)[0],
@@ -504,19 +502,10 @@ var Reader = (function (r) {
 				selector = nearestElement ? imgSelector + ',' + nearestSelector : imgSelector,
 				// As a result, we will get a collection of elements with the CFI marker or anchor in the middle:
 				images = $(selector, r.$reader),
-				// Retrieve the index of the position element in the collection:
-				nearestIndex = nearestElement ? images.index(nearestElement) : 0,
 				sortedImages,
+				nearestIndex,
 				i,
 				el;
-		if (countOnly) {
-			return {
-				// Images before the nearestElement:
-				before: nearestIndex,
-				// Images after the nearestElement, including the nearestElement itself if it is an image to be loaded:
-				after: images.length - nearestIndex - ($(nearestElement).is(imgSelector) ? 0 : 1)
-			};
-		}
 		// If the reverse argument is set, reverse the order of the elements,
 		// which is useful for navigating backwards in a book:
 		if (images.length > 1 && reverse) {
@@ -526,6 +515,8 @@ var Reader = (function (r) {
 		if (!nearestElement) {
 			return images;
 		}
+		// Retrieve the index of the position element in the collection:
+		nearestIndex = images.index(nearestElement);
 		sortedImages = [];
 		// Add the position element itself if it's matching the img selector:
 		if ($(nearestElement).is(imgSelector)) {
