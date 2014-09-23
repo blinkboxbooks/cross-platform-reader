@@ -694,15 +694,27 @@ var Reader = (function (r) {
 		},
 		load: function(p, fixed) {
 			var isString = $.type(p) === 'string',
-					isLastPage,
-					selector;
+				isLastPage,
+				isProgressAnchor,
+				selector,
+				cfi;
 			if (isString) {
 				isLastPage = r.Navigation.isLastPageAnchor(p);
-				if (!isLastPage && !r.Navigation.isProgressAnchor(p)) {
-					selector = (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+				isProgressAnchor = !isLastPage && r.Navigation.isProgressAnchor(p);
+				if (!isLastPage && !isProgressAnchor) {
+					if (r.CFI.isValidCFI(p)) {
+						selector = r.CFI.getCFISelector(p);
+					} else {
+						selector = p;
+					}
 				}
 			}
 			Page.moveTo(p);
+			if (isProgressAnchor) {
+				// If we have a progress anchor, load images based around the new position:
+				cfi = r.CFI.getCFIObject();
+				selector = cfi && r.CFI.getCFISelector(cfi.CFI);
+			}
 			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
 					// Update the colums and page position on each image load:
