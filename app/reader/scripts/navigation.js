@@ -27,7 +27,6 @@ var Reader = (function (r) {
 	// Reset method for the reader.
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
 	r.reset = function(){
-		r.INF = 'META-INF/book-info.json';
 		r.DOCROOT = '';
 		r.mobile = false;
 
@@ -221,27 +220,24 @@ var Reader = (function (r) {
 		getChapterDocName: function() {
 			return Chapter.getDocName();
 		},
-		loadChapter: function(url){
-			/* TODO refactor with checkURL has they share code */
-			var u = url.split('#')[0];
-			var a = url.split('#')[1];
-			if(u.indexOf('/') !== -1) {
-				// Take only the file name from the URL.
-				u = u.substr(u.lastIndexOf('/') + 1);
+		loadChapter: function (anchorUrl) {
+			var spine = r.Book.spine,
+					urlParts = anchorUrl.split('#'),
+					url = urlParts[0],
+					anchor = urlParts[1],
+					index;
+			if (anchor && (!url || spine[chapter].href.indexOf(url) === 0) &&
+				!r.Navigation.isChapterPartAnchor(anchor)) {
+				// URL points to current chapter (and chapter part)
+				return r.Navigation.loadPage(anchor);
 			}
-			// Check the spine
-			for (var j=0; j<r.Book.spine.length;j++) {
-				// URL is in the Spine and it has a chapter number.
-				if (r.Book.spine[j].href.indexOf(u) !== -1) {
-					r.Navigation.setChapter(j);
-					return r.loadChapter(j,a);
-				}
+			index = r.Book.getSpineIndex(url);
+			if (index !== -1) {
+				return r.loadChapter(index, anchor);
 			}
-
-			// Chapter does not exist
-			var defer = $.Deferred();
-			defer.reject($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Specified chapter does not exist.', call: 'loadChapter'}));
-			return defer.promise();
+			return $.Deferred().reject(
+					$.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Specified chapter does not exist.', call: 'loadChapter', href: anchorUrl})
+			).promise();
 		},
 		next: function() {
 			if (page < pagesByChapter - 1) {
@@ -311,17 +307,17 @@ var Reader = (function (r) {
 			return _progress;
 		},
 		updateProgress: function () {
-			var totalWordCount = r.Book.totalWordCount,
+			var totalWordCount = r.Book.getTotalWordCount(),
 					spineItem = r.Book.spine.length && r.Book.spine[chapter],
 					// Get the current word count from the chapter progress
 					// (which adds one word to the number of words of previous chapters):
 					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += spineItem && spineItem.linear ? spineItem.wordCount * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += spineItem ? r.Book.getWordCount(spineItem) * r.Navigation.getChapterReadFactor() : 0;
 
 			// Calculate progress.
-			var progress = currentWordCount / r.Book.totalWordCount * 100;
+			var progress = currentWordCount / totalWordCount * 100;
 			// If the progress has a valid value (is a number) AND it is different than the current one, update it and send an event notification.
 			if (progress !== _progress && !isNaN(progress)) {
 				_progress = progress;
@@ -343,14 +339,14 @@ var Reader = (function (r) {
 				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
 				return $.Deferred().reject().promise();
 			}
-			var targetWordCount = Math.ceil(progress / 100 * r.Book.totalWordCount),
+			var targetWordCount = Math.ceil(progress / 100 * r.Book.getTotalWordCount()),
 					wordCount = 0,
 					progressFloat = 0,
 					chapterWordCount,
 					progressAnchor,
 					i;
 			for (i = 0; i < r.Book.spine.length; i++) {
-				chapterWordCount = r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
+				chapterWordCount = r.Book.getWordCount(r.Book.spine[i]);
 				if (wordCount + chapterWordCount >= targetWordCount) {
 					break;
 				}
@@ -698,15 +694,27 @@ var Reader = (function (r) {
 		},
 		load: function(p, fixed) {
 			var isString = $.type(p) === 'string',
-					isLastPage,
-					selector;
+				isLastPage,
+				isProgressAnchor,
+				selector,
+				cfi;
 			if (isString) {
 				isLastPage = r.Navigation.isLastPageAnchor(p);
-				if (!isLastPage && !r.Navigation.isProgressAnchor(p)) {
-					selector = (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+				isProgressAnchor = !isLastPage && r.Navigation.isProgressAnchor(p);
+				if (!isLastPage && !isProgressAnchor) {
+					if (r.CFI.isValidCFI(p)) {
+						selector = r.CFI.getCFISelector(p);
+					} else {
+						selector = p;
+					}
 				}
 			}
 			Page.moveTo(p);
+			if (isProgressAnchor) {
+				// If we have a progress anchor, load images based around the new position:
+				cfi = r.CFI.getCFIObject();
+				selector = cfi && r.CFI.getCFISelector(cfi.CFI);
+			}
 			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
 					// Update the colums and page position on each image load:

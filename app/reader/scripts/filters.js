@@ -19,30 +19,20 @@ var Reader = (function (r) {
 	// 2. Lower down int the hierarchy e.g. `/images/image.png`
 	// 3. In the same hierarchy e.g. `image.png"`
 	//
-	// `CONTENT_PATH_PREFIX` represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
+	// contentPathPrefix represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
 	var _parseURL = function(resourcePath){
 		var absoluteUrl = '',
-			docName = r.Navigation.getChapterDocName(),
-			docAbsPath = r.DOCROOT;
+				docAbsPath = r.DOCROOT,
+				href = r.Book.spine[r.Navigation.getChapter()].href,
+				pathComponents = href.split('/');
 
-		// Absolute path of the document containing the image
-		// TODO Move this to Chapter object? Maybe separate file?
-		for (var i = 0; i < r.Book.spine.length; i++) {
-			var href = r.Book.spine[i].href;
-			if (href.indexOf(docName) !== -1) {
-				// The document name was found.
-				var pathComponents = href.split('/');
-				if (href.indexOf(r.Book.content_path_prefix) === -1) {
-					// The href didn't contain the content path prefix (i.e. any path attached to the OPF file), so add it.
-					docAbsPath += '/'+r.Book.content_path_prefix.split('/')[0];
-				}
-				// Append the path components of the document to the absolute path (ignoring the path component which is the document name).
-				if (pathComponents.length > 1) {
-					for (var j = 0; j < pathComponents.length-1; j++) {
-						docAbsPath += '/'+pathComponents[j];
-					}
-				}
-			}
+		if (href.indexOf(r.Book.contentPathPrefix) !== 0) {
+			// The href didn't start with the content path prefix, so we add it:
+			docAbsPath += '/' + r.Book.contentPathPrefix.split('/')[0];
+		}
+		// Append the document directory path to the absolute path:
+		if (pathComponents.length > 1) {
+			docAbsPath += '/' + pathComponents.slice(0, -1).join('/');
 		}
 
 		if (resourcePath.indexOf('../') === 0) {

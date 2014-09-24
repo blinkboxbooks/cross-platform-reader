@@ -47,8 +47,9 @@
 }
 .cpr-placeholder {
   visibility: hidden;
-  width: 1px;
-  height: 1px;
+  // These settings expand placeholder images to one full reader column, which helps in progress calculation:
+  width: auto;
+  height: 100%;
 }
 
 * {
