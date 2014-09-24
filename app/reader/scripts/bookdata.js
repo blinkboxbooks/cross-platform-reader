@@ -151,6 +151,22 @@ var Reader = (function (r) {
 				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
 					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
+
+					var range = selection.getRangeAt(0), rects = range.getClientRects();
+					for (var i = 0; i !== rects.length; i++) {
+						var rect = rects[i];
+						$('<div></div>').css({
+							display: 'inline-block',
+							width: rect.width + 'px',
+							height: rect.height + 'px',
+							top: rect.top + 'px',
+							left: rect.left + 'px',
+							background: 'yellow',
+							position: 'absolute',
+							opacity: '0.2'
+						}).insertAfter(r.$container);
+					}
+
 				} else {
 					// no selected text
 					return false;
