@@ -92,7 +92,7 @@ var Reader = (function (r) {
             touchStartDataCopy = touchStartData;
             touchTimeout = setTimeout(function () {
               sendUnhandledTouchEvent(touchStartDataCopy);
-            }, 550);
+            }, r.preferences.doubleTapDelay.value);
           } else {
             sendUnhandledTouchEvent(touchStartData);
           }
