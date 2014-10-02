@@ -260,8 +260,8 @@ var Reader = (function (r) {
 	// Wrapper function to load book meta data from book-info.json or EPUB meta files:
 	function loadBookData(args) {
 		var defer = $.Deferred();
-		// Notify the client that loading has been started:
-		defer.notify();
+		// Notify the client that loading of the book meta data has been started:
+		defer.notify({type: 'meta.loading'});
 		if (args.spine) {
 			// Book data is provided via arguments, so we only load the opfData:
 			loadOpfData($.extend({}, args))

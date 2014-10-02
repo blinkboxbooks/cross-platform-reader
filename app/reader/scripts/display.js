@@ -312,6 +312,7 @@ var Reader = (function (r) {
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		}
 
+		defer.notify({type: 'chapter.loading'});
 		r.Book.loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {

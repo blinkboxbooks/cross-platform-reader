@@ -31,13 +31,21 @@ var READER = (function() {
 			return Reader.init.apply(Reader, arguments).always(function initComplete(){
 				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 				_isLoading = false;
-			}).then(function initSuccess(){
+			}).then(
+				function initSuccess(){
 					_send_status('init');
-				}, function initFailure(err){
+				},
+				function initFailure(err){
 					Reader.Notify.error(err);
-				}, function initNotify(){
-					Reader.Notify.event(Reader.Event.LOADING_STARTED);
-					_isLoading = true;
+				},
+				function initNotify(){
+					// The notify event will be sent twice on init:
+					// 1. once for the meta data load
+					// 2. once for the chapter load
+					if (!_isLoading) {
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
+					}
 				}
 			);
 		},
@@ -54,103 +62,135 @@ var READER = (function() {
 		setPreferences: _status_wrap(Reader.setPreferences, 'setPreferences'),
 		getCFI: Reader.CFI.getCFI,
 		goToCFI: function goToCFI(){
-			if(_isLoading){
+			if (_isLoading) {
 				return $.Deferred().reject().promise();
 			}
-			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			_isLoading = true;
 			return Reader.CFI.goToCFI.apply(Reader.CFI, arguments).always(function goToCFIComplete(){
-				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
-				_isLoading = false;
-				_send_status('goToCFI');
-			});
+				if (_isLoading) {
+					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
+				}
+			}).then(
+				function goToCFISuccess () {
+					_send_status('goToCFI');
+				},
+				function goToCFIFail (err) {
+					Reader.Notify.error(err);
+				},
+				function goToCFINotification (args) {
+					if (args && args.type === 'chapter.loading') {
+						// book requires remote file, send a loading event to notify the client:
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
+					}
+				}
+			);
 		},
 		goToProgress: function goToProgress(){
-			if(_isLoading){
+			if (_isLoading) {
 				return $.Deferred().reject().promise();
 			}
-			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			_isLoading = true;
-			return Reader.Navigation.goToProgress.apply(Reader.CFI, arguments).always(function goToProgressComplete(){
-				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
-				_isLoading = false;
-				_send_status('goToProgress');
-			});
+			return Reader.Navigation.goToProgress.apply(Reader.Navigation.goToProgress, arguments).always(function goToProgressComplete(){
+				if (_isLoading) {
+					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
+				}
+			}).then(
+				function goToProgressSuccess () {
+					_send_status('goToProgress');
+				},
+				function goToProgressFail (err) {
+					Reader.Notify.error(err);
+				},
+				function goToProgressNotification (args) {
+					if (args && args.type === 'chapter.loading') {
+						// book requires remote file, send a loading event to notify the client:
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
+					}
+				}
+			);
 		},
 		next: function next(){
 			if(_isLoading){
 				return $.Deferred().reject().promise();
 			}
-			var _loading_required = false;
 			return Reader.Navigation.next().always(function nextComplete(){
-				if(_loading_required){
+				if(_isLoading){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 					_isLoading = false;
 				}
 			}).then(
 				function nextOnSuccess(){
 					_send_status('next');
-				}, function nextOnError(err){
+				},
+				function nextOnError(err){
 					if(err === Reader.Event.END_OF_BOOK || err === Reader.Event.START_OF_BOOK){
 						Reader.Notify.event(err);
 					} else {
 						Reader.Notify.error(err);
 					}
-				}, function nextOnNotification(args){
-					if (args && args.type === 'load.img') {
-						return;
+				},
+				function nextOnNotification(args){
+					if (args && args.type === 'chapter.loading') {
+						// book requires remote file, send a loading event to notify the client:
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
 					}
-					// book requires remote file, send a loading event to notify the client
-					Reader.Notify.event(Reader.Event.LOADING_STARTED);
-					_isLoading = true;
-					_loading_required = true;
 				}
 			);
 		},
-		prev: function next(){
+		prev: function prev(){
 			if(_isLoading){
 				return $.Deferred().reject().promise();
 			}
-			var _loading_required = false;
 			return Reader.Navigation.prev().always(function prevComplete(){
-				if(_loading_required){
+				if(_isLoading){
 					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
 					_isLoading = false;
 				}
 			}).then(
 				function prevOnSuccess(){
 					_send_status('prev');
-				}, function prevOnError(err){
+				},
+				function prevOnError(err){
 					if(err === Reader.Event.END_OF_BOOK || err === Reader.Event.START_OF_BOOK){
 						Reader.Notify.event(err);
 					} else {
 						Reader.Notify.error(err);
 					}
-				}, function prevOnNotification(args){
-					if (args && args.type === 'load.img') {
-						return;
+				},
+				function prevOnNotification(args){
+					if (args && args.type === 'chapter.loading') {
+						// book requires remote file, send a loading event to notify the client:
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
 					}
-					// book requires remote file, send a loading event to notify the client
-					Reader.Notify.event(Reader.Event.LOADING_STARTED);
-					_isLoading = true;
-					_loading_required = true;
 				}
 			);
 		},
 		loadChapter: function loadChapter(){
-			if(_isLoading){
+			if (_isLoading) {
 				return $.Deferred().reject().promise();
 			}
-			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			_isLoading = true;
 			return Reader.Navigation.loadChapter.apply(Reader.Navigation, arguments).always(function loadChapterComplete(){
-				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
-				_isLoading = false;
+				if (_isLoading) {
+					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
+				}
 			}).then(
 				function loadChapterSuccess(){
 					_send_status('loadChapter');
-				}, function loadChapterFail(err){
+				},
+				function loadChapterFail(err){
 					Reader.Notify.error(err);
+				},
+				function loadChapterNotification (args) {
+					if (args && args.type === 'chapter.loading') {
+						// book requires remote file, send a loading event to notify the client:
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
+					}
 				}
 			);
 		},
@@ -159,19 +199,27 @@ var READER = (function() {
 		setBookmarks: _status_wrap(Reader.Bookmarks.setBookmarks, 'setBookmarks'),
 		setBookmark: _status_wrap(Reader.Bookmarks.setBookmark, 'setBookmark'),
 		goToBookmark: function goToBookmark(){
-			if(_isLoading){
+			if (_isLoading) {
 				return $.Deferred().reject().promise();
 			}
-			Reader.Notify.event(Reader.Event.LOADING_STARTED);
-			_isLoading = true;
 			return Reader.Bookmarks.goToBookmark.apply(Reader.Bookmarks, arguments).always(function goToCFIComplete(){
-				Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
-				_isLoading = false;
+				if (_isLoading) {
+					Reader.Notify.event(Reader.Event.LOADING_COMPLETE);
+					_isLoading = false;
+				}
 			}).then(
 				function goToBookmarkSuccess(){
 					_send_status('goToBookmark');
-				}, function goToBookmarkFail(err){
+				},
+				function goToBookmarkFail(err){
 					Reader.Notify.error(err);
+				},
+				function goToBookmarkNotification (args) {
+					if (args && args.type === 'chapter.loading') {
+						// book requires remote file, send a loading event to notify the client:
+						Reader.Notify.event(Reader.Event.LOADING_STARTED);
+						_isLoading = true;
+					}
 				}
 			);
 		},
