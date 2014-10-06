@@ -150,9 +150,8 @@ var Reader = (function (r) {
 					padding: r.Layout.Reader.padding
 				}
 			};
-			if (call === 'init') {
-				data.spine = Reader.Book.getSPINE();
-				data.toc = Reader.Book.getTOC();
+			if (call === 'init' || call === 'progressLoad') {
+				data.book = r.Book.getData();
 			}
 			return _check_page_pos($.extend({}, r.Event.STATUS, data));
 		}

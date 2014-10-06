@@ -27,6 +27,12 @@ angular.module('app', ['ngRoute'])
 	})
 	.controller('Reader_controller', function ($scope, $timeout, $routeParams, $exceptionHandler, Book) {
 
+		// keep track of the reader status
+		var status = null;
+
+		// Make parts of the status available on the scope:
+		$scope.status = {};
+
 		// Reader event handler
 		function _log(e){
 			var $p = $('<p>' + JSON.stringify(e) + '</p>');
@@ -42,6 +48,10 @@ angular.module('app', ['ngRoute'])
 					$p.attr('data-test', 'status');
 					/*jshint -W020 */
 					status = e;
+					if (status.call !== 'goToProgress') {
+						$scope.status.progress = e.progress;
+					}
+					$('#progress').text(e.progress.toFixed(2) + ' %');
 					break;
 				case 9: // reader missing a file
 				case 10: // parsing failed
@@ -68,8 +78,11 @@ angular.module('app', ['ngRoute'])
 			hasPrevious: true
 		};
 
-		// keep track of the reader status
-		var status = null;
+		$scope.$watch('status.progress', function (val) {
+			if (status && val !== status.progress) {
+				READER.goToProgress(Number(val));
+			}
+		});
 
 		// Use '/books/' + isbn + '/' if you want to check the books in your localhost (you would need the books from the share drive  /Documents/ePubs/Test-Books-book-info-v1.2.zip
 		$scope.environment = {
@@ -142,6 +155,9 @@ angular.module('app', ['ngRoute'])
 			themes: ['light', 'transparent','dark', 'sepia']
 		};
 
+		$scope.initCFI = $routeParams.initCFI;
+		$scope.initURL = $routeParams.initURL;
+
 		$scope.handlers = {
 			prev: function(){
 				$('[data-test="status"]').removeAttr('data-test');
@@ -204,7 +220,9 @@ angular.module('app', ['ngRoute'])
 					url: val,
 					bookmarks: [],
 					listener: function(e){ $timeout(function(){_log(e);}); },
-					preferences: $scope.preferences
+					preferences: $scope.preferences,
+					initCFI: $scope.initCFI,
+					initURL: $scope.initURL
 				});
 
 				// watch for new watches
