@@ -1,4 +1,4 @@
 #!/bin/bash
 
-npm run push
-npm run pages
+./config/push.sh
+./config/pages.sh
