@@ -3337,35 +3337,315 @@ var bugsense;
 'use strict';
 
 // Sub module for managing a book's meta-information (url, title, spine, isbn)
-//
-// * `spine`
-// * `toc`
-// * `title`
-// * `load`
-// * `reset`
-// * [`getTOC`](#getTOC)
-// * [`getSPINE`](#getSPINE)
 
 var Reader = (function (r) {
 
 	var defaultData = {
+		// This version number identifies the data format:
+		version: '2.0.0',
 		spine: [],
 		toc: [],
 		title: '',
-		content_path_prefix: '',
+		author: '',
+		opfPath: '',
+		contentPathPrefix: '',
 		$opf: null,
-		totalWordCount: 0
+		totalWordCount: 0,
+		totalImageCount: 0,
+		sample: false
 	};
 
-	function getTotalWordCount(spine) {
-		var totalWordCount = 0,
-				i;
-		for (i = 0; i < spine.length; i++) {
-			totalWordCount += spine[i].linear ? spine[i].wordCount : 0;
-		}
-		return totalWordCount;
+	// Retrieves the item with the given id from the OPF manifest:
+	function getManifestItem($opf, id) {
+		// Escape dots in the given id to get a valid id selector:
+		return $opf.find('#' + id.replace(/\./g, '\\.'));
 	}
 
+	// Retrieves the title from the OPF document:
+	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1
+	function getTitleFromOPF($opf) {
+		return $opf.children('metadata').children('dc\\:title').first().text();
+	}
+
+	// Retrieves the author from the OPF document:
+	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2
+	function getAuthorFromOPF($opf) {
+		return $opf.children('metadata').children('dc\\:creator').first().text();
+	}
+
+	// Retrieves the spine data from the OPF document:
+	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
+	function getSpineFromOPF($opf, pathPrefix) {
+		return $.map($opf.children('spine').children('itemref'), function (itemref) {
+			var id = itemref.getAttribute('idref'),
+					$item = getManifestItem($opf, id);
+			return {
+				itemId: id,
+				href: pathPrefix + $item.attr('href'),
+				// The default is "yes", so unlike it's "no", the spine item is linear:
+				linear: itemref.getAttribute('linear') === 'no' ? false : true,
+				mediaType: $item.attr('media-type')
+			};
+		});
+	}
+
+	// Retrieves the TOC from a given navMap entry point (recursive function):
+	function getTOCFromNavMap(navMap, pathPrefix) {
+		return $.map(navMap.children('navPoint'), function (navPoint) {
+			var $navPoint = $(navPoint),
+				data = {
+					// active: true, // false if HTML file is not available, e.g. in samples
+					href: pathPrefix + $navPoint.children('content').attr('src'),
+					label: $navPoint.children('navLabel').children('text').text()
+				},
+				children = getTOCFromNavMap($navPoint, pathPrefix);
+			if (children.length) {
+				data.children = children;
+			}
+			return data;
+		});
+	}
+
+	// Retrieves the TOC from a given collection of list items (recursive function):
+	function getTOCFromNavList(navList, pathPrefix) {
+		return $.map(navList, function (listItem) {
+			var $listItem = $(listItem),
+				data = {
+					// active: true, // false if HTML file is not available, e.g. in samples
+					href: pathPrefix + $listItem.children('a').attr('href'),
+					label: $listItem.children('a,span').text()
+				},
+				children = getTOCFromNavList($listItem.children('ol').children('li'), pathPrefix);
+			if (children.length) {
+				data.children = children;
+			}
+			return data;
+		});
+	}
+
+	// Get a file from the server:
+	function loadFile(resource, type) {
+		var defer = $.Deferred();
+		$.ajax({
+			url: r.DOCROOT + '/' + resource,
+			dataType: type ? type : 'text'
+		}).then(defer.resolve, function (err) {
+			defer.reject($.extend({}, r.Event.ERR_MISSING_FILE, {details: err.responseText}));
+		});
+		return defer.promise();
+	}
+
+	// Retrieve the opfPath from the root file:
+	function loadOpfPath(data) {
+		return loadFile(r.ROOTFILE_INFO_PATH, 'xml').then(function rootFileLoaded(rootDoc) {
+			data.opfPath = $(rootDoc).find('rootfile').attr('full-path');
+			return data;
+		});
+	}
+
+	// Load opfFile and store $opf and contentPathPrefix in the given data object:
+	function loadOpfData(data) {
+		if (data.opf) {
+			// OPF data is provided via XML string
+			data.$opf = $(data.opf).filter('package');
+			return $.Deferred().resolve(data).promise();
+		}
+		return loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
+			var pathPrefix = data.opfPath.split('/').slice(0, -1).join('/');
+			// Add a trailing slash if we have a path prefix:
+			data.contentPathPrefix = pathPrefix && pathPrefix + '/';
+			data.$opf = $(opfDoc).filter('package');
+			return data;
+		});
+	}
+
+	// Function to load the TOC data from the EPUB2 NCX file or the EPUB3 navigation document:
+	function loadTOCData(data) {
+		var navHref = data.$opf.children('manifest').children('item[properties="nav"]').attr('href'),
+				ncxHref = !navHref && getManifestItem(data.$opf, data.$opf.children('spine').attr('toc')).attr('href');
+		if (navHref) {
+			// EPUB v3 navigation document:
+			// http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav
+			return loadFile(data.contentPathPrefix + navHref).then(function navDocLoaded(navDoc) {
+				var navList = $(navDoc).filter('nav[epub\\:type="toc"]').children('ol').children('li');
+				data.toc = getTOCFromNavList(navList, data.contentPathPrefix);
+				return data;
+			});
+		}
+		// EPUB2 NCX file:
+		// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
+		return loadFile(data.contentPathPrefix + ncxHref, 'xml').then(function ncxFileLoaded(ncxDoc) {
+			data.toc = getTOCFromNavMap($(ncxDoc).children('ncx').children('navMap'), data.contentPathPrefix);
+			return data;
+		});
+	}
+
+	// Load book meta data if book-info.json is not available:
+	function loadBookMetaData(args) {
+		return loadOpfPath({})
+			.then(loadOpfData)
+			.then(loadTOCData)
+			.then(function (data) {
+				var $opf = data.$opf;
+				return $.extend(data, {
+					title: getTitleFromOPF($opf),
+					author: getAuthorFromOPF($opf),
+					spine: getSpineFromOPF($opf, data.contentPathPrefix)
+				}, args);
+			});
+	}
+
+	// Load book meta data from book-info.json:
+	function loadBookInfo(args) {
+		// Check if the book info is available (explicit type check as the property might be undefined):
+		if (args.hasBookInfo === false) {
+			return $.Deferred().reject().promise();
+		}
+		return loadFile(r.BOOK_INFO_PATH, 'json')
+			.then(loadOpfData)
+			.then(function (data) {
+				return $.extend(data, args);
+			});
+	}
+
+	// Count the number of words in the given HTML string:
+	function countWords(str) {
+		str = str
+			// Replace the title element, as we don't count its contents:
+			.replace(/<title>[^<]+<\/title>/i, '')
+			// Replace all HTML elements with single spaces:
+			.replace(/(<[^>]+>)/gi, ' ');
+		// Convert all HTML entities to their textual representation,
+		// so that whitespace entities are not counted as text:
+		str = $('<p>').html(str).text();
+		// Calculate the word matches:
+		var match = str.match(/\s+\S+/g);
+		return match ? match.length : 0;
+	}
+
+	// Count the number of images (and SVG elements) in the given HTML string:
+	function countImages(str) {
+		var result = str.match(/(<img)|(<svg)/gi);
+		return result ? result.length : 0;
+	}
+
+	// Strip any HTML comments from the given HTML string:
+	function stripHTMLComments(str) {
+		return str.replace(/<!--.*?-->/g, '');
+	}
+
+	// Function to handle a given number of parallel requests:
+	function parallelRequestsHandler(list, request) {
+		var defer = $.Deferred(),
+				count = list.length,
+				index = 0,
+				maxRequests = r.preferences.maxParallelRequests.value,
+				pendingRequests = 0,
+				handleResponse = function () {
+					pendingRequests--;
+					initRequests();
+				},
+				sendRequests = function () {
+					while (index < count && pendingRequests < maxRequests) {
+						pendingRequests++;
+						request(list[index++]).always(handleResponse);
+					}
+				},
+				initRequests = function () {
+					if (index === count) {
+						if (!pendingRequests) {
+							defer.resolve(list);
+						}
+					} else {
+						sendRequests();
+					}
+				};
+		initRequests();
+		return defer.promise();
+	}
+
+	// Function to parse a chapter in the spine to calculate word- and image- count:
+	function parseChapter(spineItem) {
+		// Check if the spine item is available (explicit type check as the active property might be undefined):
+		if (spineItem.active === false) {
+			// Given file is not available in the EPUB
+			return $.Deferred().reject().promise();
+		}
+		return loadFile(spineItem.href)
+			.done(function (result) {
+				result = stripHTMLComments(result);
+				spineItem.imageCount = countImages(result);
+				if (spineItem.wordCount === undefined) {
+					spineItem.wordCount = countWords(result);
+				}
+				spineItem.active = true;
+			})
+			.fail(function () {
+				// Given file is not available in the EPUB:
+				spineItem.active = false;
+			});
+	}
+
+	// Function to parse each chapter in the spine to calculate word- and image- count:
+	function parseChapters(data) {
+		return parallelRequestsHandler(data.spine, parseChapter).then(function () {
+			return data;
+		});
+	}
+
+	// Wrapper function to load book meta data from book-info.json or EPUB meta files:
+	function loadBookData(args) {
+		var defer = $.Deferred();
+		// Notify the client that loading has been started:
+		defer.notify();
+		if (args.spine) {
+			// Book data is provided via arguments, so we only load the opfData:
+			loadOpfData($.extend({}, args))
+				.then(defer.resolve, defer.reject);
+			return defer.promise();
+		} else {
+			// Try loading book-info.json:
+			loadBookInfo(args).then(
+				defer.resolve,
+				function () {
+					args.hasBookInfo = false;
+					// book-info.json not available, load meta data manually:
+					loadBookMetaData(args)
+						.then(defer.resolve, defer.reject);
+				}
+			);
+			// Book data is not provided via arguments
+			return defer.promise().then(function (data) {
+				// loadProgressData === 1 -> load progress data on Book load
+				if (r.preferences.loadProgressData.value === 1) {
+					// Parse the chapters for the word/image count:
+					return parseChapters(data);
+				}
+				return data;
+			});
+		}
+	}
+
+	// Function to count the total word- and image- count for the given book data:
+	function calculateTotals(book) {
+		var spine = book.spine,
+				wordCount = 0,
+				imageCount = 0,
+				i = 0,
+				item;
+		while ((item = spine[i++])) {
+			// Check if the spine item is available (explicit type check as the active property might be undefined):
+			if (item.active !== false) {
+				wordCount += item.wordCount;
+				imageCount += item.imageCount;
+			}
+		}
+		book.totalWordCount = wordCount;
+		book.totalImageCount = imageCount;
+	}
+
+	// Function to retrieve the associated TOC item for a given href and optional currentPage.
+	// The search starts from the given TOC item to simplify recursion:
 	function parseTOCItem(item, href, currentPage) {
 		var children = item.children,
 			result,
@@ -3403,48 +3683,96 @@ var Reader = (function (r) {
 		return result;
 	}
 
-	function addLabelAndProgressToSpine(spine) {
-		var totalWordCount = r.Book.totalWordCount,
-				currentWordCount = 0,
-				i,
+	// Adds labels from TOC and progress information to the spine:
+	function addLabelAndProgressToSpine(book) {
+		var spine = book.spine,
+				totalCount = book.getTotalWordCount(),
+				currentCount = 0,
+				i = 0,
 				spineItem,
 				tocItem;
-		for (i = 0; i < spine.length; i++) {
-			spineItem = spine[i];
-			tocItem = r.Book.getTOCItem(spineItem.href);
-			if (tocItem) {
-				spineItem.label = tocItem.label;
+		while ((spineItem = spine[i++])) {
+			if (spineItem.label === undefined) {
+				tocItem = book.getTOCItem(spineItem.href);
+				if (tocItem) {
+					spineItem.label = tocItem.label;
+				}
 			}
-			// Add +1 to the current word count of the previous chapters
-			// to identify the progress for the first word of the chapter:
-			spineItem.progress = (currentWordCount + 1) / totalWordCount * 100;
-			currentWordCount += spineItem.linear ? spineItem.wordCount : 0;
+			// Check if the spine item is available (explicit type check as the active property might be undefined):
+			if (spineItem.active !== false) {
+				// Add +1 to the current word count of the previous chapters
+				// to identify the progress for the first word of the chapter:
+				spineItem.progress = (currentCount + 1) / totalCount * 100;
+				currentCount += book.getWordCount(spineItem);
+			}
 		}
 	}
 
+	// Initialize the book with the given data:
+	function initializeBookData(data) {
+		var book = r.Book;
+		$.extend(book, data);
+		calculateTotals(book);
+		addLabelAndProgressToSpine(book);
+		r.Navigation.setNumberOfChapters(book.spine.length);
+		return book;
+	}
+
 	r.Book = {
-		// <a name="load"></a> Loads a book's information.
+		// Method to load a file from the book resources:
+		loadFile: loadFile,
+		// Load the book information.
+		// Uses the given arguments and loads any missing data:
 		load: function (args) {
-			r.Book.reset();
-			$.extend(r.Book, args);
-			r.Book.$opf = $(args.opf).filter('package');
-			r.Book.totalWordCount = getTotalWordCount(r.Book.spine);
-			addLabelAndProgressToSpine(r.Book.spine);
+			this.reset();
+			return loadBookData(args || {}).then(initializeBookData);
 		},
-		// <a name="reset"></a> Resets the module to default values.
+		// Load the spine progress data (word- and image count):
+		loadProgressData: function () {
+			return parseChapters(this).then(initializeBookData);
+		},
+		// Reset the module to default values:
 		reset: function () {
-			$.extend(r.Book, defaultData);
+			$.extend(this, defaultData);
 		},
-		// <a name="getSPINE"></a> Returns the spine as an array.
-		getSPINE: function () {
-			return r.Book.spine;
-		},
-		// <a name="getTOC"></a> Returns the TOC as an array.
-		getTOC: function () {
-			return r.Book.toc;
-		},
+		// Retrieve the associated TOC item for a given href and optional currentPage:
 		getTOCItem: function (href, currentPage) {
-			return parseTOCItem({children: r.Book.toc}, href, currentPage);
+			return parseTOCItem({children: this.toc}, href, currentPage);
+		},
+		// Get the spine index for the given URL:
+		getSpineIndex: function (url) {
+			var spine = this.spine,
+					i = 0,
+					item;
+			while ((item = spine[i])) {
+				// Check if the spine item is available (explicit type check as the active property might be undefined):
+				if (item.active !== false && item.href.indexOf(url.split('#')[0]) === 0) {
+					return i;
+				}
+				i++;
+			}
+			return -1;
+		},
+		// Retrieve the total word count of a book (takes image count into account):
+		getTotalWordCount: function () {
+			return this.totalWordCount + (this.totalImageCount || 0) * r.preferences.imageWordCount.value;
+		},
+		// Retrieve the word count of a chapter (takes image count into account):
+		getWordCount: function (spineItem) {
+			return spineItem.wordCount + (spineItem.imageCount || 0) * r.preferences.imageWordCount.value;
+		},
+		// Export the book data that can be converted to JSON:
+		getData: function () {
+			var data = {},
+					prop,
+					value;
+			for (prop in this) {
+				value = this[prop];
+				if (this.hasOwnProperty(prop) && typeof value !== 'function' && !(value instanceof $)) {
+					data[prop] = value;
+				}
+			}
+			return data;
 		}
 	};
 
@@ -4006,7 +4334,8 @@ var Reader = (function (r) {
 
 	// Constants
 	r.DOCROOT = '';
-	r.INF = 'META-INF/book-info.json';
+	r.BOOK_INFO_PATH = 'META-INF/book-info.json';
+	r.ROOTFILE_INFO_PATH = 'META-INF/container.xml';
 
 	// Initial settings.
 	r.$iframe = null;
@@ -4024,55 +4353,60 @@ var Reader = (function (r) {
 	r.listener = null;
 	// User-set preferences that are related to the display options.
 	var i, rule;
+
+	// Helper function to restrict the bounds of the given preference:
+	function restrictBounds(value) {
+		/*jshint validthis:true */
+		value = Number(value) || 0;
+		if (value > this.max) {
+			return this.max;
+		}
+		if (value < this.min) {
+			return this.min;
+		}
+		return value;
+	}
+
 	r.preferences = {
 		publisherStyles: {
 			value: true
+		},
+		loadProgressData: {
+			min: 0,
+			max: 2,
+			value: 2, // 0 -> disabled, 1 -> load progress on book load, 2 -> load progress after initial chapter load
+			clear: restrictBounds
+		},
+		imageWordCount: {
+			min: 1,
+			max: 1000,
+			value: 100,
+			clear: restrictBounds
+		},
+		maxParallelRequests: {
+			min: 1,
+			max: 10,
+			value: 5,
+			clear: restrictBounds
 		},
 		maxChapterElements: {
 			min: 100,
 			max: 10000,
 			value: 200,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.maxChapterElements.max) {
-					return r.preferences.maxChapterElements.max;
-				}
-				if (value < r.preferences.maxChapterElements.min) {
-					return r.preferences.maxChapterElements.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		// Preload range for lazy image loading (indicates the number of pages around the current page on which images are preloaded):
 		preloadRange: {
 			min: 1,
 			max: 10,
 			value: 2,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.preloadRange.max) {
-					return r.preferences.preloadRange.max;
-				}
-				if (value < r.preferences.preloadRange.min) {
-					return r.preferences.preloadRange.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		transitionDuration: {
 			min: 0,
 			max: 1,
 			value: 0.3,
-			clear: function (value) {
-				value = Number(value) || 0;
-				if (value > r.preferences.transitionDuration.max) {
-					return r.preferences.transitionDuration.max;
-				}
-				if (value < r.preferences.transitionDuration.min) {
-					return r.preferences.transitionDuration.min;
-				}
-				return value;
-			}
+			clear: restrictBounds
 		},
 		transitionTimingFunction: {
 			value: 'ease-in-out'
@@ -4083,6 +4417,7 @@ var Reader = (function (r) {
 			max: 20,
 			unit: 0.1,
 			value: 1.6,
+			clear: restrictBounds,
 			applyRules: function(){
 				for(i = 0; i< r.preferences.lineHeight.rules.length; i++){
 					rule = r.preferences.lineHeight.rules[i];
@@ -4096,6 +4431,7 @@ var Reader = (function (r) {
 			max: 15,
 			unit: 0.1,
 			value: 1,
+			clear: restrictBounds,
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontSize.rules.length; i++){
 					rule = r.preferences.fontSize.rules[i];
@@ -4106,6 +4442,9 @@ var Reader = (function (r) {
 		fontFamily : {
 			rules: [],
 			value: '',
+			clear: function (value) {
+				return typeof(value) === 'string' ? value : this.value;
+			},
 			applyRules: function(){
 				for(i = 0; i< r.preferences.fontFamily.rules.length; i++){
 					rule = r.preferences.fontFamily.rules[i];
@@ -4251,18 +4590,17 @@ var Reader = (function (r) {
 var Reader = (function (r) {
 	'use strict';
 
-	var _initCFI = null, _initURL = null;
-
 	// **Init function**
 	//
 	// Assign parameters to the global variables.
 	//
 	// * `param` Contains the parameters: container (id), chapters, padding, url, mobile, dimensions (width and height) etc.
 	r.init = function(param) {
-		r.reset(); // Reset the reader values.
-		if (!param) { param = {}; }
-		_initCFI = null;
-		_initURL = null;
+		r.reset();
+
+		if (!param) {
+			param = {};
+		}
 
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
@@ -4298,10 +4636,6 @@ var Reader = (function (r) {
 		// Initialize the touch module:
 		r.Touch.init(r.$iframe.contents());
 
-		// Set the initial position.
-		_initCFI = param.hasOwnProperty('initCFI') ? param.initCFI : _initCFI;
-		_initURL = param.hasOwnProperty('initURL') ? param.initURL : _initURL;
-
 		// Resize the container with the width and height (if they exist).
 		_createContainer(param.width, param.height, param.columns, param.padding);
 
@@ -4320,8 +4654,10 @@ var Reader = (function (r) {
 		// Enable bugsense reporting
 		_setBugsense();
 
-		// Start the party.
-		return loadInfo();
+		// Start the party:
+		return r.Book.load(param.book).then(function (book) {
+			return initializeBook(book, param);
+		});
 	};
 
 	function _getTransitionEndProperty() {
@@ -4340,8 +4676,8 @@ var Reader = (function (r) {
 		}
 	}
 
-	var _addStyles= function(){
-		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;font-family:sans-serif}#cpr-header{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px;font-family:sans-serif}.cpr-placeholder{visibility:hidden;width:1px;height:1px}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:sans-serif;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin:0 0 1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:0 auto .5rem}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}';
+	function _addStyles() {
+		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;font-family:sans-serif}#cpr-header{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px;font-family:sans-serif}.cpr-placeholder{visibility:hidden;width:auto;height:100%}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:sans-serif;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin:0 0 1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:0 auto .5rem}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}';
 
 		var $style = $('<style>' + styles + '</style>').appendTo(r.$head);
 
@@ -4369,14 +4705,14 @@ var Reader = (function (r) {
 		if(!r.mobile){
 			r.$head.append('<link href=\'//fonts.googleapis.com/css?family=Droid+Serif:400,700,700italic,400italic\' rel=\'stylesheet\' type=\'text/css\'>');
 		}
-	};
+	}
 
-	var _setBugsense = function(){
+	function _setBugsense() {
 		if (typeof Bugsense === 'function') {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '0.3.1-62'
+				appversion: '1.0.1-66'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4384,85 +4720,46 @@ var Reader = (function (r) {
 				return false;
 			};
 		}
-	};
-
-	// Check and load an URL if it is in the spine or the TOC.
-	var _checkURL = function (url) {
-		var findURL = false;
-		// The URL.
-		var u = url[0];
-		// The anchor.
-		var a = url[1];
-		// Link is in the actual chapter.
-		var chapter = r.Navigation.getChapter();
-		if ((r.Book.spine[chapter].href.indexOf(u) !== -1 || u === '') && a !=='') {
-			// If the anchor points to another chapter part, reload the chapter,
-			// else simply go to the page with the given anchor:
-			if (!r.Navigation.isChapterPartAnchor(a)) {
-				r.Navigation.loadPage(a);
-				return true;
-			}
-		}
-		// Check the table of contents...
-		for (var i=0; i<r.Book.toc.length; i++) {
-			if (r.Book.toc[i].href.indexOf(u) !== -1 && r.Book.toc[i].active === true) { findURL = true; }
-		}
-
-		var _load = function(j,a){
-			r.Notify.event(r.Event.LOADING_STARTED);
-			r.loadChapter(j,a).always(function clickLoadComplete(){
-				r.Notify.event(r.Event.LOADING_COMPLETE);
-			}).then(
-				function clickLoadSuccess(){
-					r.Notify.event($.extend({}, Reader.Event.getStatus(), {call: 'clickLoad'}));
-				},
-				function clickLoadError(err){
-					r.Notify.error(err);
-				}
-			);
-		};
-
-		// Check the spine...
-		for (var j=0; j<r.Book.spine.length;j++) {
-			// URL is in the Spine and it has a chapter number...
-			if (r.Book.spine[j].href.indexOf(u) !== -1) {
-				r.Navigation.setChapter(j);
-				r.Navigation.setPage(0);
-
-				// since this is a user generated even, we must handle callbacks here
-				_load(j,a);
-				return true;
-			}
-		}
-		return findURL;
-	};
+	}
 
 	// Capture all the links in the reader
-	var _clickHandler = function (e) {
+	function _clickHandler(e) {
+		/*jshint validthis:true */
+		// Retrieve the encoded relative version of the url:
+		var url = this.href.split('/').slice(-this.getAttribute('href').split('/').length).join('/'),
+				type = this.getAttribute('data-link-type');
 		e.preventDefault();
-		if (this.getAttribute('data-link-type') === 'external') {
-			// External link, notify client about it
-			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
-		} else if (this.getAttribute('data-link-type') === 'internal') {
-			// Internal link, notify client about it
-			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href:this.getAttribute('href')}));
-			// Internal link
-			// Reduce the URL to the name file (remove anchors ids)
-			var url = this.getAttribute('href').split('#');
-			// Check if the link exists in the spine and ask the user
-			if (!_checkURL(url)) {
-				r.Notify.event($.extend({}, Reader.Event.CONTENT_NOT_AVAILABLE, {call: 'userClick'}));
-			}
+		e.stopPropagation();
+		if (type === 'external') {
+			// External link, notify client about it:
+			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href: url}));
+		} else if (type === 'internal') {
+			// Internal link, notify client about it:
+			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href: url}));
+			// Load the given URL:
+			r.Notify.event(r.Event.LOADING_STARTED);
+			r.Navigation.loadChapter(url)
+				.always(function () {
+					r.Notify.event(r.Event.LOADING_COMPLETE);
+				})
+				.done(function () {
+					r.Notify.event($.extend({}, Reader.Event.getStatus(), {call: 'clickLoad', href: url}));
+				})
+				.fail(function (error) {
+					if (error && error.code === r.Event.ERR_INVALID_ARGUMENT.code) {
+						r.Notify.event($.extend({}, Reader.Event.CONTENT_NOT_AVAILABLE, {call: 'userClick', href: url}));
+					} else {
+						r.Notify.error(error);
+					}
+				});
 		}
-		// Stop event propagation
-		if (e.stopPropagation) { e.stopPropagation(); }
-	};
+	}
 
 	// Display HTML content
 	//
 	// * `param` Contains the parameters: content, page and mimetype
 	// * `callback` Function to be called after the function's logic
-	var displayContent = function(param) {
+	function displayContent(param) {
 		if (!param) { param = {}; }
 		// Take the params values
 		var content = (param.hasOwnProperty('content')) ? param.content : '';
@@ -4493,13 +4790,29 @@ var Reader = (function (r) {
 				});
 			}
 		});
-	};
+	}
+
+	// Check if the browser supports css-columns.
+	function areColumnsSupported() {
+		var elemStyle = document.createElement('ch').style,
+			domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
+			prop = 'columnCount',
+			uc_prop = prop.charAt(0).toUpperCase() + prop.substr(1),
+			props   = (prop + ' ' + domPrefixes.join(uc_prop + ' ') + uc_prop).split(' ');
+
+		for ( var i in props ) {
+			if ( elemStyle[ props[i] ] !== undefined ) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	// Define the container dimensions and create the multi column or adjust the height for the vertical scroll.
 	//
 	// * `width` In pixels
 	// * `height` In pixels
-	var _createContainer = function() {
+	function _createContainer() {
 		r.$iframe.css({
 			display: 'inline-block',
 			border: 'none'
@@ -4524,101 +4837,39 @@ var Reader = (function (r) {
 			var selection = $doc[0].getSelection().toString();
 			r.Notify.event($.extend({value: selection}, r.Event.TEXT_SELECTION_EVENT));
 		});
-	};
+	}
 
-	// Load the JSON file with all the information related to this book
-	//
-	// * `resource`
-	var loadInfo = function() {
-		var defer = $.Deferred();
-		loadFile(r.INF, 'json').then(function bookInfoLoaded(data){
-			// Check for startCFI, save it if and only if initCFI is null
-			_initCFI = data.startCfi && !_initCFI ? data.startCfi : _initCFI;
-
-			// Validate initCFI (chapter exists)
-			var chapter = r.CFI.getChapterFromCFI(_initCFI);
-			if(chapter === -1 || chapter >= data.spine.length){
-				chapter = 0;
-				_initCFI = null;
-			}
-
-			// todo calculate path prefix in book?
-			var path_prefix = '';
-
-			// If the OPF is in a folder...
-			if (data.opfPath.indexOf('/') !== -1) {
-				var pathComponents = data.opfPath.split('/');
-				for (var i = 0; i < (pathComponents.length-1); i++){
-					if (i !== 0) {
-						path_prefix += '/';
-					}
-					path_prefix  += pathComponents[i];
-				}
-			}
-			// If the PATH is empty set its value with the path of the first element in the spine.
-			if (path_prefix === '') {
-				// Check the path has more then one component.
-				if (data.spine[0].href.indexOf('/') !== -1) {
-					path_prefix = data.spine[0].href.split('/')[0];
-				}
-			}
-			// Set OPF
-			if (data.opfPath !== '') {
-				loadFile(data.opfPath).then(function opfFileLoaded(opf){
-					// save book metadata
-					r.Book.load({
-						title: data.title,
-						spine: data.spine,
-						toc: data.toc,
-						content_path_prefix: path_prefix,
-						opf: opf
-					});
-
-					var promise; // promise object to return
-					if(_initCFI === null){
-						// if initURL is null, load the first chapter, otherwise load the specified chapter
-						promise = !!_initURL ? r.Navigation.loadChapter(_initURL) : r.loadChapter(0);
-					} else {
-						// load the chapter specified by the CFI, otherwise load chapter 0
-						promise = r.loadChapter(chapter);
-					}
-					promise.then(defer.resolve, defer.reject);
-				}, defer.reject);
-			}
-			r.Navigation.setNumberOfChapters(data.spine.length); // Set number of chapters
-		}, defer.reject);
-		// notify client that info promise has been processed
-		defer.notify();
-		return defer.promise();
-	};
-
-	// Get a file from the server and display its content
-	//
-	// * `resource`
-	// * `callback`
-	var loadFile = function(resource, type) {
-		var defer = $.Deferred();
-		$.ajax({
-			url: r.DOCROOT+'/'+resource,
-			dataType: (type) ? type : 'text'
-		}).then(defer.resolve, function(err){
-				defer.reject($.extend({}, r.Event.ERR_MISSING_FILE, {details: err}));
+	function initializeBook(book, param) {
+		// Use startCFI if initCFI is not already set:
+		var initCFI = param.initCFI || book.startCfi;
+		var chapter = r.CFI.getChapterFromCFI(initCFI),
+				promise;
+		// Validate initCFI (chapter exists):
+		if (chapter === -1 || chapter >= book.spine.length) {
+			chapter = 0;
+			initCFI = null;
+		}
+		if (initCFI) {
+			promise = r.loadChapter(chapter, initCFI);
+		} else {
+			promise = param.initURL ? r.Navigation.loadChapter(param.initURL) : r.loadChapter(0);
+		}
+		if (r.preferences.loadProgressData.value === 2) {
+			// Load the spine progress data after loading the initial chapter:
+			promise.then(function () {
+				r.Book.loadProgressData().then(function () {
+					r.Navigation.updateProgress();
+					r.Notify.event($.extend({}, Reader.Event.getStatus('progressLoad'), {call: 'progressLoad'}));
+				});
 			});
-		return defer.promise();
-	};
+		}
+		return promise;
+	}
 
 	// Load a chapter with the index from the spine of this chapter
 	r.loadChapter = function(chapterNumber, page) {
 		var defer = $.Deferred(),
-			chapterUrl;
-
-		// Check if the PATH is in the href value from the spine...
-		if ((r.Book.spine[chapterNumber].href.indexOf(r.Book.content_path_prefix) !== -1)) {
-			chapterUrl = r.Book.spine[chapterNumber].href;
-		} else {
-			// If it is not, add it and load the chapter
-			chapterUrl = r.Book.content_path_prefix+'/'+r.Book.spine[chapterNumber].href;
-		}
+				chapterUrl = r.Book.spine[chapterNumber].href;
 
 		r.Epub.setUp(chapterNumber, r.Book.$opf);
 		r.Navigation.setChapter(chapterNumber);
@@ -4626,21 +4877,21 @@ var Reader = (function (r) {
 
 		// success handler for load chapter
 		function loadChapterSuccess(data){
+			// The url param is required for the chapter divide:
 			displayContent({content: data, page: page, url: chapterUrl}).then(function(){
 
 				r.Navigation.setNumberOfPages();
 
 				var cfi = r.CFI.isValidCFI(String(page)) && page;
-				if (cfi || _initCFI) {
-					r.CFI.goToCFI(cfi || _initCFI).then(defer.resolve);
-					_initCFI = null;
+				if (cfi) {
+					r.CFI.goToCFI(cfi).then(defer.resolve);
 				} else {
 					r.Navigation.loadPage(page).then(defer.resolve);
 				}
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		}
 
-		loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
+		r.Book.loadFile(chapterUrl).then(loadChapterSuccess, defer.reject);
 
 		return defer.promise().then(function () {
 			// setReaderOpacity returns a promise, but we don't rely on the fade in
@@ -4648,22 +4899,6 @@ var Reader = (function (r) {
 			// so we don't return this promise:
 			r.setReaderOpacity(1, r.preferences.transitionDuration.value);
 		});
-	};
-
-	// Check if the browser supports css-columns.
-	var areColumnsSupported = function () {
-		var elemStyle = document.createElement('ch').style,
-			domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
-			prop = 'columnCount',
-			uc_prop = prop.charAt(0).toUpperCase() + prop.substr(1),
-			props   = (prop + ' ' + domPrefixes.join(uc_prop + ' ') + uc_prop).split(' ');
-
-		for ( var i in props ) {
-			if ( elemStyle[ props[i] ] !== undefined ) {
-				return true;
-			}
-		}
-		return false;
 	};
 
 	return r;
@@ -4850,7 +5085,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '0.3.1-62'
+			'version': '1.0.1-66'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -4942,9 +5177,8 @@ var Reader = (function (r) {
 					padding: r.Layout.Reader.padding
 				}
 			};
-			if (call === 'init') {
-				data.spine = Reader.Book.getSPINE();
-				data.toc = Reader.Book.getTOC();
+			if (call === 'init' || call === 'progressLoad') {
+				data.book = r.Book.getData();
 			}
 			return _check_page_pos($.extend({}, r.Event.STATUS, data));
 		}
@@ -5030,30 +5264,20 @@ var Reader = (function (r) {
 	// 2. Lower down int the hierarchy e.g. `/images/image.png`
 	// 3. In the same hierarchy e.g. `image.png"`
 	//
-	// `CONTENT_PATH_PREFIX` represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
+	// contentPathPrefix represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
 	var _parseURL = function(resourcePath){
 		var absoluteUrl = '',
-			docName = r.Navigation.getChapterDocName(),
-			docAbsPath = r.DOCROOT;
+				docAbsPath = r.DOCROOT,
+				href = r.Book.spine[r.Navigation.getChapter()].href,
+				pathComponents = href.split('/');
 
-		// Absolute path of the document containing the image
-		// TODO Move this to Chapter object? Maybe separate file?
-		for (var i = 0; i < r.Book.spine.length; i++) {
-			var href = r.Book.spine[i].href;
-			if (href.indexOf(docName) !== -1) {
-				// The document name was found.
-				var pathComponents = href.split('/');
-				if (href.indexOf(r.Book.content_path_prefix) === -1) {
-					// The href didn't contain the content path prefix (i.e. any path attached to the OPF file), so add it.
-					docAbsPath += '/'+r.Book.content_path_prefix.split('/')[0];
-				}
-				// Append the path components of the document to the absolute path (ignoring the path component which is the document name).
-				if (pathComponents.length > 1) {
-					for (var j = 0; j < pathComponents.length-1; j++) {
-						docAbsPath += '/'+pathComponents[j];
-					}
-				}
-			}
+		if (href.indexOf(r.Book.contentPathPrefix) !== 0) {
+			// The href didn't start with the content path prefix, so we add it:
+			docAbsPath += '/' + r.Book.contentPathPrefix.split('/')[0];
+		}
+		// Append the document directory path to the absolute path:
+		if (pathComponents.length > 1) {
+			docAbsPath += '/' + pathComponents.slice(0, -1).join('/');
 		}
 
 		if (resourcePath.indexOf('../') === 0) {
@@ -5254,6 +5478,7 @@ var Reader = (function (r) {
 
 // The **Formatting** options available to the user.
 //
+// * [`setMaxParallelRequests`](#setMaxParallelRequests)
 // * [`setMaxChapterElements`](#setMaxChapterElements)
 // * [`setPreloadRange`](#setPreloadRange)
 // * [`setTransitionDuration`](#setTransitionDuration)
@@ -5278,6 +5503,21 @@ var Reader = (function (r) {
 	// <a name="disablePublisherStyles"></a>
 	r.disablePublisherStyles = function(){
 		return r.setPreferences({publisherStyles: false});
+	};
+
+	// <a name="setImageWordCount"></a> Set image word count.
+	r.setLoadProgressData = function(value){
+		return r.setPreferences({loadProgressData: value});
+	};
+
+	// <a name="setImageWordCount"></a> Set image word count.
+	r.setImageWordCount = function(value){
+		return r.setPreferences({imageWordCount: value});
+	};
+
+	// <a name="setMaxParallelRequests"></a> Set max parallel requests (within bounds).
+	r.setMaxParallelRequests = function(value){
+		return r.setPreferences({maxParallelRequests: value});
 	};
 
 	// <a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).
@@ -5375,110 +5615,73 @@ var Reader = (function (r) {
 	//
 	// * `args` an Object containing valid preference values.
 
-	r.setPreferences = function(args){
-		if(typeof args === 'object'){
-			var value, updated = false;
+	r.setPreferences = function (args) {
+		if (typeof args !== 'object') {
+			return r.preferences;
+		}
+		var updated = false,
+				pref,
+				value,
+				prop;
 
-			// Enable/Disable publisher styles.
-			if(args.hasOwnProperty('publisherStyles')){
-				value = Boolean(args.publisherStyles);
-				if (value !== r.preferences.publisherStyles.value) {
-					r.preferences.publisherStyles.value = value;
-					if (value) {
-						r.addPublisherStyles().then(function () {
-							r.refreshLayout();
-						});
-					} else {
-						r.resetPublisherStyles();
-						r.refreshLayout();
-					}
+		function refresh() {
+			r.refreshLayout();
+		}
+
+		for (prop in args) {
+			if (args.hasOwnProperty(prop)) {
+				pref = r.preferences[prop];
+				value = args[prop];
+				switch (prop) {
+					case 'lineHeight':
+					case 'fontSize':
+					case 'textAlign':
+					case 'fontFamily':
+					case 'theme':
+						value = pref.clear(value);
+						if (pref.value !== value) {
+							pref.value = value;
+							updated = true;
+						}
+						break;
+					case 'transitionTimingFunction':
+						pref.value = value;
+						r.$reader.css('transition-timing-function', value);
+						break;
+					case 'publisherStyles':
+						value = Boolean(value);
+						if (value !== pref.value) {
+							pref.value = value;
+							if (value) {
+								r.addPublisherStyles().then(refresh);
+							} else {
+								r.resetPublisherStyles();
+								r.refreshLayout();
+							}
+						}
+						break;
+					case 'margin':
+						value = pref.clear(value);
+						if (value !== pref.value) {
+							pref.value = value;
+							r.Layout.resizeContainer();
+							updated = true;
+						}
+						break;
+					default:
+						pref.value = pref.clear(value);
 				}
 			}
+		}
 
-			// Set max chapter elements (within bounds).
-			// Updating max chapter elements does not need any styles update nor a layout refresh,
-			// as it will only take effect on the next chapter load.
-			if(args.hasOwnProperty('maxChapterElements')){
-				r.preferences.maxChapterElements.value = r.preferences.maxChapterElements.clear(args.maxChapterElements);
-			}
-
-			// Set preload range (within bounds).
-			// Updating preload range does not need any styles update nor a layout refresh.
-			if(args.hasOwnProperty('preloadRange')){
-				r.preferences.preloadRange.value = r.preferences.preloadRange.clear(args.preloadRange);
-			}
-
-			// Set transition duration (within bounds).
-			// Updating transition duration does not need any styles update nor a layout refresh.
-			if(args.hasOwnProperty('transitionDuration')){
-				r.preferences.transitionDuration.value = r.preferences.transitionDuration.clear(args.transitionDuration);
-			}
-
-			// Set transition timing function.
-			if(args.hasOwnProperty('transitionTimingFunction')){
-				r.preferences.transitionTimingFunction.value = args.transitionTimingFunction;
-				r.$reader.css('transition-timing-function', args.transitionTimingFunction);
-			}
-
-			// Set line height if all conditions are met
-			if(args.hasOwnProperty('lineHeight')){
-				value = parseFloat(args.lineHeight) || r.preferences.lineHeight.value;
-				if(r.preferences.lineHeight.value !== value && r.preferences.lineHeight.max >= value && r.preferences.lineHeight.min <= value){
-					r.preferences.lineHeight.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('fontSize')){
-				value = parseFloat(args.fontSize) || r.preferences.fontSize.value;
-				if(r.preferences.fontSize.value !== value && r.preferences.fontSize.max >= value && r.preferences.fontSize.min <= value){
-					r.preferences.fontSize.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('textAlign')){
-				value = r.preferences.textAlign.clear(args.textAlign);
-				if(r.preferences.textAlign.value !== value){
-					r.preferences.textAlign.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('fontFamily')){
-				value = typeof(args.fontFamily) === 'string' ? args.fontFamily : r.preferences.fontFamily.value;
-				if(r.preferences.fontFamily.value !== value){
-					r.preferences.fontFamily.value = value;
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('margin')){
-				value = r.preferences.margin.clear(args.margin);
-				if(value !== r.preferences.margin.value){
-					r.preferences.margin.value = value;
-					r.Layout.resizeContainer();
-					updated = true;
-				}
-			}
-
-			if(args.hasOwnProperty('theme')){
-				value = r.preferences.theme.clear(args.theme);
-				if(value !== r.preferences.theme.value){
-					r.preferences.theme.value = value;
-					updated = true;
-				}
-			}
-
-			if(updated){
-				r.preferences.applyAll();
-
-				// Update variables that are dependant on styles.
-				r.refreshLayout();
-			}
+		if (updated) {
+			r.preferences.applyAll();
+			// Update variables that are dependant on styles.
+			r.refreshLayout();
 		}
 		return r.preferences;
 	};
+
 	return r;
 }(Reader || {}));
 
@@ -5651,7 +5854,6 @@ var Reader = (function (r) {
 	// Reset method for the reader.
 	// *Note, some properties are not reset, such as preferences, listeners, styling*.
 	r.reset = function(){
-		r.INF = 'META-INF/book-info.json';
 		r.DOCROOT = '';
 		r.mobile = false;
 
@@ -5845,27 +6047,24 @@ var Reader = (function (r) {
 		getChapterDocName: function() {
 			return Chapter.getDocName();
 		},
-		loadChapter: function(url){
-			/* TODO refactor with checkURL has they share code */
-			var u = url.split('#')[0];
-			var a = url.split('#')[1];
-			if(u.indexOf('/') !== -1) {
-				// Take only the file name from the URL.
-				u = u.substr(u.lastIndexOf('/') + 1);
+		loadChapter: function (anchorUrl) {
+			var spine = r.Book.spine,
+					urlParts = anchorUrl.split('#'),
+					url = urlParts[0],
+					anchor = urlParts[1],
+					index;
+			if (anchor && (!url || spine[chapter].href.indexOf(url) === 0) &&
+				!r.Navigation.isChapterPartAnchor(anchor)) {
+				// URL points to current chapter (and chapter part)
+				return r.Navigation.loadPage(anchor);
 			}
-			// Check the spine
-			for (var j=0; j<r.Book.spine.length;j++) {
-				// URL is in the Spine and it has a chapter number.
-				if (r.Book.spine[j].href.indexOf(u) !== -1) {
-					r.Navigation.setChapter(j);
-					return r.loadChapter(j,a);
-				}
+			index = r.Book.getSpineIndex(url);
+			if (index !== -1) {
+				return r.loadChapter(index, anchor);
 			}
-
-			// Chapter does not exist
-			var defer = $.Deferred();
-			defer.reject($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Specified chapter does not exist.', call: 'loadChapter'}));
-			return defer.promise();
+			return $.Deferred().reject(
+					$.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Specified chapter does not exist.', call: 'loadChapter', href: anchorUrl})
+			).promise();
 		},
 		next: function() {
 			if (page < pagesByChapter - 1) {
@@ -5935,17 +6134,17 @@ var Reader = (function (r) {
 			return _progress;
 		},
 		updateProgress: function () {
-			var totalWordCount = r.Book.totalWordCount,
+			var totalWordCount = r.Book.getTotalWordCount(),
 					spineItem = r.Book.spine.length && r.Book.spine[chapter],
 					// Get the current word count from the chapter progress
 					// (which adds one word to the number of words of previous chapters):
 					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += spineItem && spineItem.linear ? spineItem.wordCount * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += spineItem ? r.Book.getWordCount(spineItem) * r.Navigation.getChapterReadFactor() : 0;
 
 			// Calculate progress.
-			var progress = currentWordCount / r.Book.totalWordCount * 100;
+			var progress = currentWordCount / totalWordCount * 100;
 			// If the progress has a valid value (is a number) AND it is different than the current one, update it and send an event notification.
 			if (progress !== _progress && !isNaN(progress)) {
 				_progress = progress;
@@ -5967,14 +6166,14 @@ var Reader = (function (r) {
 				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
 				return $.Deferred().reject().promise();
 			}
-			var targetWordCount = Math.ceil(progress / 100 * r.Book.totalWordCount),
+			var targetWordCount = Math.ceil(progress / 100 * r.Book.getTotalWordCount()),
 					wordCount = 0,
 					progressFloat = 0,
 					chapterWordCount,
 					progressAnchor,
 					i;
 			for (i = 0; i < r.Book.spine.length; i++) {
-				chapterWordCount = r.Book.spine[i].linear ? r.Book.spine[i].wordCount : 0;
+				chapterWordCount = r.Book.getWordCount(r.Book.spine[i]);
 				if (wordCount + chapterWordCount >= targetWordCount) {
 					break;
 				}
@@ -6322,15 +6521,27 @@ var Reader = (function (r) {
 		},
 		load: function(p, fixed) {
 			var isString = $.type(p) === 'string',
-					isLastPage,
-					selector;
+				isLastPage,
+				isProgressAnchor,
+				selector,
+				cfi;
 			if (isString) {
 				isLastPage = r.Navigation.isLastPageAnchor(p);
-				if (!isLastPage && !r.Navigation.isProgressAnchor(p)) {
-					selector = (r.CFI.isValidCFI(p) ? r.CFI.getCFISelector(p) : p);
+				isProgressAnchor = !isLastPage && r.Navigation.isProgressAnchor(p);
+				if (!isLastPage && !isProgressAnchor) {
+					if (r.CFI.isValidCFI(p)) {
+						selector = r.CFI.getCFISelector(p);
+					} else {
+						selector = p;
+					}
 				}
 			}
 			Page.moveTo(p);
+			if (isProgressAnchor) {
+				// If we have a progress anchor, load images based around the new position:
+				cfi = r.CFI.getCFIObject();
+				selector = cfi && r.CFI.getCFISelector(cfi.CFI);
+			}
 			var promise = loadImages(isLastPage, selector)
 				.progress(function () {
 					// Update the colums and page position on each image load:
