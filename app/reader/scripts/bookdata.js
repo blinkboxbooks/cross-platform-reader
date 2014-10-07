@@ -144,38 +144,36 @@ var Reader = (function (r) {
 		}
 	};
 
+	// This is a private array of highlights for the current book. The data is organised based on chapters.
+	// Ex: `_highlights[1]` contains an array of bookmarks from the first chapter.
+	var _highlights = [];
+
 	r.Highlights = {
+		getHighlights: function(){
+			return _highlights;
+		},
+		setHighlights: $.noop,
+		// <a name="setHighlight"></a>This function saves a highlight in the appropriate location, based on the chapter it appears in, and returns the cfi associated with it.
+		//
+		// * `cfi` (optional) the cfi to save as a highlight, otherwise the current selection's cfi will be used. If no cfi exists and no selection is set, an exception is thrown.
 		setHighlight: function(cfi){
-			if(!cfi){
-				// if cfi is not preset, we assume the current selection needs to be highlighted
-				var selection = r.$iframe.contents()[0].getSelection();
-				if(selection.rangeCount > 0 && !selection.isCollapsed){
-					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
-
-					var range = selection.getRangeAt(0), rects = range.getClientRects(), readerRect = r.$reader[0].getBoundingClientRect();
-					for (var i = 0; i !== rects.length; i++) {
-						var rect = rects[i];
-						$('<div></div>').css({
-							display: 'inline-block',
-							width: rect.width + 'px',
-							height: rect.height + 'px',
-							top: (rect.top - readerRect.top) + 'px',
-							left: (rect.left - readerRect.left) + 'px',
-							background: 'yellow',
-							position: 'absolute',
-							opacity: '0.2'
-						}).appendTo(r.$reader);
-					}
-
-				} else {
-					// no selected text
-					return false;
+			var chapter = r.CFI.getChapterFromCFI(cfi);
+			if(chapter !== -1){
+				if(!$.isArray(_highlights[chapter])){
+					_highlights[chapter] = [];
+				}
+				if($.inArray(cfi, _highlights[chapter]) === -1){
+					_highlights[chapter].push(cfi);
+					return cfi;
 				}
 			}
-
-			// setting highlight failed
-			return cfi;
-		}
+			// highlight already exists
+			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_EXISTS, {details: cfi, call: 'setHighlight'}));
+			return false;
+		},
+		removeHighlight: $.noop,
+		display: $.noop,
+		getVisibleHighlights: $.noop
 	};
 
 	// Debug flag, used to log various events for debugging purposes

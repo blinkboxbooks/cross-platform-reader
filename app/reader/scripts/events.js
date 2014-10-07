@@ -124,6 +124,10 @@ var Reader = (function (r) {
 			message: 'Some text has been selected',
 			call: 'selection'
 		},
+		ERR_HIGHLIGHT_EXISTS: {
+			code: 23,
+			message: 'Could not add the highlight because one already exists in this location.'
+		},
 		getStatus: function (call) {
 			var data = {
 				'call': call || '',

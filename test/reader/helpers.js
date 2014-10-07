@@ -23,6 +23,13 @@ beforeEach(function() {
 				}
 			};
 		},
+		toBeEmptyArray: function() {
+			return {
+				compare: function(actual){
+					return { pass: $.isArray(actual) && actual.length === 0 };
+				}
+			};
+		},
 		toBeFunction: function() {
 			return {
 				compare: function(actual){
