@@ -3,7 +3,7 @@
 'use strict';
 
 describe('Highlights', function(){
-	var Highlights = Reader.Highlights, CFI = Reader.CFI, data = {
+	var Highlights = Reader.Highlights, CFI = Reader.CFI, Epub = Reader.Epub, data = {
 		cfi: 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)',
 		chapter: 2
 	};
@@ -16,17 +16,42 @@ describe('Highlights', function(){
 		expect(Highlights.removeHighlight).toBeFunction();
 		expect(Highlights.display).toBeFunction();
 		expect(Highlights.getVisibleHighlights).toBeFunction();
+		expect(Highlights.reset).toBeFunction();
 	});
 
 	describe('setHighlight', function(){
+
+		var highlights;
+
 		beforeEach(function(){
+			highlights = Highlights.getHighlights();
+
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Epub, 'generateRangeCFI').and.returnValue(data.cfi);
+
+			Reader.$iframe = {
+				contents: function(){
+					return [{
+						getSelection: function(){
+							return {
+								rangeCount: 1,
+								isCollapsed: false,
+								getRangeAt: $.noop
+							};
+						}
+					}];
+				}
+			};
+		});
+
+		afterEach(function(){
+			Reader.$iframe = null;
+
+			// return Highlights manager object to a clean state
+			Highlights.reset();
 		});
 
 		it('should save the given cfi as a highlight in the correct location ', function(){
-
-			var highlights = Highlights.getHighlights();
-
 			expect(highlights).toBeEmptyArray();
 
 			Highlights.setHighlight(data.cfi);
@@ -36,7 +61,21 @@ describe('Highlights', function(){
 			expect(highlights[data.chapter]).toBeArray(1);
 			expect(highlights[data.chapter][0]).toEqual(data.cfi);
 		});
-		it('should generate a cfi from the user selection');
+
+		it('should generate a cfi from the user selection', function(){
+			expect(highlights).toBeEmptyArray();
+
+			Highlights.setHighlight();
+
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(Epub.generateRangeCFI).toHaveBeenCalled();
+			expect(Epub.generateRangeCFI.calls.count()).toEqual(1);
+
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+		});
+
 		it('should trigger an error if no cfi exits');
 		it('should trigger an error if the bookmark has already been set');
 		it('should trigger an error if the chapter cannot be extracted from the given CFI');

@@ -157,6 +157,19 @@ var Reader = (function (r) {
 		//
 		// * `cfi` (optional) the cfi to save as a highlight, otherwise the current selection's cfi will be used. If no cfi exists and no selection is set, an exception is thrown.
 		setHighlight: function(cfi){
+
+			if(!cfi){
+				// if cfi is not preset, we assume the current selection needs to be highlighted
+				var selection = r.$iframe.contents()[0].getSelection();
+				if(selection.rangeCount > 0 && !selection.isCollapsed){
+					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
+				} else {
+					// no selected text
+					// todo throw error
+					return false;
+				}
+			}
+
 			var chapter = r.CFI.getChapterFromCFI(cfi);
 			if(chapter !== -1){
 				if(!$.isArray(_highlights[chapter])){
@@ -173,7 +186,10 @@ var Reader = (function (r) {
 		},
 		removeHighlight: $.noop,
 		display: $.noop,
-		getVisibleHighlights: $.noop
+		getVisibleHighlights: $.noop,
+		reset: function(){
+			_highlights = [];
+		}
 	};
 
 	// Debug flag, used to log various events for debugging purposes
