@@ -2,6 +2,45 @@
 
 'use strict';
 
+describe('Highlights', function(){
+	var Highlights = Reader.Highlights;
+
+	it('should provide the Bookmarks interface', function () {
+		expect(Highlights).toBeObject();
+		expect(Highlights.getHighlights).toBeFunction();
+		expect(Highlights.setHighlights).toBeFunction();
+		expect(Highlights.setHighlight).toBeFunction();
+		expect(Highlights.removeHighlight).toBeFunction();
+		expect(Highlights.display).toBeFunction();
+		expect(Highlights.getVisibleHighlights).toBeFunction();
+	});
+
+	describe('setHighlight', function(){
+		it('should save the given cfi as a highlight in the correct location ');
+		it('should generate a cfi from the user selection');
+		it('should trigger an error if no cfi exits');
+		it('should trigger an error if the bookmark has already been set');
+		it('should trigger an error if the chapter cannot be extracted from the given CFI');
+	});
+
+	describe('setHighlights', function(){
+		it('should set the given list of highlights and remove any old highlights');
+	});
+
+	describe('removeHighlight', function(){
+		it('');
+	});
+
+	describe('display', function(){
+		it('');
+	});
+
+	describe('getVisibleHighlights', function(){
+		it('');
+	});
+
+});
+
 describe('Bookmarks', function() {
 
 	beforeEach(function () {
