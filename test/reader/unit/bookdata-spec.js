@@ -3,7 +3,7 @@
 'use strict';
 
 describe('Highlights', function(){
-	var Highlights = Reader.Highlights, data = {
+	var Highlights = Reader.Highlights, CFI = Reader.CFI, data = {
 		cfi: 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)',
 		chapter: 2
 	};
@@ -19,6 +19,10 @@ describe('Highlights', function(){
 	});
 
 	describe('setHighlight', function(){
+		beforeEach(function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+		});
+
 		it('should save the given cfi as a highlight in the correct location ', function(){
 
 			var highlights = Highlights.getHighlights();
@@ -27,6 +31,7 @@ describe('Highlights', function(){
 
 			Highlights.setHighlight(data.cfi);
 
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
 			expect(highlights).not.toBeEmptyArray();
 			expect(highlights[data.chapter]).toBeArray(1);
 			expect(highlights[data.chapter][0]).toEqual(data.cfi);
