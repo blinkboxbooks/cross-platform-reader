@@ -165,7 +165,7 @@ var Reader = (function (r) {
 					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
 				} else {
 					// no selected text
-					// todo throw error
+					r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
 					return false;
 				}
 			}

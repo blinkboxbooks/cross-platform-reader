@@ -80,8 +80,50 @@ describe('Highlights', function(){
 			Reader.$iframe = null;
 		});
 
-		it('should trigger an error if no cfi exits');
-		it('should trigger an error if the bookmark has already been set');
+		it('should trigger an error if no cfi exits', function(){
+			// mock the $iframe object
+			Reader.$iframe = {
+				contents: function(){
+					return [{
+						getSelection: function(){
+							return {
+								rangeCount: 0,
+								isCollapsed: true,
+								getRangeAt: $.noop
+							};
+						}
+					}];
+				}
+			};
+
+			spyOn(Reader.Notify, 'error');
+			Highlights.setHighlight();
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
+			expect(highlights).toBeEmptyArray();
+
+			Reader.$iframe = null;
+		});
+
+		it('should trigger an error if the bookmark has already been set', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Reader.Notify, 'error');
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_EXISTS, {details: data.cfi, call: 'setHighlight'}));
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+		});
+
 		it('should trigger an error if the chapter cannot be extracted from the given CFI');
 	});
 
