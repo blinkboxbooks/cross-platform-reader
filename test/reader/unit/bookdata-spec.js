@@ -25,10 +25,32 @@ describe('Highlights', function(){
 
 		beforeEach(function(){
 			highlights = Highlights.getHighlights();
+		});
+
+		afterEach(function(){
+			// return Highlights manager object to a clean state
+			Highlights.reset();
+		});
+
+		it('should save the given cfi as a highlight in the correct location ', function(){
 
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
-			spyOn(Epub, 'generateRangeCFI').and.returnValue(data.cfi);
 
+			expect(highlights).toBeEmptyArray();
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+		});
+
+		it('should generate a cfi from the user selection', function(){
+
+			spyOn(Epub, 'generateRangeCFI').and.returnValue(data.cfi);
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			// mock the $iframe object
 			Reader.$iframe = {
 				contents: function(){
 					return [{
@@ -42,27 +64,7 @@ describe('Highlights', function(){
 					}];
 				}
 			};
-		});
 
-		afterEach(function(){
-			Reader.$iframe = null;
-
-			// return Highlights manager object to a clean state
-			Highlights.reset();
-		});
-
-		it('should save the given cfi as a highlight in the correct location ', function(){
-			expect(highlights).toBeEmptyArray();
-
-			Highlights.setHighlight(data.cfi);
-
-			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
-			expect(highlights).not.toBeEmptyArray();
-			expect(highlights[data.chapter]).toBeArray(1);
-			expect(highlights[data.chapter][0]).toEqual(data.cfi);
-		});
-
-		it('should generate a cfi from the user selection', function(){
 			expect(highlights).toBeEmptyArray();
 
 			Highlights.setHighlight();
@@ -74,6 +76,8 @@ describe('Highlights', function(){
 			expect(highlights).not.toBeEmptyArray();
 			expect(highlights[data.chapter]).toBeArray(1);
 			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+
+			Reader.$iframe = null;
 		});
 
 		it('should trigger an error if no cfi exits');
