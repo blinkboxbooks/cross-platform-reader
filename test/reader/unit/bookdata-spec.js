@@ -124,7 +124,16 @@ describe('Highlights', function(){
 			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
 		});
 
-		it('should trigger an error if the chapter cannot be extracted from the given CFI');
+		it('should trigger an error if the chapter cannot be extracted from the given CFI', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(-1);
+			spyOn(Reader.Notify, 'error');
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_ADD, {details: data.cfi, call: 'setHighlight'}));
+			expect(highlights).toBeEmptyArray();
+		});
+
 	});
 
 	describe('setHighlights', function(){
@@ -233,7 +242,7 @@ describe('Bookmarks', function() {
 			var result = Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.display).not.toHaveBeenCalled();
 			expect(Reader.CFI.setCFI).not.toHaveBeenCalled();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_EXISTS, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'setBookmark'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_ADD, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'setBookmark'}));
 			expect(result).toBeFalsy();
 		});
 

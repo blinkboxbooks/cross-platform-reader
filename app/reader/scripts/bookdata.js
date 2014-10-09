@@ -80,6 +80,10 @@ var Reader = (function (r) {
 					}
 					return cfiObj !== null ? JSON.stringify(cfiObj) : cfi;
 				}
+			}  else {
+				// cfi not recognised in book
+				r.Notify.error($.extend({}, r.Event.ERR_BOOKMARK_ADD, {details: cfi, call: 'setBookmark'}));
+				return false;
 			}
 			// bookmark exists
 			r.Notify.error($.extend({}, r.Event.ERR_BOOKMARK_EXISTS, {details: cfi, call: 'setBookmark'}));
@@ -179,6 +183,10 @@ var Reader = (function (r) {
 					_highlights[chapter].push(cfi);
 					return cfi;
 				}
+			} else {
+				// cfi not recognised in book
+				r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {details: cfi, call: 'setHighlight'}));
+				return false;
 			}
 			// highlight already exists
 			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_EXISTS, {details: cfi, call: 'setHighlight'}));
