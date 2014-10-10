@@ -156,7 +156,25 @@ var Reader = (function (r) {
 		getHighlights: function(){
 			return _highlights;
 		},
-		setHighlights: $.noop,
+		// <a name="setHighlights"></a>This function will set the highlights based on the chapter they appear in.
+		// `val` is an array of cfi-s representing the current book's bookmarks.
+		setHighlights: function(val){
+			if($.isArray(val)){
+				$.each(_highlights, function(i, el){
+					if($.isArray(el)){
+						$.each(el, function(index, cfi){
+							if(cfi){
+								r.Highlights.removeHighlight(cfi);
+							}
+						});
+					}
+				});
+				_highlights = [];
+				$.each(val, function(i, element){
+					r.Highlights.setHighlight(element);
+				});
+			}
+		},
 		// <a name="setHighlight"></a>This function saves a highlight in the appropriate location, based on the chapter it appears in, and returns the cfi associated with it.
 		//
 		// * `cfi` (optional) the cfi to save as a highlight, otherwise the current selection's cfi will be used. If no cfi exists and no selection is set, an exception is thrown.

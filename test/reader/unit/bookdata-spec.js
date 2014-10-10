@@ -137,7 +137,17 @@ describe('Highlights', function(){
 	});
 
 	describe('setHighlights', function(){
-		it('should set the given list of highlights and remove any old highlights');
+		it('should set the given list of highlights and remove any old highlights', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+
+			// set up initial highlights
+			Highlights.setHighlights([data.cfi]);
+			expect(Highlights.getHighlights()).not.toBeEmptyArray();
+
+			// set new array of highlights and expect old highlights to be missing
+			Highlights.setHighlights([]);
+			expect(Highlights.getHighlights()).toBeEmptyArray();
+		});
 	});
 
 	describe('removeHighlight', function(){
