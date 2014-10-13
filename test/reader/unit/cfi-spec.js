@@ -266,7 +266,7 @@ describe('CFI', function() {
 				markerArg;
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI, Reader.Bookmarks.ATTRIBUTE);
+			Reader.CFI.setBookmarkCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			markerArg = Reader.Epub.injectMarker.calls.mostRecent().args[1];
 			expect($(markerArg).is('['+Reader.Bookmarks.ATTRIBUTE+']')).toBeTruthy();
 		});
@@ -278,7 +278,7 @@ describe('CFI', function() {
 				element = wrapper.find('span').first().contents();
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI, Reader.Bookmarks.ATTRIBUTE);
+			Reader.CFI.setBookmarkCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(wrapper.children().last().is('['+Reader.Bookmarks.ATTRIBUTE+']')).toBeTruthy();
 		});
 
@@ -289,7 +289,7 @@ describe('CFI', function() {
 				element = wrapper.find('span').first().contents();
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK_4.CFI, Reader.Bookmarks.ATTRIBUTE);
+			Reader.CFI.setBookmarkCFI(fixtures.BOOK.BOOKMARK_4.CFI);
 			expect(wrapper.children().last().find('.cpr-marker').is('['+Reader.Bookmarks.ATTRIBUTE+']')).toBeTruthy();
 		});
 
@@ -301,16 +301,16 @@ describe('CFI', function() {
 				element = svg.find('circle');
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(Reader.Epub, 'injectMarker');
-			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
+			Reader.CFI.setBookmarkCFI(fixtures.BOOK.BOOKMARK.CFI);
 			expect(svg.is('['+Reader.Bookmarks.ATTRIBUTE+']')).toBeTruthy();
 		});
 
 		it('should add the data-bookmark attribute to an existing CFI marker', function () {
 			var element = $('<span data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>').appendTo(Reader.$reader);
-			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
+			Reader.CFI.setBookmarkCFI(fixtures.BOOK.BOOKMARK.CFI);
 			expect(element.is('['+Reader.Bookmarks.ATTRIBUTE+']')).toBeTruthy();
 			// Should keep the attribute when trying to add the bookmark twice:
-			Reader.CFI.setCFI(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
+			Reader.CFI.setBookmarkCFI(fixtures.BOOK.BOOKMARK.CFI);
 			expect(element.is('['+Reader.Bookmarks.ATTRIBUTE+']')).toBeTruthy();
 		});
 

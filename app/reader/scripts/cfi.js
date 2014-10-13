@@ -46,6 +46,12 @@ var Reader = (function (r) {
 		getCFI: function() {
 			return encodeURIComponent(JSON.stringify(r.CFI.getCFIObject()));
 		},
+		setBookmarkCFI: function(cfi){
+			return r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
+		},
+		setHighlightCFI: function(cfi){
+			return r.CFI.setCFI(cfi, r.Highlights.ATTRIBUTE);
+		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point
 			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents());
