@@ -199,6 +199,9 @@ var Reader = (function (r) {
 				}
 				if($.inArray(cfi, _highlights[chapter]) === -1){
 					_highlights[chapter].push(cfi);
+					if(chapter === r.Navigation.getChapter()){
+						r.CFI.setCFI(cfi, true);
+					}
 					return cfi;
 				}
 			} else {
@@ -224,7 +227,16 @@ var Reader = (function (r) {
 			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_REMOVE, {details: cfi, call: 'removeHighlight'}));
 			return false;
 		},
-		display: $.noop,
+		display: function(){
+			var isVisible = false;
+			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
+				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
+				if (isVisible) {
+					return false;
+				}
+			});
+			return isVisible;
+		},
 		getVisibleHighlights: $.noop,
 		reset: function(){
 			_highlights = [];
