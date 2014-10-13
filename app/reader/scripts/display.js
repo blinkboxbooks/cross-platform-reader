@@ -206,7 +206,7 @@ var Reader = (function (r) {
 				$.each(bookmarks, function(index, bookmark){
 					// Ignore bookmarks not part of the current chapter part:
 					if (bookmark && r.Navigation.isCFIInCurrentChapterPart(bookmark)) {
-						r.Navigation.setCFI(bookmark, r.Bookmarks.ATTRIBUTE);
+						r.Navigation.setBookmarkCFI(bookmark);
 					}
 				});
 			}

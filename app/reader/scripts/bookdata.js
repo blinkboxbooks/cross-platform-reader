@@ -76,7 +76,7 @@ var Reader = (function (r) {
 				if($.inArray(cfi, _bookmarks[index]) === -1){
 					_bookmarks[index].push(cfi);
 					if(!noMarker && index === r.Navigation.getChapter()){
-						r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
+						r.CFI.setBookmarkCFI(cfi);
 						r.Bookmarks.display();
 					}
 					return cfiObj !== null ? JSON.stringify(cfiObj) : cfi;
@@ -202,7 +202,7 @@ var Reader = (function (r) {
 				if($.inArray(cfi, _highlights[chapter]) === -1){
 					_highlights[chapter].push(cfi);
 					if(chapter === r.Navigation.getChapter()){
-						r.CFI.setCFI(cfi, r.Highlights.ATTRIBUTE);
+						r.CFI.setHighlightCFI(cfi);
 					}
 					return cfi;
 				}
