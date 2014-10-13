@@ -141,6 +141,8 @@ var Reader = (function (r) {
 				'call': call || '',
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
 				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
+				'highlightsInPage': Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
+				'highlights': Reader.Highlights.getHighlights(), // array of highlights from the book
 				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
 				'progress': Reader.Navigation.getProgress(), // the progress of the book
 				'chapter': Reader.Navigation.getChapter(), // the current chapter
