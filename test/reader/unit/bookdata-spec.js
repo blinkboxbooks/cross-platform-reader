@@ -211,10 +211,10 @@ describe('Highlights', function(){
 			spyOn(Reader.Navigation, 'getChapter').and.returnValue(data.chapter);
 
 			Highlights.setHighlight(data.cfi);
-			expect(CFI.setCFI).toHaveBeenCalledWith(data.cfi, true);
+			expect(CFI.setCFI).toHaveBeenCalledWith(data.cfi, Reader.Highlights.ATTRIBUTE);
 
 			Highlights.setHighlights([data.cfi]);
-			expect(CFI.setCFI).toHaveBeenCalledWith(data.cfi, true);
+			expect(CFI.setCFI).toHaveBeenCalledWith(data.cfi, Reader.Highlights.ATTRIBUTE);
 		});
 
 		it('should append overlay when setting a highlight');
@@ -284,7 +284,7 @@ describe('Bookmarks', function() {
 			var result = Reader.Bookmarks.setBookmark();
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
-			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, true);
+			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
 			expect(result).toEqual(JSON.stringify(fixtures.BOOK.BOOKMARK));
 		});
 
@@ -298,7 +298,7 @@ describe('Bookmarks', function() {
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Navigation.getCurrentCFI).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
-			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, true);
+			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
 			expect(result).toEqual(fixtures.BOOK.BOOKMARK.CFI);
 		});
 

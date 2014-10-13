@@ -18,6 +18,7 @@ var Reader = (function (r) {
 	// * `reset`
 	// * [`display`](#display)
 	r.Bookmarks = {
+		ATTRIBUTE: 'data-bookmark',
 		// <a name="getBookmarks"></a> Public getter function.
 		getBookmarks: function(){
 			return _bookmarks;
@@ -75,7 +76,7 @@ var Reader = (function (r) {
 				if($.inArray(cfi, _bookmarks[index]) === -1){
 					_bookmarks[index].push(cfi);
 					if(!noMarker && index === r.Navigation.getChapter()){
-						r.CFI.setCFI(cfi, true);
+						r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
 						r.Bookmarks.display();
 					}
 					return cfiObj !== null ? JSON.stringify(cfiObj) : cfi;
@@ -153,6 +154,7 @@ var Reader = (function (r) {
 	var _highlights = [];
 
 	r.Highlights = {
+		ATTRIBUTE: 'data-highlight',
 		getHighlights: function(){
 			return _highlights;
 		},
@@ -200,7 +202,7 @@ var Reader = (function (r) {
 				if($.inArray(cfi, _highlights[chapter]) === -1){
 					_highlights[chapter].push(cfi);
 					if(chapter === r.Navigation.getChapter()){
-						r.CFI.setCFI(cfi, true);
+						r.CFI.setCFI(cfi, r.Highlights.ATTRIBUTE);
 					}
 					return cfi;
 				}
