@@ -8,6 +8,19 @@ describe('Highlights', function(){
 		chapter: 2
 	};
 
+	beforeEach(function(){
+		spyOn($, 'ajax').and.callFake(function () {
+			return {
+				then: $.noop
+			};
+		});
+		Reader.init({
+			container: $('<div></div>').appendTo($('body')),
+			width: 400,
+			height: 600
+		});
+	});
+
 	it('should provide the Bookmarks interface', function () {
 		expect(Highlights).toBeObject();
 		expect(Highlights.getHighlights).toBeFunction();
@@ -50,20 +63,15 @@ describe('Highlights', function(){
 
 			spyOn(Epub, 'generateRangeCFI').and.returnValue(data.cfi);
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
-			// mock the $iframe object
-			Reader.$iframe = {
-				contents: function(){
-					return [{
-						getSelection: function(){
-							return {
-								rangeCount: 1,
-								isCollapsed: false,
-								getRangeAt: $.noop
-							};
-						}
-					}];
+			spyOn(Reader.$iframe, 'contents').and.returnValue([{
+				getSelection: function(){
+					return {
+						rangeCount: 1,
+						isCollapsed: false,
+						getRangeAt: $.noop
+					};
 				}
-			};
+			}]);
 
 			expect(highlights).toBeEmptyArray();
 
@@ -71,37 +79,30 @@ describe('Highlights', function(){
 
 			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
 			expect(Epub.generateRangeCFI).toHaveBeenCalled();
+			expect(Reader.$iframe.contents).toHaveBeenCalled();
 			expect(Epub.generateRangeCFI.calls.count()).toEqual(1);
 
 			expect(highlights).not.toBeEmptyArray();
 			expect(highlights[data.chapter]).toBeArray(1);
 			expect(highlights[data.chapter][0]).toEqual(data.cfi);
-
-			Reader.$iframe = null;
 		});
 
 		it('should trigger an error if no cfi exits', function(){
-			// mock the $iframe object
-			Reader.$iframe = {
-				contents: function(){
-					return [{
-						getSelection: function(){
-							return {
-								rangeCount: 0,
-								isCollapsed: true,
-								getRangeAt: $.noop
-							};
-						}
-					}];
+			spyOn(Reader.$iframe, 'contents').and.returnValue([{
+				getSelection: function(){
+					return {
+						rangeCount: 0,
+						isCollapsed: true,
+						getRangeAt: $.noop
+					};
 				}
-			};
+			}]);
 
 			spyOn(Reader.Notify, 'error');
 			Highlights.setHighlight();
 			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
+			expect(Reader.$iframe.contents).toHaveBeenCalled();
 			expect(highlights).toBeEmptyArray();
-
-			Reader.$iframe = null;
 		});
 
 		it('should trigger an error if the bookmark has already been set', function(){
@@ -155,9 +156,6 @@ describe('Highlights', function(){
 	describe('removeHighlight', function(){
 		it('should remove specified highlight', function(){
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
-			Reader.$iframe = {
-				contents: $.noop
-			};
 
 			// set up initial highlights
 			Highlights.setHighlight(data.cfi);
@@ -165,9 +163,17 @@ describe('Highlights', function(){
 
 			Highlights.removeHighlight(data.cfi);
 			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
-			expect(Highlights.getHighlights()).toBeEmptyArray();
+			expect(Highlights.getHighlights()[data.chapter]).toBeEmptyArray();
+		});
 
-			Reader.$iframe = null;
+		it('should throw error if highlight does not exist', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(-1);
+			spyOn(Reader.Notify, 'error');
+
+			Highlights.removeHighlight(data.cfi);
+
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_REMOVE, {details: data.cfi, call: 'removeHighlight'}));
 		});
 	});
 
