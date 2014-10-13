@@ -210,7 +210,35 @@ var Reader = (function (r) {
 			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_EXISTS, {details: cfi, call: 'setHighlight'}));
 			return false;
 		},
-		removeHighlight: $.noop,
+		removeHighlight: function(cfi){
+			var chapter = r.CFI.getChapterFromCFI(cfi);
+			if(chapter !== -1){
+				var index = $.inArray(cfi, _highlights[chapter]);
+				if($.isArray(_highlights[chapter]) && index !== -1){
+					_highlights[chapter].splice(index, 1);
+
+					var $marker = $('[data-highlight][data-cfi="' + cfi + '"]', r.$iframe.contents());
+					if($marker.length){
+						if($marker.hasClass('cpr-highlight')){
+							var $parent = $marker.parent();
+							$marker.remove();
+
+							// this restates the DOM to the previous structure
+							// todo do not alter the DOM in the first place
+							$parent[0].normalize();
+						} else {
+							$marker.removeAttr('data-bookmark');
+						}
+					}
+
+					r.Highlights.display();
+					return true;
+				}
+			}
+			// cannot remove bookmark
+			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_REMOVE, {details: cfi, call: 'removeBookmark'}));
+			return false;
+		},
 		display: $.noop,
 		getVisibleHighlights: $.noop,
 		reset: function(){

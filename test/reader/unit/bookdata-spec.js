@@ -139,6 +139,7 @@ describe('Highlights', function(){
 	describe('setHighlights', function(){
 		it('should set the given list of highlights and remove any old highlights', function(){
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Highlights, 'removeHighlight').and.returnValue(true);
 
 			// set up initial highlights
 			Highlights.setHighlights([data.cfi]);
@@ -146,12 +147,28 @@ describe('Highlights', function(){
 
 			// set new array of highlights and expect old highlights to be missing
 			Highlights.setHighlights([]);
+			expect(Highlights.removeHighlight).toHaveBeenCalledWith(data.cfi);
 			expect(Highlights.getHighlights()).toBeEmptyArray();
 		});
 	});
 
 	describe('removeHighlight', function(){
-		it('');
+		it('should remove specified highlight', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			Reader.$iframe = {
+				contents: $.noop
+			};
+
+			// set up initial highlights
+			Highlights.setHighlight(data.cfi);
+			expect(Highlights.getHighlights()).not.toBeEmptyArray();
+
+			Highlights.removeHighlight(data.cfi);
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(Highlights.getHighlights()).toBeEmptyArray();
+
+			Reader.$iframe = null;
+		});
 	});
 
 	describe('display', function(){

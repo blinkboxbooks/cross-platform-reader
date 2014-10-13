@@ -132,6 +132,10 @@ var Reader = (function (r) {
 			code: 24,
 			message: 'Could not add the highlight because one already exists in this location.'
 		},
+		ERR_HIGHLIGHT_REMOVE: {
+			code: 25,
+			message: 'Could not remove highlight.'
+		},
 		getStatus: function (call) {
 			var data = {
 				'call': call || '',
