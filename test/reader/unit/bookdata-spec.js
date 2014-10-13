@@ -5,6 +5,7 @@
 describe('Highlights', function(){
 	var Highlights = Reader.Highlights, CFI = Reader.CFI, Epub = Reader.Epub, data = {
 		cfi: 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)',
+		cfis: ['epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)', 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/2,/5'],
 		chapter: 2,
 		page: 1
 	};
@@ -182,11 +183,10 @@ describe('Highlights', function(){
 
 	describe('display', function(){
 		it('should return visible highlights on the page, false otherwise', function(){
-			var $marker = $('<span data-highlight></span>');
+			var $marker = $('<span data-marker data-highlight></span>');
 
 			spyOn(Reader, 'returnPageElement').and.returnValue(data.page);
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(data.page);
-			spyOn(Reader.$iframe, 'contents').and.returnValue($.noop);
 			spyOn($.fn, 'each').and.callFake(function(cb){
 				cb(0, $marker[0]);
 			});
@@ -195,7 +195,6 @@ describe('Highlights', function(){
 
 			expect(Reader.returnPageElement).toHaveBeenCalledWith($marker[0]);
 			expect(Reader.Navigation.getPage).toHaveBeenCalled();
-			expect(Reader.$iframe.contents).toHaveBeenCalled();
 			expect($.fn.each).toHaveBeenCalled();
 
 			Reader.returnPageElement.and.returnValue(-1);
@@ -203,7 +202,6 @@ describe('Highlights', function(){
 			expect(Highlights.display()).toBe(false);
 			expect(Reader.returnPageElement).toHaveBeenCalledWith($marker[0]);
 			expect(Reader.Navigation.getPage).toHaveBeenCalled();
-			expect(Reader.$iframe.contents).toHaveBeenCalled();
 			expect($.fn.each).toHaveBeenCalled();
 		});
 
@@ -225,7 +223,26 @@ describe('Highlights', function(){
 
 	describe('getVisibleHighlights', function(){
 		it('should return the visible highlights on the page', function(){
+			var $markers = $(data.cfis.map(function(cfi){
+				return $('<span data-highlight data-cfi="'+cfi+'"></span>');
+			})), each = $.fn.each;
 
+			spyOn($.fn, 'each').and.callFake(function(cb){
+				each.apply($markers, [cb]);
+			});
+			spyOn(Reader.Navigation, 'getPage').and.returnValue(data.page);
+			spyOn(Reader, 'returnPageElement').and.callFake(function(el){
+				return data.cfis.indexOf($(el).attr('data-cfi'));
+			});
+			Highlights.setHighlights(data.cfis);
+
+			expect(Reader.Navigation.getPage).toHaveBeenCalled();
+			expect($.fn.each).toHaveBeenCalled();
+			expect(Reader.returnPageElement).toHaveBeenCalled();
+
+			var highlights = Highlights.getVisibleHighlights();
+			expect(highlights).toBeArray(1);
+			expect(highlights).toContain(data.cfis[data.page]);
 		});
 	});
 

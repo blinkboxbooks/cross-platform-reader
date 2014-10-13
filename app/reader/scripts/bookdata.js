@@ -237,7 +237,15 @@ var Reader = (function (r) {
 			});
 			return isVisible;
 		},
-		getVisibleHighlights: $.noop,
+		getVisibleHighlights: function(){
+			var highlights = [];
+			$('[data-highlight][data-cfi]', r.$iframe.contents()).each(function(index, el){
+				if(r.returnPageElement(el) === r.Navigation.getPage()){
+					highlights.push($(el).attr('data-cfi'));
+				}
+			});
+			return highlights;
+		},
 		reset: function(){
 			_highlights = [];
 		}
