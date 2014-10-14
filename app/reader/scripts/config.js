@@ -50,6 +50,12 @@ var Reader = (function (r) {
 		publisherStyles: {
 			value: true
 		},
+		doubleTapDelay: {
+			min: 100,
+			max: 1000,
+			value: 350,
+			clear: restrictBounds
+		},
 		loadProgressData: {
 			min: 0,
 			max: 2,
