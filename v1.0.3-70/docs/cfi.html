@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>cfi.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="book.html">
+                book.js
+              </a>
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="epub.html">
+                epub.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="touch.html">
+                touch.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>cfi.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>The <strong>CFI</strong> object exposes methods to handle CFIs. it is <strong>not</strong> intended to be exposed to the client directly.</p>
+<ul>
+<li><a href="#setUp"><code>setUp</code></a></li>
+<li><a href="#getCFIObject"><code>getCFIObject</code></a></li>
+<li><a href="#setCFI"><code>setCFI</code></a></li>
+<li><a href="#addOneNodeToCFI"><code>addOneNodeToCFI</code></a></li>
+<li><a href="#addOneWordToCFI"><code>addOneWordToCFI</code></a></li>
+<li><a href="#goToCFI"><code>goToCFI</code></a></li>
+<li>reset</li>
+</ul>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Helper methods:</p>
+<ul>
+<li><a href="#getChapterFromCFI"><code>getChapterFromCFI</code></a></li>
+</ul>
+<p>Other private methods</p>
+<ul>
+<li><a href="#getFirstNode"><code>getFirstNode</code></a></li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.CFI = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><a name="getCFIObject"></a> Return the current position’s CFI and a preview of the current text.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		getCFIObject: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">try</span> {
+				<span class="hljs-keyword">var</span> startTextNode = getFirstNode(),
+					cfi = r.Epub.generateCFI(startTextNode.textNode, startTextNode.offset),
+					result = {
+						CFI: cfi,
+						preview: startTextNode.preview
+					},
+					chapter = r.CFI.getChapterFromCFI(result.CFI),
+					item = chapter !== -<span class="hljs-number">1</span> ? r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()) : <span class="hljs-literal">null</span>;
+
+				<span class="hljs-keyword">if</span> (item) {
+					result.chapter = item.label;
+					result.href = item.href;
+				}
+
+				<span class="hljs-keyword">return</span> result;
+			}
+			<span class="hljs-keyword">catch</span> (err) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>cannot generate CFI</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				r.Notify.error($.extend({}, r.Event.ERR_CFI_GENERATION, {details: {message: <span class="hljs-built_in">String</span>(err), stack: err.stack}, call: <span class="hljs-string">'getCFIObject'</span>}));
+			}
+		},
+		getCFI: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-built_in">encodeURIComponent</span>(<span class="hljs-built_in">JSON</span>.stringify(r.CFI.getCFIObject()));
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p><a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		setCFI: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi, isBookmark)</span> </span>{ <span class="hljs-comment">// Add an element to a CFI point</span>
+			<span class="hljs-keyword">var</span> $marker = $(<span class="hljs-string">'[data-cfi="'</span> + cfi + <span class="hljs-string">'"]'</span>, r.$iframe.contents());
+			<span class="hljs-keyword">if</span>($marker.length){
+				<span class="hljs-keyword">if</span>(isBookmark &amp;&amp; !$marker.is(<span class="hljs-string">'[data-bookmark]'</span>)){
+					$marker.attr(<span class="hljs-string">'data-bookmark'</span>, <span class="hljs-string">''</span>);
+				}
+			} <span class="hljs-keyword">else</span> {
+				<span class="hljs-keyword">try</span> {
+					<span class="hljs-keyword">var</span> marker = <span class="hljs-string">'&lt;span class="cpr-marker" '</span>+ (isBookmark ? <span class="hljs-string">'data-bookmark'</span> : <span class="hljs-string">''</span>) +<span class="hljs-string">' data-cfi="'</span> + cfi + <span class="hljs-string">'"&gt;&lt;/span&gt;'</span>;
+					<span class="hljs-keyword">var</span> $node = r.Epub.getElementAt(cfi);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>in case the cfi targets an svg child, target the svg element itself</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					<span class="hljs-keyword">if</span>($node.parents(<span class="hljs-string">'svg'</span>).length){
+						$node = $node.parents(<span class="hljs-string">'svg'</span>);
+					}
+					<span class="hljs-keyword">if</span> ($node.length) {
+						<span class="hljs-keyword">if</span> ($node[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">1</span>) { <span class="hljs-comment">// append to element</span>
+							$node.attr(<span class="hljs-string">'data-cfi'</span>, cfi);
+							<span class="hljs-keyword">if</span>(isBookmark){
+								$node.attr(<span class="hljs-string">'data-bookmark'</span>, <span class="hljs-string">''</span>);
+							}
+						}
+						<span class="hljs-keyword">if</span> ($node[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">3</span>) { <span class="hljs-comment">// inject into the text node</span>
+							r.CFI.addOneWordToCFI(cfi, $node, marker, isBookmark);
+						}
+					}
+					<span class="hljs-keyword">return</span> $node;
+				}
+				<span class="hljs-keyword">catch</span> (err) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>cannot insert CFI</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: <span class="hljs-string">'setCFI'</span>}));
+				}
+			}
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p><a name="addOneNodeToCFI"></a> Helper function that moves the CFI to the next node. This is required to avoid a bug in some browsers that displays the current CFI on the previous page.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		addOneNodeToCFI : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi, el, marker, isBookmark)</span> </span>{
+			<span class="hljs-keyword">var</span> $nextNode = getNextNode(el);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>get the leaf of next node to inject in the appropriate location</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">while</span> ($nextNode &amp;&amp; !$nextNode.is(<span class="hljs-string">'svg'</span>) &amp;&amp; $nextNode.contents().length){
+				$nextNode = $nextNode.contents().first();
+			}
+
+			<span class="hljs-keyword">if</span> ($nextNode) {
+				<span class="hljs-keyword">if</span> ($nextNode[<span class="hljs-number">0</span>].nodeType === <span class="hljs-number">3</span>) {
+					<span class="hljs-keyword">if</span>($nextNode[<span class="hljs-number">0</span>].length &gt; <span class="hljs-number">1</span>){
+						cfi = r.Epub.generateCFI($nextNode[<span class="hljs-number">0</span>], <span class="hljs-number">0</span>);
+						r.CFI.addOneWordToCFI(cfi, $nextNode, marker, isBookmark, <span class="hljs-literal">true</span>);
+					} <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>the text node is not large enought to have a marker injected, need to prepend it</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>						$nextNode.before(marker);
+					}
+				} <span class="hljs-keyword">else</span> {
+					$nextNode.attr(<span class="hljs-string">'data-cfi'</span>, cfi);
+					<span class="hljs-keyword">if</span>(isBookmark){
+						$nextNode.attr(<span class="hljs-string">'data-bookmark'</span>, <span class="hljs-string">''</span>);
+					}
+				}
+				<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+			}
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p><a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		addOneWordToCFI : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi, el, marker, isBookmark, force)</span> </span>{
+			<span class="hljs-keyword">var</span> pos = <span class="hljs-built_in">parseInt</span>(cfi.split(<span class="hljs-string">':'</span>)[<span class="hljs-number">1</span>].split(<span class="hljs-string">')'</span>)[<span class="hljs-number">0</span>], <span class="hljs-number">10</span>);
+			<span class="hljs-keyword">var</span> words = el.text().substring(pos).split(<span class="hljs-regexp">/\s+/</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(word)</span></span>{
+				<span class="hljs-keyword">return</span> word.length;
+			});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>find next word position</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">if</span> (el.text().length &gt; <span class="hljs-number">1</span> &amp;&amp; words.length &amp;&amp; pos + words[<span class="hljs-number">0</span>].length &lt; el.text().length) {
+				pos = pos + words[<span class="hljs-number">0</span>].length;
+				cfi = cfi.split(<span class="hljs-string">':'</span>)[<span class="hljs-number">0</span>] + <span class="hljs-string">':'</span> + pos + <span class="hljs-string">')'</span>;
+				r.Epub.injectMarker(cfi, marker);
+			} <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>We must check if there are more nodes in the chapter.
+If not, we add the marker one character after the cfi position, if possible.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">if</span>(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
+					pos = pos + <span class="hljs-number">1</span> &lt; el.text().length ? pos + <span class="hljs-number">1</span> : pos;
+					cfi = cfi.split(<span class="hljs-string">':'</span>)[<span class="hljs-number">0</span>] + <span class="hljs-string">':'</span> + pos + <span class="hljs-string">')'</span>;
+					r.Epub.injectMarker(cfi, marker);
+				}
+			}
+		},
+		isValidCFI: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi)</span> </span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-regexp">/^epubcfi\(.+\)$/</span>.test(cfi);
+		},
+		getCFISelector: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi)</span> </span>{
+			<span class="hljs-keyword">return</span> <span class="hljs-string">'*[data-cfi="'</span> + cfi + <span class="hljs-string">'"]'</span>;
+		},
+		findCFIElement : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+			<span class="hljs-keyword">var</span> $elem = $(r.CFI.getCFISelector(value), r.$iframe.contents());
+			<span class="hljs-keyword">return</span> $elem.length ? r.returnPageElement($elem) : -<span class="hljs-number">1</span>;
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p><a name="goToCFI"></a>Find and load the page that contains the CFI’s marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		goToCFI : <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(cfi, fixed)</span> </span>{
+			<span class="hljs-keyword">var</span> chapter = r.CFI.getChapterFromCFI(cfi);
+			<span class="hljs-keyword">if</span>(chapter !== -<span class="hljs-number">1</span>){
+				<span class="hljs-keyword">if</span> (r.Navigation.getChapter() === chapter &amp;&amp; r.Navigation.isCFIInCurrentChapterPart(cfi)) {
+					<span class="hljs-keyword">if</span> (r.CFI.findCFIElement(cfi) === -<span class="hljs-number">1</span>) {
+						r.CFI.setCFI(cfi);
+					}
+					<span class="hljs-keyword">return</span> r.Navigation.loadPage(cfi, fixed);
+				} <span class="hljs-keyword">else</span> {
+					<span class="hljs-keyword">return</span> r.loadChapter(chapter, cfi);
+				}
+			}
+			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: <span class="hljs-string">'Invalid CFI'</span>, value: cfi, call: <span class="hljs-string">'goToCFI'</span>}));
+			<span class="hljs-keyword">return</span> $.Deferred().reject().promise();
+		},</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p><a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		getChapterFromCFI: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(cfi)</span></span>{
+			<span class="hljs-keyword">if</span>($.type(cfi) === <span class="hljs-string">'string'</span>){
+				<span class="hljs-keyword">var</span> chapter = cfi.split(<span class="hljs-string">'/'</span>);
+				<span class="hljs-keyword">if</span>(chapter.length &gt;= <span class="hljs-number">3</span> &amp;&amp; $.isNumeric(chapter[<span class="hljs-number">2</span>].slice(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>))){
+					<span class="hljs-keyword">return</span> <span class="hljs-built_in">parseInt</span>(<span class="hljs-built_in">parseInt</span>(chapter[<span class="hljs-number">2</span>].slice(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>), <span class="hljs-number">10</span>) / <span class="hljs-number">2</span> - <span class="hljs-number">1</span>, <span class="hljs-number">10</span>);
+				}
+			}
+			<span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+		}
+	};
+
+	<span class="hljs-keyword">var</span> _nodeInViewport = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(el, offset)</span></span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>this test is only for text nodes, relates to CR-300
+caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
+we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span>(el.nodeType === <span class="hljs-number">3</span>){
+			<span class="hljs-keyword">var</span> range = r.$iframe.contents()[<span class="hljs-number">0</span>].createRange();
+			range.setStart(el, offset || <span class="hljs-number">0</span>);
+			<span class="hljs-keyword">var</span> rects = range.getClientRects();
+			<span class="hljs-keyword">if</span>(rects &amp;&amp; rects.length){
+				<span class="hljs-keyword">var</span> rect = rects[<span class="hljs-number">0</span>];
+				<span class="hljs-keyword">return</span> rect.left &gt;= <span class="hljs-number">0</span>;
+			}
+		} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(el.nodeType === <span class="hljs-number">1</span>){</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>This check is only necessary for iOS webview bug, where caretRangeFromPoint returns the wrong element
+<a href="http://jira.blinkbox.local/jira/browse/CR-320">http://jira.blinkbox.local/jira/browse/CR-320</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">return</span> r.returnPageElement(el) === r.Navigation.getPage();
+		}
+		<span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+	};
+
+	<span class="hljs-keyword">var</span> _getElementAt = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(x, y)</span></span>{
+		<span class="hljs-keyword">var</span> range, textNode, offset, doc = r.$iframe.contents()[<span class="hljs-number">0</span>];
+		<span class="hljs-comment">/* standard */</span>
+		<span class="hljs-keyword">if</span> (doc.caretPositionFromPoint) {
+			range = doc.caretPositionFromPoint(x, y);
+			textNode = range.offsetNode;
+			offset = range.offset;
+			<span class="hljs-comment">/* WebKit */</span>
+		} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (doc.caretRangeFromPoint) {
+			range = doc.caretRangeFromPoint(x, y);
+			textNode = range.startContainer;
+			offset = range.startOffset;
+		}
+
+		<span class="hljs-keyword">if</span>(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset)){
+			<span class="hljs-keyword">var</span> columnWidth = <span class="hljs-built_in">Math</span>.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / <span class="hljs-number">2</span>);
+			<span class="hljs-keyword">if</span>(x &lt; <span class="hljs-number">3</span>/<span class="hljs-number">4</span> * columnWidth){
+				x += columnWidth / <span class="hljs-number">4</span>;
+				<span class="hljs-keyword">return</span> _getElementAt(x, y);
+			}
+			<span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+		}
+		<span class="hljs-keyword">return</span> {
+			textNode: textNode,
+			offset: offset
+		};
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p><a name="getFirstNode"></a> Helper function that returns the first node in the current page displayed by the reader.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	<span class="hljs-keyword">var</span> getFirstNode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+
+		<span class="hljs-keyword">var</span> rect = r.$reader[<span class="hljs-number">0</span>].getBoundingClientRect();
+		<span class="hljs-keyword">var</span> left = r.getReaderLeftPosition();
+		<span class="hljs-keyword">var</span> result = _getElementAt(rect.left - left, rect.top);
+		<span class="hljs-keyword">var</span> textNode;
+		<span class="hljs-keyword">var</span> offset;
+
+		<span class="hljs-comment">/* Make sure textNode is part of the reader... */</span>
+		<span class="hljs-keyword">if</span> (!result) {
+			<span class="hljs-comment">/* Reset offset since textNode changed. */</span>
+			offset = <span class="hljs-number">0</span>;
+			<span class="hljs-keyword">var</span> $firstElementInViewport = r.$reader.find(<span class="hljs-string">':visible:not(.'</span>+ r.Epub.BLACKLIST.join(<span class="hljs-string">',.'</span>)+<span class="hljs-string">')'</span>).filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+				<span class="hljs-keyword">var</span> offset =  $(<span class="hljs-keyword">this</span>).offset();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>some paragraphs client rect appear above the reader, even though the text itself wraps on the previous page as well</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>				<span class="hljs-keyword">return</span> offset.left &gt;= <span class="hljs-number">0</span> &amp;&amp; offset.top &gt;= rect.top;
+			}).first();
+
+			<span class="hljs-keyword">if</span>($firstElementInViewport.length){
+				textNode = $firstElementInViewport[<span class="hljs-number">0</span>];
+			} <span class="hljs-keyword">else</span> {
+				textNode = r.$reader.children().filter(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+					<span class="hljs-keyword">return</span> $(<span class="hljs-keyword">this</span>).text().trim().length;
+				}).first()[<span class="hljs-number">0</span>];
+			}
+		} <span class="hljs-keyword">else</span> {
+			textNode = result.textNode;
+			offset = result.offset;
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>The target node cannot be a child of svg, any marker generated will be invisible, will return the svg itself</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span>($(textNode).parents(<span class="hljs-string">'svg'</span>).length){
+			textNode = $(textNode).parents(<span class="hljs-string">'svg'</span>)[<span class="hljs-number">0</span>];
+			offset = <span class="hljs-number">0</span>;
+		}
+
+		<span class="hljs-keyword">var</span> findLeafNode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(el)</span> </span>{
+			<span class="hljs-keyword">var</span> $el = $(el);
+			<span class="hljs-comment">/* Return a non-empty textNode or null */</span>
+			<span class="hljs-keyword">if</span> (el === <span class="hljs-literal">null</span> || el.nodeName === <span class="hljs-string">'svg'</span> || !el.childNodes || el.childNodes.length === <span class="hljs-number">0</span>) {
+				<span class="hljs-keyword">return</span> el;
+			}
+			<span class="hljs-comment">/* Return the element if it only has one child and it is in the blacklist */</span>
+			<span class="hljs-keyword">if</span> (el.childNodes.length === <span class="hljs-number">1</span> &amp;&amp; _hasClass($el.contents(), r.Epub.BLACKLIST)) { <span class="hljs-comment">// TODO: Explore more options</span>
+				<span class="hljs-keyword">return</span> el;
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>only take into consideration DOM nodes and text nodes, ignore anything else (including comments)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> contents = $el.contents();
+			<span class="hljs-keyword">for</span>(<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>, l = contents.length; i &lt; l; i++){
+				<span class="hljs-keyword">var</span> child = contents[i];
+				<span class="hljs-keyword">if</span>((child.nodeType === <span class="hljs-number">1</span> &amp;&amp; !_hasClass($(child), r.Epub.BLACKLIST)) || child.nodeType === <span class="hljs-number">3</span>){
+					<span class="hljs-comment">/* reset offset since textNode changed */</span>
+					offset = <span class="hljs-number">0</span>;
+					<span class="hljs-keyword">return</span> findLeafNode(child);
+				}
+			}
+			<span class="hljs-keyword">return</span> el;
+		};
+
+		<span class="hljs-comment">/* generate a preview from the current position */</span>
+		<span class="hljs-keyword">var</span> preview = <span class="hljs-string">''</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Calculates the length of a string and returns true if the length has the minimum number of words.
+Returns true if text is a string and its length is &gt; than the desired number of words, false otherwise.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> hasDesiredLength = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(text)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Check number of words so far.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> words = text.match(<span class="hljs-regexp">/\S+/g</span>);
+			<span class="hljs-keyword">return</span> words &amp;&amp; words.length &gt; <span class="hljs-number">100</span>;
+		};
+
+		<span class="hljs-keyword">var</span> _hasClass = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(el, classNames)</span> </span>{
+			<span class="hljs-keyword">var</span> classes = <span class="hljs-string">'.'</span> + classNames.join(<span class="hljs-string">', .'</span>);
+			<span class="hljs-keyword">return</span> el.filter(classes).length &gt; <span class="hljs-number">0</span>;
+		};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Loops through all adjacent nodes to generate the preview, starting with the first text node.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> generatePreview = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+			<span class="hljs-keyword">var</span> $currentNode = $(textNode);
+			<span class="hljs-keyword">var</span> text = offset ? <span class="hljs-string">'&amp;#8230;'</span> + $currentNode.text().substr(offset) : $currentNode.text(); <span class="hljs-comment">// prepend ellipses to previews which don't begin at the start of a sentence</span>
+			<span class="hljs-keyword">while</span> (!hasDesiredLength(text)) {
+				<span class="hljs-keyword">var</span> $next = getNextNode($currentNode);
+
+				<span class="hljs-keyword">if</span> ($next &amp;&amp; $next.length) {
+					$currentNode = $next;
+					text += $currentNode.text().length &amp;&amp; $currentNode[<span class="hljs-number">0</span>].tagName !== <span class="hljs-string">'SCRIPT'</span> ? $currentNode.text() : <span class="hljs-string">''</span>;
+				} <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>No more content go get text from, break operation.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>					<span class="hljs-keyword">break</span>;
+				}
+			}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Trim preview to 100 words.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			<span class="hljs-keyword">var</span> trimmed = text.replace(<span class="hljs-regexp">/\s+/g</span>, <span class="hljs-string">' '</span>).trim().match(<span class="hljs-regexp">/((\S+\s+){100})/</span>);
+			<span class="hljs-keyword">return</span> trimmed &amp;&amp; trimmed.length ? trimmed[<span class="hljs-number">0</span>] : text;
+		};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Get the top element that is the child of the reader container.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">var</span> $currentNode = $(textNode);
+		<span class="hljs-keyword">while</span> ($currentNode.parent().length &amp;&amp; !$currentNode.parent().is(r.$reader)) {
+			$currentNode = $currentNode.parent();
+		}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Check that the first tag has text, if not, add any image/table we can find.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>		<span class="hljs-keyword">if</span> (!$currentNode.text().trim().length) {
+			<span class="hljs-keyword">var</span> $img = $currentNode.find(<span class="hljs-string">'img'</span>);
+			<span class="hljs-keyword">var</span> $table = $currentNode.find(<span class="hljs-string">'table'</span>);
+			<span class="hljs-keyword">var</span> $svg = $currentNode.find(<span class="hljs-string">'svg'</span>);
+
+			<span class="hljs-keyword">if</span> ($img.length) {
+				preview = <span class="hljs-string">'Image: '</span> + ($img.attr(<span class="hljs-string">'alt'</span>) ? $img.attr(<span class="hljs-string">'alt'</span>) : <span class="hljs-string">'No description'</span>);
+			} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ($table.length) {
+				preview = <span class="hljs-string">'Table'</span>;
+			} <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> ($svg.length) {
+				preview = <span class="hljs-string">'Image: No description'</span>;
+			}
+		} <span class="hljs-keyword">else</span> {
+			preview = generatePreview();
+		}
+
+		<span class="hljs-keyword">return</span> {
+			textNode: findLeafNode(textNode),
+			offset: offset,
+			preview: preview
+		};
+	};
+
+	<span class="hljs-keyword">var</span> getNextNode = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">($el)</span> </span>{
+		$el = $el.last();
+		<span class="hljs-keyword">var</span> nodes = $el.parent().contents(),
+				blacklisted = r.Epub.BLACKLIST.join(<span class="hljs-string">',.'</span>),
+				i,
+				next,
+				$next;
+		<span class="hljs-keyword">for</span> (i = nodes.index($el) + <span class="hljs-number">1</span>; i &lt; nodes.length; i++) {
+			next = nodes[i];
+			$next = $(next);
+			<span class="hljs-keyword">if</span> (next.nodeType === <span class="hljs-number">3</span> &amp;&amp; $next.text().trim().length ||                          <span class="hljs-comment">// Return either a non-empty text node or</span>
+				next.nodeType === <span class="hljs-number">1</span> &amp;&amp; !$next.hasClass(blacklisted) &amp;&amp; $next.is(<span class="hljs-string">':visible'</span>)) {  <span class="hljs-comment">// a visible, non-blacklisted element node</span>
+				<span class="hljs-keyword">return</span> $next;
+			}
+		}
+		<span class="hljs-keyword">if</span> (!$el.parent().is(r.$reader)) {
+			<span class="hljs-keyword">return</span> getNextNode($el.parent());
+		}
+	};
+
+	<span class="hljs-keyword">return</span> r;
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

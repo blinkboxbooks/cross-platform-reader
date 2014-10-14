@@ -4371,6 +4371,12 @@ var Reader = (function (r) {
 		publisherStyles: {
 			value: true
 		},
+		doubleTapDelay: {
+			min: 100,
+			max: 1000,
+			value: 350,
+			clear: restrictBounds
+		},
 		loadProgressData: {
 			min: 0,
 			max: 2,
@@ -4712,7 +4718,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '1.0.2-69'
+				appversion: '1.0.3-70'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -5086,7 +5092,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '1.0.2-69'
+			'version': '1.0.3-70'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5479,11 +5485,6 @@ var Reader = (function (r) {
 
 // The **Formatting** options available to the user.
 //
-// * [`setMaxParallelRequests`](#setMaxParallelRequests)
-// * [`setMaxChapterElements`](#setMaxChapterElements)
-// * [`setPreloadRange`](#setPreloadRange)
-// * [`setTransitionDuration`](#setTransitionDuration)
-// * [`setTransitionTimingFunction`](#setTransitionTimingFunction)
 // * [`setLineHeight`](#setLineHeight)
 // * [`increaseLineHeight`](#increaseLineHeight)
 // * [`decreaseLineHeight`](#decreaseLineHeight)
@@ -5496,51 +5497,6 @@ var Reader = (function (r) {
 // * [`setTheme`](#setTheme)
 
 var Reader = (function (r) {
-	// <a name="enablePublisherStyles"></a>
-	r.enablePublisherStyles = function(){
-		return r.setPreferences({publisherStyles: true});
-	};
-
-	// <a name="disablePublisherStyles"></a>
-	r.disablePublisherStyles = function(){
-		return r.setPreferences({publisherStyles: false});
-	};
-
-	// <a name="setImageWordCount"></a> Set image word count.
-	r.setLoadProgressData = function(value){
-		return r.setPreferences({loadProgressData: value});
-	};
-
-	// <a name="setImageWordCount"></a> Set image word count.
-	r.setImageWordCount = function(value){
-		return r.setPreferences({imageWordCount: value});
-	};
-
-	// <a name="setMaxParallelRequests"></a> Set max parallel requests (within bounds).
-	r.setMaxParallelRequests = function(value){
-		return r.setPreferences({maxParallelRequests: value});
-	};
-
-	// <a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).
-	r.setMaxChapterElements = function(value){
-		return r.setPreferences({maxChapterElements: value});
-	};
-
-	// <a name="setPreloadRange"></a> Set preload range (within bounds).
-	r.setPreloadRange = function(value){
-		return r.setPreferences({preloadRange: value});
-	};
-
-	// <a name="setTransitionDuration"></a> Set transition duration (within bounds).
-	r.setTransitionDuration = function(value){
-		return r.setPreferences({transitionDuration: value});
-	};
-
-	// <a name="setTransitionDuration"></a> Set transition duration (within bounds).
-	r.setTransitionTimingFunction = function(value){
-		return r.setPreferences({transitionTimingFunction: value});
-	};
-
 	// <a name="setLineHeight"></a>Set line size, if within bounds.
 	// If current line height is larger than the minimum line height, decrease it by one unit.
 	// Returns the current value of the line height
@@ -7039,7 +6995,7 @@ var Reader = (function (r) {
             touchStartDataCopy = touchStartData;
             touchTimeout = setTimeout(function () {
               sendUnhandledTouchEvent(touchStartDataCopy);
-            }, 550);
+            }, r.preferences.doubleTapDelay.value);
           } else {
             sendUnhandledTouchEvent(touchStartData);
           }
