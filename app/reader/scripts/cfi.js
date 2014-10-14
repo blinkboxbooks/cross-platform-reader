@@ -50,7 +50,11 @@ var Reader = (function (r) {
 			return r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
 		},
 		setHighlightCFI: function(cfi){
-			return r.CFI.setCFI(cfi, r.Highlights.ATTRIBUTE);
+			cfi = cfi.split(',');
+			// split the cfi into two regular cfis
+			// todo instead of using markers, use the overlay
+			var cfi1 = cfi[0] + cfi[1] + ')', cfi2 = cfi[0] + cfi[2];
+			return r.CFI.setCFI(cfi1, r.Highlights.ATTRIBUTE + '=' + cfi) && r.CFI.setCFI(cfi2, r.Highlights.ATTRIBUTE + '=' + cfi);
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point

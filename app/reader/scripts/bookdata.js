@@ -256,12 +256,15 @@ var Reader = (function (r) {
 		},
 		getVisibleHighlights: function(){
 			var highlights = [];
-			$('[data-highlight][data-cfi]', r.$iframe.contents()).each(function(index, el){
+			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
-					highlights.push($(el).attr('data-cfi'));
+					highlights.push($(el).attr('data-highlight'));
 				}
 			});
-			return highlights;
+			// the array must be unique
+			return highlights.filter(function(el, index){
+				return highlights.indexOf(el) === index;
+			});
 		},
 		reset: function(){
 			_highlights = [];
