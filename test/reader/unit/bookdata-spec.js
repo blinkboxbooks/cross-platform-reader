@@ -206,15 +206,15 @@ describe('Highlights', function(){
 		});
 
 		it('should inject marker when setting a highlight', function(){
-			spyOn(CFI, 'setCFI');
+			spyOn(CFI, 'setHighlightCFI');
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
 			spyOn(Reader.Navigation, 'getChapter').and.returnValue(data.chapter);
 
 			Highlights.setHighlight(data.cfi);
-			expect(CFI.setCFI).toHaveBeenCalledWith(data.cfi, Reader.Highlights.ATTRIBUTE);
+			expect(CFI.setHighlightCFI).toHaveBeenCalledWith(data.cfi);
 
 			Highlights.setHighlights([data.cfi]);
-			expect(CFI.setCFI).toHaveBeenCalledWith(data.cfi, Reader.Highlights.ATTRIBUTE);
+			expect(CFI.setHighlightCFI).toHaveBeenCalledWith(data.cfi);
 		});
 
 		it('should append overlay when setting a highlight');
@@ -224,7 +224,7 @@ describe('Highlights', function(){
 	describe('getVisibleHighlights', function(){
 		it('should return the visible highlights on the page', function(){
 			var $markers = $(data.cfis.map(function(cfi){
-				return $('<span data-highlight data-cfi="'+cfi+'"></span>');
+				return $('<span data-highlight="'+cfi+'"></span>');
 			})), each = $.fn.each;
 
 			spyOn($.fn, 'each').and.callFake(function(cb){
@@ -232,17 +232,14 @@ describe('Highlights', function(){
 			});
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(data.page);
 			spyOn(Reader, 'returnPageElement').and.callFake(function(el){
-				return data.cfis.indexOf($(el).attr('data-cfi'));
+				return data.cfis.indexOf($(el).attr('data-highlight'));
 			});
-			Highlights.setHighlights(data.cfis);
 
-			expect(Reader.Navigation.getPage).toHaveBeenCalled();
+			expect(Highlights.getVisibleHighlights()).toEqual([data.cfis[data.page]]);
+
 			expect($.fn.each).toHaveBeenCalled();
+			expect(Reader.Navigation.getPage).toHaveBeenCalled();
 			expect(Reader.returnPageElement).toHaveBeenCalled();
-
-			var highlights = Highlights.getVisibleHighlights();
-			expect(highlights).toBeArray(1);
-			expect(highlights).toContain(data.cfis[data.page]);
 		});
 	});
 
