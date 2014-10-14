@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>formatting.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="book.html">
+                book.js
+              </a>
+            
+              
+              <a class="source" href="bookdata.html">
+                bookdata.js
+              </a>
+            
+              
+              <a class="source" href="cfi.html">
+                cfi.js
+              </a>
+            
+              
+              <a class="source" href="config.html">
+                config.js
+              </a>
+            
+              
+              <a class="source" href="display.html">
+                display.js
+              </a>
+            
+              
+              <a class="source" href="epub.html">
+                epub.js
+              </a>
+            
+              
+              <a class="source" href="events.html">
+                events.js
+              </a>
+            
+              
+              <a class="source" href="filters.html">
+                filters.js
+              </a>
+            
+              
+              <a class="source" href="formatting.html">
+                formatting.js
+              </a>
+            
+              
+              <a class="source" href="layout.html">
+                layout.js
+              </a>
+            
+              
+              <a class="source" href="navigation.html">
+                navigation.js
+              </a>
+            
+              
+              <a class="source" href="parse.html">
+                parse.js
+              </a>
+            
+              
+              <a class="source" href="styles.html">
+                styles.js
+              </a>
+            
+              
+              <a class="source" href="touch.html">
+                touch.js
+              </a>
+            
+              
+              <a class="source" href="wrapper.html">
+                wrapper.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>formatting.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-comment">/* jshint unused: true */</span>
+<span class="hljs-comment">/* exported Reader */</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>The <strong>Formatting</strong> options available to the user.</p>
+<ul>
+<li><a href="#setMaxParallelRequests"><code>setMaxParallelRequests</code></a></li>
+<li><a href="#setMaxChapterElements"><code>setMaxChapterElements</code></a></li>
+<li><a href="#setPreloadRange"><code>setPreloadRange</code></a></li>
+<li><a href="#setTransitionDuration"><code>setTransitionDuration</code></a></li>
+<li><a href="#setTransitionTimingFunction"><code>setTransitionTimingFunction</code></a></li>
+<li><a href="#setLineHeight"><code>setLineHeight</code></a></li>
+<li><a href="#increaseLineHeight"><code>increaseLineHeight</code></a></li>
+<li><a href="#decreaseLineHeight"><code>decreaseLineHeight</code></a></li>
+<li><a href="#setFontSize"><code>setFontSize</code></a></li>
+<li><a href="#setTextAlign"><code>setTextAlign</code></a></li>
+<li><a href="#setFontFamily"><code>setFontFamily</code></a></li>
+<li><a href="#increaseFontSize"><code>increaseFontSize</code></a></li>
+<li><a href="#decreaseFontSize"><code>decreaseFontSize</code></a></li>
+<li><a href="#setMargin"><code>setMargin</code></a></li>
+<li><a href="#setTheme"><code>setTheme</code></a></li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">var</span> Reader = (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(r)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p><a name="enablePublisherStyles"></a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.enablePublisherStyles = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({publisherStyles: <span class="hljs-literal">true</span>});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p><a name="disablePublisherStyles"></a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.disablePublisherStyles = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({publisherStyles: <span class="hljs-literal">false</span>});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p><a name="setImageWordCount"></a> Set image word count.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setLoadProgressData = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({loadProgressData: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p><a name="setImageWordCount"></a> Set image word count.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setImageWordCount = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({imageWordCount: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p><a name="setMaxParallelRequests"></a> Set max parallel requests (within bounds).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setMaxParallelRequests = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({maxParallelRequests: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p><a name="setMaxChapterElements"></a> Set max chapter elements (within bounds).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setMaxChapterElements = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({maxChapterElements: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p><a name="setPreloadRange"></a> Set preload range (within bounds).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setPreloadRange = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({preloadRange: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p><a name="setTransitionDuration"></a> Set transition duration (within bounds).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setTransitionDuration = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({transitionDuration: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p><a name="setTransitionDuration"></a> Set transition duration (within bounds).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setTransitionTimingFunction = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({transitionTimingFunction: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p><a name="setLineHeight"></a>Set line size, if within bounds.
+If current line height is larger than the minimum line height, decrease it by one unit.
+Returns the current value of the line height</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setLineHeight = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({lineHeight: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p><a name="increaseLineHeight"></a>Increase line size, if possible
+If current line height is smaller than the maximum line height, increase it by one unit.
+ReturnS the current value of the line height.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.increaseLineHeight = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({lineHeight: r.preferences.lineHeight.value + r.preferences.lineHeight.unit});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p><a name="decreaseLineHeight"></a>Decrease line size, if possible.
+If current line height is larger than the minimum line height, decrease it by one unit.
+Returns the current value of the line height.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.decreaseLineHeight = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({lineHeight: r.preferences.lineHeight.value - r.preferences.lineHeight.unit});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p><a name="setFontSize"></a>Set font size, if within bounds.
+If current font size is larger than the minimum font, decrease it by one unit.
+Returns the current value of the line height.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setFontSize = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({fontSize: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p><a name="setTextAlign"></a>Set the text alignment, acceptable values are only left or justified.
+If the argument is different than the acceptable values, defaults to left.
+Return the current value of the text align.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setTextAlign = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({textAlign: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p><a name="setFontFamily"></a>Set font family
+Return the current font-family of the reader.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setFontFamily = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({fontFamily: value});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p><a name="increaseFontSize"></a>Increase font size, if possible.
+If current font size is smaller than the maximum font size, increase it by one unit.
+Returns the current value of the font size.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.increaseFontSize = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({fontSize: r.preferences.fontSize.value + r.preferences.fontSize.unit});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p><a name="decreaseFontSize"></a>Decrease font size, if possible
+If current font size is larger than the minimum font size, decrease it by one unit
+Returns the current value of the font size</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.decreaseFontSize = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({fontSize: r.preferences.fontSize.value - r.preferences.fontSize.unit});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p><a name="setMargin"></a>Setter for the reader’s margin property</p>
+<ul>
+<li><code>args</code> an array of 4 integers representing the top, right, bottom, left margins. Can also accept keyword params such as ‘min’, ‘max’ and ‘medium’.
+Returns the updated margins.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setMargin = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({margin:args});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p><a name="setTheme"></a>Setter for the reader’s theme</p>
+<ul>
+<li><code>args</code> an object containing the color and background of the theme. Can also accept keyword params such as ‘light’, ‘dark’ and ‘sepia’
+Returns the current theme</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	r.setTheme = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(args)</span></span>{
+		<span class="hljs-keyword">return</span> r.setPreferences({theme:args});
+	};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p><a name="setPreferences"></a>Set all style related user preferences</p>
+<ul>
+<li><code>args</code> an Object containing valid preference values.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+	r.setPreferences = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(args)</span> </span>{
+		<span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> args !== <span class="hljs-string">'object'</span>) {
+			<span class="hljs-keyword">return</span> r.preferences;
+		}
+		<span class="hljs-keyword">var</span> updated = <span class="hljs-literal">false</span>,
+				pref,
+				value,
+				prop;
+
+		<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">refresh</span><span class="hljs-params">()</span> </span>{
+			r.refreshLayout();
+		}
+
+		<span class="hljs-keyword">for</span> (prop <span class="hljs-keyword">in</span> args) {
+			<span class="hljs-keyword">if</span> (args.hasOwnProperty(prop)) {
+				pref = r.preferences[prop];
+				value = args[prop];
+				<span class="hljs-keyword">switch</span> (prop) {
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'lineHeight'</span>:
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'fontSize'</span>:
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'textAlign'</span>:
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'fontFamily'</span>:
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'theme'</span>:
+						value = pref.clear(value);
+						<span class="hljs-keyword">if</span> (pref.value !== value) {
+							pref.value = value;
+							updated = <span class="hljs-literal">true</span>;
+						}
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'transitionTimingFunction'</span>:
+						pref.value = value;
+						r.$reader.css(<span class="hljs-string">'transition-timing-function'</span>, value);
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'publisherStyles'</span>:
+						value = <span class="hljs-built_in">Boolean</span>(value);
+						<span class="hljs-keyword">if</span> (value !== pref.value) {
+							pref.value = value;
+							<span class="hljs-keyword">if</span> (value) {
+								r.addPublisherStyles().then(refresh);
+							} <span class="hljs-keyword">else</span> {
+								r.resetPublisherStyles();
+								r.refreshLayout();
+							}
+						}
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'margin'</span>:
+						value = pref.clear(value);
+						<span class="hljs-keyword">if</span> (value !== pref.value) {
+							pref.value = value;
+							r.Layout.resizeContainer();
+							updated = <span class="hljs-literal">true</span>;
+						}
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">default</span>:
+						pref.value = pref.clear(value);
+				}
+			}
+		}
+
+		<span class="hljs-keyword">if</span> (updated) {
+			r.preferences.applyAll();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Update variables that are dependant on styles.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>			r.refreshLayout();
+		}
+		<span class="hljs-keyword">return</span> r.preferences;
+	};
+
+	<span class="hljs-keyword">return</span> r;
+}(Reader || {}));</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
