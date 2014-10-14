@@ -203,6 +203,7 @@ var Reader = (function (r) {
 					_highlights[chapter].push(cfi);
 					if(chapter === r.Navigation.getChapter()){
 						r.CFI.setHighlightCFI(cfi);
+						r.Highlights.display();
 					}
 					return cfi;
 				}
