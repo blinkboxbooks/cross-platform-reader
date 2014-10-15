@@ -58,10 +58,10 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point
-			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents());
+			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents()), attrs = attr ? attr.split('=') : '';
 			if($marker.length){
 				if(attr && !$marker.is('['+attr+']')){
-					$marker.attr(attr, '');
+					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
 				}
 			} else {
 				try {
@@ -76,7 +76,7 @@ var Reader = (function (r) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.attr('data-cfi', cfi);
 							if(attr){
-								$node.attr(attr, '');
+								$node.attr(attrs[0], attrs.length > 1 ? name[1] : '');
 							}
 						}
 						if ($node[0].nodeType === 3) { // inject into the text node
@@ -112,7 +112,8 @@ var Reader = (function (r) {
 				} else {
 					$nextNode.attr('data-cfi', cfi);
 					if(attr){
-						$nextNode.attr(attr, '');
+						var name = attr.split('=');
+						$nextNode.attr(name[0], name.length > 1 ? name[1] : '');
 					}
 				}
 				return true;

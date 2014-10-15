@@ -187,6 +187,12 @@ var Reader = (function (r) {
 				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
 					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
+					// clear selection
+					if (selection.empty) {  // Chrome
+						selection.empty();
+					} else if (selection.removeAllRanges) {  // Firefox
+						selection.removeAllRanges();
+					}
 				} else {
 					// no selected text
 					r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
