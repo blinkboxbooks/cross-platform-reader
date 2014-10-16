@@ -67,7 +67,10 @@ var Reader = (function (r) {
 
 	r.getReaderLeftPosition = function () {
 		// Transform value is matrix(a, c, b, d, tx, ty)
-		return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
+		//return parseInt(r.$reader.css('transform').split(',')[4], 10) || 0;
+		// Using position left instead of translateX transform, as the latter causes rendering issues on iOS,
+		// see http://jira.blinkbox.local/jira/browse/CR-419
+		return parseInt(r.$reader.css('left')) || 0;
 	};
 
 	r.setReaderLeftPosition = function (pos, duration) {
@@ -77,7 +80,10 @@ var Reader = (function (r) {
 		// for the next transitionend event in some cases (e.g. the transition unit tests).
 		r.$reader.css({
 			'transition-duration': '0s',
-			transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
+			//transform: 'translateX(' + r.getReaderLeftPosition() + 'px)'
+			// Using position left instead of translateX transform, as the latter causes rendering issues on iOS,
+			// see http://jira.blinkbox.local/jira/browse/CR-419
+			left: r.getReaderLeftPosition() + 'px'
 		}).trigger(r.support.transitionend);
 		if (duration) {
 			r.$reader.one(r.support.transitionend, defer.resolve);
@@ -86,7 +92,10 @@ var Reader = (function (r) {
 		}
 		r.$reader.css({
 			'transition-duration': (duration || 0) + 's',
-			transform: 'translateX(' + pos + 'px)'
+			//transform: 'translateX(' + pos + 'px)'
+			// Using position left instead of translateX transform, as the latter causes rendering issues on iOS,
+			// see http://jira.blinkbox.local/jira/browse/CR-419
+			left: pos + 'px'
 		});
 		return defer.promise();
 	};
