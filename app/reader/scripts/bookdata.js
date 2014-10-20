@@ -239,7 +239,21 @@ var Reader = (function (r) {
 		},
 		display: function(){
 			var isVisible = false;
-			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
+
+			// resize highlights
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).remove();
+			// Add all highlights for this chapter
+			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
+			if(highlights){
+				$.each(highlights, function(index, highlight){
+					// Ignore bookmarks not part of the current chapter part:
+					if (highlight && r.Navigation.isCFIInCurrentChapterPart(highlight)) {
+						r.CFI.setHighlightCFI(highlight);
+					}
+				});
+			}
+
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -249,7 +263,7 @@ var Reader = (function (r) {
 		},
 		getVisibleHighlights: function(){
 			var highlights = [];
-			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					highlights.push($(el).attr('data-cfi'));
 				}
