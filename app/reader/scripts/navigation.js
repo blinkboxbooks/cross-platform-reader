@@ -34,6 +34,7 @@ var Reader = (function (r) {
 		r.Epub.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
+		r.Highlights.reset();
 		r.Book.reset();
 
 		// Remove book content.
@@ -144,6 +145,7 @@ var Reader = (function (r) {
 		}
 		return promise.then(function () {
 			r.Bookmarks.display();
+			r.Highlights.display();
 			r.Navigation.updateProgress();
 		});
 	};
@@ -297,12 +299,6 @@ var Reader = (function (r) {
 				defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
-		},
-		setCFI: function(cfi, isBookmark){
-			if (!cfi) {
-				cfi = r.CFI.getCFIObject();
-			}
-			r.CFI.setCFI(cfi, isBookmark);
 		},
 		reset: function(){
 			bookChapters = 0;
@@ -704,6 +700,7 @@ var Reader = (function (r) {
 					.then(function () {
 						r.Navigation.updateProgress();
 						r.Bookmarks.display();
+						r.Highlights.display();
 						if (imgLoad) {
 							r.setReaderOpacity(1);
 						}

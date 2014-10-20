@@ -48,8 +48,9 @@ var Reader = (function (r) {
 		// Set the mobile flag.
 		r.mobile = !!((param.hasOwnProperty('mobile')));
 
-		// Save the initial bookmarks.
+		// Save the initial bookmarks and highlights.
 		r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
+		r.Highlights.setHighlights((param.hasOwnProperty('highlights')) ? param.highlights : [], true);
 
 		// Initialise the epub module
 		r.Epub.init(r.$reader[0]);
@@ -206,7 +207,18 @@ var Reader = (function (r) {
 				$.each(bookmarks, function(index, bookmark){
 					// Ignore bookmarks not part of the current chapter part:
 					if (bookmark && r.Navigation.isCFIInCurrentChapterPart(bookmark)) {
-						r.Navigation.setCFI(bookmark, true);
+						r.CFI.setBookmarkCFI(bookmark);
+					}
+				});
+			}
+
+			// Add all highlights for this chapter
+			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
+			if(highlights){
+				$.each(highlights, function(index, highlight){
+					// Ignore bookmarks not part of the current chapter part:
+					if (highlight && r.Navigation.isCFIInCurrentChapterPart(highlight)) {
+						r.CFI.setHighlightCFI(highlight);
 					}
 				});
 			}

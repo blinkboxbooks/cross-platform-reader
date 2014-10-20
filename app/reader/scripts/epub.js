@@ -104,11 +104,30 @@ var Reader = (function (r, Epub) {
 			return cfi;
 		};
 
+		// Generate CFI range for a DOM range element
+		prototype.generateRangeCFI = function(range){
+			var cfi;
+
+			cfi = EPUBcfi.generateRangeComponent(range.startContainer, range.startOffset, range.endContainer, range.endOffset, this.BLACKLIST);
+			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
+			cfi = this.normalizeChapterPartCFI(cfi);
+			cfi = this.removeContext(cfi);
+
+			return cfi;
+		};
+
 		// Injects a marker in the specified position
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+		};
+
+		// Injects a marker in the specified range
+		prototype.injectRangeMarker = function(cfi, marker){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){
@@ -117,4 +136,4 @@ var Reader = (function (r, Epub) {
 		};
 
 		return Epub;
-	})(Reader || {}, new EpubCFIModule())));
+	})(Reader || {}, EPUBcfi)));
