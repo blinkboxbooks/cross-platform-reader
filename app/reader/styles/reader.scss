@@ -84,6 +84,7 @@ body {
     -webkit-perspective: 1000;
     backface-visibility: hidden;
     perspective: 1000;
+    will-change: left, opacity;
   }
 }
 
