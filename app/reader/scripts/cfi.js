@@ -52,7 +52,28 @@ var Reader = (function (r) {
 		setHighlightCFI: function(cfi){
 			try {
 				var data = r.CFI.parseCFI(cfi);
-				console.log(data);
+
+				var range = r.$iframe.contents()[0].createRange();
+				range.setStart(data.startElement, data.startOffset);
+				range.setEnd(data.endElement, data.endOffset);
+				console.info(range);
+
+				var rects = range.getClientRects(), reader = {
+					top: r.$reader.offset().top,
+					left: r.$reader.offset().left
+				};
+				for(var i = 0; i < rects.length; i++){
+					var rect = rects[i];
+					console.log(rect);
+					$('<div></div>')
+						.css({
+							width: rect.width + 'px',
+							height: rect.height + 'px',
+							top: rect.top - reader.top + 'px',
+							left: rect.left - reader.left + 'px'
+						})
+						.appendTo(r.$overlay);
+				}
 			} catch(err){
 				// cannot insert CFI
 				r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setHighlightCFI'}));
