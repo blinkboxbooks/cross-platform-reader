@@ -228,21 +228,7 @@ var Reader = (function (r) {
 				var index = $.inArray(cfi, _highlights[chapter]);
 				if($.isArray(_highlights[chapter]) && index !== -1){
 					_highlights[chapter].splice(index, 1);
-
-					var $marker = $('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents());
-					if($marker.length){
-						if($marker.hasClass('cpr-marker')){
-							var $parent = $marker.parent();
-							$marker.remove();
-
-							// this restates the DOM to the previous structure
-							// todo do not alter the DOM in the first place
-							$parent[0].normalize();
-						} else {
-							$marker.removeAttr(r.Highlights.ATTRIBUTE);
-						}
-					}
-
+					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents()).remove();
 					r.Highlights.display();
 					return true;
 				}
