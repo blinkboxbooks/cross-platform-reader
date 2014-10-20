@@ -56,7 +56,6 @@ var Reader = (function (r) {
 				var range = r.$iframe.contents()[0].createRange();
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
-				console.info(range);
 
 				var rects = range.getClientRects(), reader = {
 					top: r.$reader.offset().top,
@@ -64,8 +63,7 @@ var Reader = (function (r) {
 				};
 				for(var i = 0; i < rects.length; i++){
 					var rect = rects[i];
-					console.log(rect);
-					$('<div></div>')
+					$('<div data-cfi="'+cfi+'" data-highlight></div>')
 						.css({
 							width: rect.width + 'px',
 							height: rect.height + 'px',

@@ -265,7 +265,7 @@ var Reader = (function (r) {
 			var highlights = [];
 			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
-					highlights.push($(el).attr('data-highlight'));
+					highlights.push($(el).attr('data-cfi'));
 				}
 			});
 			// the array must be unique
