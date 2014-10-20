@@ -48,6 +48,7 @@ var Reader = (function (r) {
 			r.$header = null;
 			r.$footer = null;
 			r.$stylesheet = null;
+			r.$overlay = null;
 
 			// reset link to CSS rules
 			r.preferences.lineHeight.rules = [];

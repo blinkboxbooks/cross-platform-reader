@@ -21,7 +21,7 @@ var Reader = (function (r, Epub) {
 
 		// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-		prototype.BLACKLIST = ['cpr-marker', 'cpr-subchapter-link'];
+		prototype.BLACKLIST = ['cpr-marker', 'cpr-highlight', 'cpr-subchapter-link'];
 		prototype.BODY_CFI = '!/4';
 
 		// Initialisation function, called when the reader is initialised.
@@ -83,7 +83,15 @@ var Reader = (function (r, Epub) {
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 
-			return $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
+			return  $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
+		};
+
+		prototype.getRangeTargetElements = function(cfi){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+
+			var nodes = EPUBcfi.getRangeTargetElements(cfi, this.document, this.BLACKLIST);
+			return $([nodes.startElement, nodes.endElement]);
 		};
 
 		// Generates the CFI that targets the given element

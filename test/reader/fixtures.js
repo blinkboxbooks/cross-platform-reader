@@ -2,6 +2,9 @@
 
 var fixtures = {
 	'BOOK': {
+		HIGHLIGHT: {
+			CFI: 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)'
+		},
 		'BOOKMARK_CHAPTER': 4,
 		'BOOKMARK': {
 			'CFI': 'epubcfi(/6/10!/4/2[semiprologue]/2/4/2/2/1:0)',
