@@ -182,10 +182,13 @@ var Reader = (function (r) {
 		// * `cfi` (optional) the cfi to save as a highlight, otherwise the current selection's cfi will be used. If no cfi exists and no selection is set, an exception is thrown.
 		setHighlight: function(cfi){
 
+			var preview = '';
+
 			if(!cfi){
 				// if cfi is not preset, we assume the current selection needs to be highlighted
 				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
+					preview = selection.toString();
 					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
 					// clear selection
 					if (selection.empty) {  // Chrome
@@ -211,7 +214,15 @@ var Reader = (function (r) {
 						r.CFI.setHighlightCFI(cfi);
 						r.Highlights.display();
 					}
-					return cfi;
+
+					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage());
+
+					return JSON.stringify({
+						CFI: cfi,
+						preview: preview,
+						chapter: item.label,
+						href: item.href
+					});
 				}
 			} else {
 				// cfi not recognised in book
