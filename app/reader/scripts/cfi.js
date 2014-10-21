@@ -216,6 +216,11 @@ var Reader = (function (r) {
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
+						// handle range CFIs by assuming the start of the range as the position we want to go to
+						var data = r.CFI.parseCFI(cfi);
+						if(data && data.isRange){
+							cfi = data.startCFI;
+						}
 						r.CFI.setCFI(cfi);
 					}
 					return r.Navigation.loadPage(cfi, fixed);
