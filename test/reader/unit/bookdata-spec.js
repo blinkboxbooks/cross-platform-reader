@@ -16,11 +16,17 @@ describe('Highlights', function(){
 				then: $.noop
 			};
 		});
+		spyOn(Reader.Book, 'getTOCItem').and.returnValue({});
 		Reader.init({
 			container: $('<div></div>').appendTo($('body')),
 			width: 400,
 			height: 600
 		});
+		Reader.Book.spine[data.chapter] = {};
+	});
+
+	afterEach(function(){
+		Reader.Book.spine = [];
 	});
 
 	it('should provide the Bookmarks interface', function () {
@@ -224,7 +230,7 @@ describe('Highlights', function(){
 	describe('getVisibleHighlights', function(){
 		it('should return the visible highlights on the page', function(){
 			var $markers = $(data.cfis.map(function(cfi){
-				return $('<span data-highlight="'+cfi+'"></span>');
+				return $('<span data-highlight data-cfi="'+cfi+'"></span>');
 			})), each = $.fn.each;
 
 			spyOn($.fn, 'each').and.callFake(function(cb){
@@ -232,7 +238,7 @@ describe('Highlights', function(){
 			});
 			spyOn(Reader.Navigation, 'getPage').and.returnValue(data.page);
 			spyOn(Reader, 'returnPageElement').and.callFake(function(el){
-				return data.cfis.indexOf($(el).attr('data-highlight'));
+				return data.cfis.indexOf($(el).attr('data-cfi'));
 			});
 
 			expect(Highlights.getVisibleHighlights()).toEqual([data.cfis[data.page]]);

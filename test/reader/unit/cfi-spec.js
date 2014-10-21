@@ -337,10 +337,14 @@ describe('CFI', function() {
 			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Navigation, 'isCFIInCurrentChapterPart').and.returnValue(true);
 			spyOn(Reader.CFI, 'setCFI');
+			spyOn(Reader.CFI, 'parseCFI').and.returnValue({
+				isRange: false
+			});
 			spyOn(Reader.Navigation, 'loadPage').and.returnValue(loadPagePromise);
 			expect(Reader.CFI.goToCFI(fixtures.BOOK.BOOKMARK.CFI)).toBe(loadPagePromise);
 			expect(Reader.CFI.setCFI).toHaveBeenCalled();
 			expect(Reader.Navigation.loadPage).toHaveBeenCalled();
+			expect(Reader.CFI.parseCFI).toHaveBeenCalled();
 		});
 
 		it('should load the chapter containing the given CFI', function () {
