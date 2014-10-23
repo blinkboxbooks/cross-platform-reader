@@ -13,56 +13,38 @@ var Reader = (function (r) {
 		author: '',
 		opfPath: '',
 		contentPathPrefix: '',
-		$opf: null,
+		opfDoc: null,
 		totalWordCount: 0,
 		totalImageCount: 0,
 		sample: false
 	};
 
-	// Retrieves the item with the given id from the OPF manifest:
-	function getManifestItem($opf, id) {
-		// Escape dots in the given id to get a valid id selector:
-		return $opf.find('#' + id.replace(/\./g, '\\.'));
-	}
-
-	// Retrieves the title from the OPF document:
-	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1
-	function getTitleFromOPF($opf) {
-		return $opf.children('metadata').children('dc\\:title').first().text();
-	}
-
-	// Retrieves the author from the OPF document:
-	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2
-	function getAuthorFromOPF($opf) {
-		return $opf.children('metadata').children('dc\\:creator').first().text();
-	}
-
 	// Retrieves the spine data from the OPF document:
 	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
-	function getSpineFromOPF($opf, pathPrefix) {
-		return $.map($opf.children('spine').children('itemref'), function (itemref) {
+	function getSpineFromOPF(opfDoc, pathPrefix) {
+		return $.map($(opfDoc.querySelector('spine')).children(), function (itemref) {
 			var id = itemref.getAttribute('idref'),
-					$item = getManifestItem($opf, id);
+					item = opfDoc.getElementById(id);
 			return {
 				itemId: id,
-				href: pathPrefix + $item.attr('href'),
+				href: pathPrefix + item.getAttribute('href'),
 				// The default is "yes", so unlike it's "no", the spine item is linear:
 				linear: itemref.getAttribute('linear') === 'no' ? false : true,
-				mediaType: $item.attr('media-type')
+				mediaType: item.getAttribute('media-type')
 			};
 		});
 	}
 
 	// Retrieves the TOC from a given navMap entry point (recursive function):
 	function getTOCFromNavMap(navMap, pathPrefix) {
-		return $.map(navMap.children('navPoint'), function (navPoint) {
+		return $.map($(navMap).children('navPoint'), function (navPoint) {
 			var $navPoint = $(navPoint),
 				data = {
 					// active: true, // false if HTML file is not available, e.g. in samples
 					href: pathPrefix + $navPoint.children('content').attr('src'),
 					label: $navPoint.children('navLabel').children('text').text()
 				},
-				children = getTOCFromNavMap($navPoint, pathPrefix);
+				children = getTOCFromNavMap(navPoint, pathPrefix);
 			if (children.length) {
 				data.children = children;
 			}
@@ -102,31 +84,42 @@ var Reader = (function (r) {
 	// Retrieve the opfPath from the root file:
 	function loadOpfPath(data) {
 		return loadFile(r.ROOTFILE_INFO_PATH, 'xml').then(function rootFileLoaded(rootDoc) {
-			data.opfPath = $(rootDoc).find('rootfile').attr('full-path');
+			data.opfPath = rootDoc.querySelector('rootfile').getAttribute('full-path');
 			return data;
 		});
 	}
 
-	// Load opfFile and store $opf and contentPathPrefix in the given data object:
+	// Returns a document for a valid XML string:
+	function parseXML(content) {
+		return (new DOMParser()).parseFromString(content, 'text/xml');
+	}
+
+	// Load opfFile and store opfDoc and contentPathPrefix in the given data object:
 	function loadOpfData(data) {
-		if (data.opf) {
-			// OPF data is provided via XML string
-			data.$opf = $(data.opf).filter('package');
-			return $.Deferred().resolve(data).promise();
-		}
-		return loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
+		if (data.opfPath) {
 			var pathPrefix = data.opfPath.split('/').slice(0, -1).join('/');
 			// Add a trailing slash if we have a path prefix:
 			data.contentPathPrefix = pathPrefix && pathPrefix + '/';
-			data.$opf = $(opfDoc).filter('package');
+		}
+		if (data.opf) {
+			// OPF data is provided via XML string
+			data.opfDoc = parseXML(data.opf);
+			return $.Deferred().resolve(data).promise();
+		}
+		return loadFile(data.opfPath).then(function opfFileLoaded(content) {
+			data.opf = content;
+			data.opfDoc = parseXML(content);
 			return data;
 		});
 	}
 
 	// Function to load the TOC data from the EPUB2 NCX file or the EPUB3 navigation document:
 	function loadTOCData(data) {
-		var navHref = data.$opf.children('manifest').children('item[properties="nav"]').attr('href'),
-				ncxHref = !navHref && getManifestItem(data.$opf, data.$opf.children('spine').attr('toc')).attr('href');
+		var opfDoc = data.opfDoc,
+				navItem = opfDoc.querySelector('manifest').querySelector('item[properties="nav"]'),
+				navHref = navItem && navItem.getAttribute('href'),
+				ncxId = !navHref && opfDoc.querySelector('spine').getAttribute('toc'),
+				ncxHref = ncxId && opfDoc.getElementById(ncxId).getAttribute('href');
 		if (navHref) {
 			// EPUB v3 navigation document:
 			// http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav
@@ -139,7 +132,7 @@ var Reader = (function (r) {
 		// EPUB2 NCX file:
 		// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
 		return loadFile(data.contentPathPrefix + ncxHref, 'xml').then(function ncxFileLoaded(ncxDoc) {
-			data.toc = getTOCFromNavMap($(ncxDoc).children('ncx').children('navMap'), data.contentPathPrefix);
+			data.toc = getTOCFromNavMap(ncxDoc.querySelector('navMap'), data.contentPathPrefix);
 			return data;
 		});
 	}
@@ -150,11 +143,16 @@ var Reader = (function (r) {
 			.then(loadOpfData)
 			.then(loadTOCData)
 			.then(function (data) {
-				var $opf = data.$opf;
+				// Retrieve meta data from OPF document:
+				// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2
+				var opfDoc = data.opfDoc,
+						metadata = opfDoc.querySelector('metadata'),
+						titleElement = metadata.querySelector('title'),
+						authorElement = metadata.querySelector('creator');
 				return $.extend(data, {
-					title: getTitleFromOPF($opf),
-					author: getAuthorFromOPF($opf),
-					spine: getSpineFromOPF($opf, data.contentPathPrefix)
+					title: titleElement && titleElement.textContent,
+					author: authorElement && authorElement.textContent,
+					spine: getSpineFromOPF(opfDoc, data.contentPathPrefix)
 				}, args);
 			});
 	}
@@ -432,7 +430,7 @@ var Reader = (function (r) {
 					value;
 			for (prop in this) {
 				value = this[prop];
-				if (this.hasOwnProperty(prop) && typeof value !== 'function' && !(value instanceof $)) {
+				if (this.hasOwnProperty(prop) && typeof value !== 'function' && !(value instanceof Node)) {
 					data[prop] = value;
 				}
 			}

@@ -14,7 +14,7 @@ describe('Book', function() {
 		expect(Reader.Book.toc).toBe(fixtures.BOOK.DATA.toc);
 		expect(Reader.Book.title).toBe(fixtures.BOOK.DATA.title);
 		expect(Reader.Book.contentPathPrefix).toBe(fixtures.BOOK.DATA.contentPathPrefix);
-		expect(Reader.Book.$opf.length).toBe($(fixtures.BOOK.DATA.opf).filter('package').length);
+		expect(Reader.Book.opfDoc).toBeTruthy();
 	});
 
 	it('should provide a Book.reset method to reset the book metadata', function () {
@@ -24,7 +24,7 @@ describe('Book', function() {
 		expect(Reader.Book.toc).toEqual([]);
 		expect(Reader.Book.title).toBe('');
 		expect(Reader.Book.contentPathPrefix).toBe('');
-		expect(Reader.Book.$opf).toBeNull();
+		expect(Reader.Book.opfDoc).toBeNull();
 	});
 
 });
