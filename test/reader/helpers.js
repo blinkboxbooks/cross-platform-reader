@@ -8,7 +8,7 @@ beforeEach(function() {
 		toMatch: function() {
 			return {
 				compare: function(actual, input){
-					return { pass: actual.is(input) };
+					return { pass: $(actual).is(input) };
 				}
 			};
 		},

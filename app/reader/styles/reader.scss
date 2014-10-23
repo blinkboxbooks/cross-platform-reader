@@ -172,3 +172,14 @@ img, svg, svg * {
     display: inline;
   }
 }
+
+.cpr-highlight{
+  div{
+    position: absolute;
+    top:0;
+    left:0;
+    display:inline-block;
+    background:yellow;
+    opacity:0.2;
+  }
+}

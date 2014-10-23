@@ -171,7 +171,11 @@ angular.module('app', ['ngRoute'])
 			},
 			highlight: function(){
 				$('[data-test="status"]').removeAttr('data-test');
-				READER.setHighlight();
+				if(status.highlightsInPage.length){
+					status.highlightsInPage.forEach(READER.removeHighlight);
+				} else {
+					READER.setHighlight();
+				}
 			},
 			bookmark: function(){
 				$('[data-test="status"]').removeAttr('data-test');

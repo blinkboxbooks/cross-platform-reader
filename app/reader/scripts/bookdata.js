@@ -182,10 +182,13 @@ var Reader = (function (r) {
 		// * `cfi` (optional) the cfi to save as a highlight, otherwise the current selection's cfi will be used. If no cfi exists and no selection is set, an exception is thrown.
 		setHighlight: function(cfi){
 
+			var preview = '';
+
 			if(!cfi){
 				// if cfi is not preset, we assume the current selection needs to be highlighted
 				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
+					preview = selection.toString();
 					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
 					// clear selection
 					if (selection.empty) {  // Chrome
@@ -211,7 +214,15 @@ var Reader = (function (r) {
 						r.CFI.setHighlightCFI(cfi);
 						r.Highlights.display();
 					}
-					return cfi;
+
+					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage());
+
+					return JSON.stringify({
+						CFI: cfi,
+						preview: preview,
+						chapter: item.label,
+						href: item.href
+					});
 				}
 			} else {
 				// cfi not recognised in book
@@ -228,21 +239,7 @@ var Reader = (function (r) {
 				var index = $.inArray(cfi, _highlights[chapter]);
 				if($.isArray(_highlights[chapter]) && index !== -1){
 					_highlights[chapter].splice(index, 1);
-
-					var $marker = $('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents());
-					if($marker.length){
-						if($marker.hasClass('cpr-marker')){
-							var $parent = $marker.parent();
-							$marker.remove();
-
-							// this restates the DOM to the previous structure
-							// todo do not alter the DOM in the first place
-							$parent[0].normalize();
-						} else {
-							$marker.removeAttr(r.Highlights.ATTRIBUTE);
-						}
-					}
-
+					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents()).remove();
 					r.Highlights.display();
 					return true;
 				}
@@ -253,7 +250,21 @@ var Reader = (function (r) {
 		},
 		display: function(){
 			var isVisible = false;
-			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
+
+			// resize highlights
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).remove();
+			// Add all highlights for this chapter
+			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
+			if(highlights){
+				$.each(highlights, function(index, highlight){
+					// Ignore bookmarks not part of the current chapter part:
+					if (highlight && r.Navigation.isCFIInCurrentChapterPart(highlight)) {
+						r.CFI.setHighlightCFI(highlight);
+					}
+				});
+			}
+
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -263,9 +274,9 @@ var Reader = (function (r) {
 		},
 		getVisibleHighlights: function(){
 			var highlights = [];
-			$('[data-highlight]', r.$iframe.contents()).each(function(index, el){
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
-					highlights.push($(el).attr('data-highlight'));
+					highlights.push($(el).attr('data-cfi'));
 				}
 			});
 			// the array must be unique

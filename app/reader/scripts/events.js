@@ -136,6 +136,10 @@ var Reader = (function (r) {
 			code: 25,
 			message: 'Could not remove highlight.'
 		},
+		HIGHLIGHT_TAPPED: {
+			code: 26,
+			message: 'A highlight was clicked.'
+		},
 		getStatus: function (call) {
 			var data = {
 				'call': call || '',

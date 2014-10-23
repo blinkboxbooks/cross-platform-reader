@@ -337,10 +337,14 @@ describe('CFI', function() {
 			spyOn(Reader.Navigation, 'getChapter').and.returnValue(fixtures.BOOK.BOOKMARK_CHAPTER);
 			spyOn(Reader.Navigation, 'isCFIInCurrentChapterPart').and.returnValue(true);
 			spyOn(Reader.CFI, 'setCFI');
+			spyOn(Reader.CFI, 'parseCFI').and.returnValue({
+				isRange: false
+			});
 			spyOn(Reader.Navigation, 'loadPage').and.returnValue(loadPagePromise);
 			expect(Reader.CFI.goToCFI(fixtures.BOOK.BOOKMARK.CFI)).toBe(loadPagePromise);
 			expect(Reader.CFI.setCFI).toHaveBeenCalled();
 			expect(Reader.Navigation.loadPage).toHaveBeenCalled();
+			expect(Reader.CFI.parseCFI).toHaveBeenCalled();
 		});
 
 		it('should load the chapter containing the given CFI', function () {
@@ -1155,6 +1159,59 @@ describe('CFI', function() {
 			expect(Reader.CFI.getCFI()).toBe(encodedObj);
 		});
 
+	});
+
+	describe('parseCFI', function(){
+
+		var CFI = Reader.CFI, cfi = fixtures.BOOK.BOOKMARK.CFI, range = fixtures.BOOK.HIGHLIGHT.CFI, $el = $('<span></span>'), $els = $('<span></span><span></span>');
+
+		beforeEach(function(){
+			spyOn(Reader.Epub, 'getElementAt').and.returnValue($el);
+			spyOn(Reader.Epub, 'getRangeTargetElements').and.returnValue($els);
+		});
+
+		it('should return target element for regular CFI', function(){
+			var data = CFI.parseCFI(cfi);
+
+			expect(data).toBeObject();
+			expect(data.element).toMatch($el);
+			expect(data.isRange).toBe(false);
+			expect(Reader.Epub.getElementAt).toHaveBeenCalledWith(cfi);
+		});
+
+		it('should return target elements for range CFI', function(){
+			var data = CFI.parseCFI(range);
+
+			expect(data).toBeObject();
+			expect(data.startElement).toMatch($els[0]);
+			expect(data.endElement).toMatch($els[1]);
+			expect(data.isRange).toBe(true);
+			expect(Reader.Epub.getRangeTargetElements).toHaveBeenCalledWith(range);
+		});
+
+		it('should return offset for text CFI', function(){
+			var data = CFI.parseCFI(cfi);
+
+			expect(data).toBeObject();
+			expect(data.offset).toBe(0);
+		});
+
+		it('should return offsets for range CFI', function(){
+			var data = CFI.parseCFI(range);
+
+			expect(data).toBeObject();
+			expect(data.startOffset).toBe(10);
+			expect(data.endOffset).toBe(17);
+		});
+
+		it('should return start and end cfis for range CFI', function(){
+			var data = CFI.parseCFI(range),
+				cfis = range.split(',');
+
+			expect(data).toBeObject();
+			expect(data.startCFI).toBe(cfis[0] + cfis[1] + ')');
+			expect(data.endCFI).toBe(cfis[0] + cfis[2]);
+		});
 	});
 
 });

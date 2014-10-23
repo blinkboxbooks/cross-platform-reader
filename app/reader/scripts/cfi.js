@@ -50,11 +50,33 @@ var Reader = (function (r) {
 			return r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
 		},
 		setHighlightCFI: function(cfi){
-			cfi = cfi.split(',');
-			// split the cfi into two regular cfis
-			// todo instead of using markers, use the overlay
-			var cfi1 = cfi[0] + cfi[1] + ')', cfi2 = cfi[0] + cfi[2];
-			return r.CFI.setCFI(cfi1, r.Highlights.ATTRIBUTE + '=' + cfi) && r.CFI.setCFI(cfi2, r.Highlights.ATTRIBUTE + '=' + cfi);
+			try {
+				var data = r.CFI.parseCFI(cfi);
+
+				var range = r.$iframe.contents()[0].createRange();
+				range.setStart(data.startElement, data.startOffset);
+				range.setEnd(data.endElement, data.endOffset);
+
+				var rects = range.getClientRects(), reader = {
+					top: r.$reader.offset().top,
+					left: r.$reader.offset().left
+				};
+				for(var i = 0; i < rects.length; i++){
+					var rect = rects[i];
+					$('<div data-cfi="'+cfi+'" data-highlight></div>')
+						.css({
+							width: rect.width + 'px',
+							height: rect.height + 'px',
+							top: rect.top - reader.top + 'px',
+							left: rect.left - reader.left + 'px'
+						})
+						.appendTo(r.$overlay);
+				}
+			} catch(err){
+				// cannot insert CFI
+				r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setHighlightCFI'}));
+			}
+			return false;
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point
@@ -144,6 +166,43 @@ var Reader = (function (r) {
 		isValidCFI: function (cfi) {
 			return /^epubcfi\(.+\)$/.test(cfi);
 		},
+		isRangeCFI: function(cfi){
+			return /^epubcfi\(.+,.+,.+\)$/.test(cfi);
+		},
+		parseCFI: function(cfi){
+			if(!r.CFI.isValidCFI(cfi)){
+				return false;
+			}
+
+			var data = {
+				isRange: false
+			}, offsetRegex = /(?::)(\d+)(?:\))/;
+
+			if(r.CFI.isRangeCFI(cfi)){
+				data.isRange= true;
+
+				var CFIs = cfi.split(',');
+
+				var $nodes = r.Epub.getRangeTargetElements(cfi);
+				data.startElement = $nodes[0];
+				data.endElement = $nodes[1];
+				data.startCFI =  CFIs[0] + CFIs[1] + ')';
+				data.endCFI = CFIs[0] + CFIs[2];
+
+				var startOffset = data.startCFI.match(offsetRegex),
+					endOffset = data.endCFI.match(offsetRegex);
+
+				data.startOffset = (startOffset && startOffset.length) ? parseInt(startOffset[1], 10) : null;
+				data.endOffset = (endOffset && endOffset.length) ? parseInt(endOffset[1], 10) : null;
+			} else {
+				var offset = cfi.match(offsetRegex);
+				
+				data.element = r.Epub.getElementAt(cfi);
+				data.offset = (offset && offset.length) ? parseInt(offset[1], 10) : null;
+			}
+
+			return data;
+		},
 		getCFISelector: function (cfi) {
 			return '*[data-cfi="' + cfi + '"]';
 		},
@@ -157,6 +216,11 @@ var Reader = (function (r) {
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
+						// handle range CFIs by assuming the start of the range as the position we want to go to
+						var data = r.CFI.parseCFI(cfi);
+						if(data && data.isRange){
+							cfi = data.startCFI;
+						}
 						r.CFI.setCFI(cfi);
 					}
 					return r.Navigation.loadPage(cfi, fixed);
