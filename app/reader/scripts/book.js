@@ -19,6 +19,8 @@ var Reader = (function (r) {
 		sample: false
 	};
 
+	var filesCache = {};
+
 	// Retrieves the spine data from the OPF document:
 	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
 	function getSpineFromOPF(opfDoc, pathPrefix) {
@@ -71,7 +73,15 @@ var Reader = (function (r) {
 
 	// Get a file from the server:
 	function loadFile(resource, type) {
-		var defer = $.Deferred();
+		var promise = filesCache[resource],
+				defer;
+		if (promise !== undefined) {
+			// Delete entries from the files cache as soon as they have been used.
+			// This prevents storing too much data in memory:
+			delete filesCache[resource];
+			return promise;
+		}
+		defer = $.Deferred();
 		$.ajax({
 			url: r.DOCROOT + '/' + resource,
 			dataType: type ? type : 'text'
@@ -79,6 +89,13 @@ var Reader = (function (r) {
 			defer.reject($.extend({}, r.Event.ERR_MISSING_FILE, {details: err.responseText}));
 		});
 		return defer.promise();
+	}
+
+	// Load a file and store the promise in an in-memory store:
+	function preloadFile(resource, type) {
+		var promise = loadFile(resource, type);
+		filesCache[resource] = promise;
+		return promise;
 	}
 
 	// Retrieve the opfPath from the root file:
@@ -383,6 +400,8 @@ var Reader = (function (r) {
 	r.Book = {
 		// Method to load a file from the book resources:
 		loadFile: loadFile,
+		// Method to preload a file for faster subsequent access:
+		preloadFile: preloadFile,
 		// Load the book information.
 		// Uses the given arguments and loads any missing data:
 		load: function (args) {
