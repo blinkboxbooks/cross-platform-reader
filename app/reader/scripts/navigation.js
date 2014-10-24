@@ -248,7 +248,7 @@ var Reader = (function (r) {
 					loadPromise;
 			if (chapterPartUrl || chapter < bookChapters - 1) {
 				defer.notify({type: 'chapter.loading'});
-				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter].href);
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter + 1].href);
 				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
@@ -274,7 +274,7 @@ var Reader = (function (r) {
 					loadPromise;
 			if (chapterPartUrl || chapter > 0) {
 				defer.notify({type: 'chapter.loading'});
-				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter].href);
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter - 1].href);
 				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
