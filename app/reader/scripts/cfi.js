@@ -53,6 +53,16 @@ var Reader = (function (r) {
 			try {
 				var data = r.CFI.parseCFI(cfi);
 
+				// we might have markers injected, we need to handle this
+				if(data.startOffset > 0 && data.startElement.nodeType === Node.TEXT_NODE && data.startElement.nodeValue.length < data.startOffset){
+					data.startOffset -= data.startElement.nodeValue.length;
+					data.startElement = data.startElement.nextSibling.nextSibling;
+				}
+				if(data.endOffset > 0 && data.endElement.nodeType === Node.TEXT_NODE && data.endElement.nodeValue.length < data.endOffset){
+					data.endOffset -= data.endElement.nodeValue.length;
+					data.endElement = data.endElement.nextSibling.nextSibling;
+				}
+
 				var range = r.$iframe.contents()[0].createRange();
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
