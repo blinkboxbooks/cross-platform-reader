@@ -48,10 +48,6 @@ var Reader = (function (r) {
 		// Set the mobile flag.
 		r.mobile = !!((param.hasOwnProperty('mobile')));
 
-		// Save the initial bookmarks and highlights.
-		r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
-		r.Highlights.setHighlights((param.hasOwnProperty('highlights')) ? param.highlights : [], true);
-
 		// Initialise the epub module
 		r.Epub.init(r.$reader[0]);
 
@@ -78,6 +74,10 @@ var Reader = (function (r) {
 
 		// Start the party:
 		return r.Book.load(param.book).then(function (book) {
+			// Save the initial bookmarks and highlights.
+			r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
+			r.Highlights.setHighlights((param.hasOwnProperty('highlights')) ? param.highlights : [], true);
+
 			return initializeBook(book, param);
 		});
 	};
