@@ -84,6 +84,7 @@ body {
     -webkit-perspective: 1000;
     backface-visibility: hidden;
     perspective: 1000;
+    will-change: left, opacity;
   }
 }
 
@@ -169,5 +170,16 @@ img, svg, svg * {
 
   &.cpr-img-small{
     display: inline;
+  }
+}
+
+.cpr-highlight{
+  div{
+    position: absolute;
+    top:0;
+    left:0;
+    display:inline-block;
+    background:yellow;
+    opacity:0.2;
   }
 }

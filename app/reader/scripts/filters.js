@@ -214,12 +214,17 @@ var Reader = (function (r) {
 		return content;
 	};
 
+	var _appendHighlightOverlay = function(){
+		r.$overlay = $('<div id="cpr-overlay" class="cpr-highlight"></div>').appendTo(r.$reader);
+	};
+
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseCSSLinks);
+	filters.addFilter(HOOKS.AFTER_CHAPTER_DISPLAY, _appendHighlightOverlay);
 
 	r.Filters = $.extend({HOOKS: HOOKS}, filters);
 

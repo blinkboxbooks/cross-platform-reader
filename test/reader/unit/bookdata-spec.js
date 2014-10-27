@@ -2,6 +2,255 @@
 
 'use strict';
 
+describe('Highlights', function(){
+	var Highlights = Reader.Highlights, CFI = Reader.CFI, Epub = Reader.Epub, data = {
+		cfi: 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)',
+		cfis: ['epubcfi(/6/6!/4/2[dedication]/2/6/2,/5:10,/5:17)', 'epubcfi(/6/6!/4/2[dedication]/2/6/2,/2,/5'],
+		chapter: 2,
+		page: 1
+	};
+
+	beforeEach(function(){
+		spyOn($, 'ajax').and.callFake(function () {
+			return {
+				then: $.noop
+			};
+		});
+		spyOn(Reader.Book, 'getTOCItem').and.returnValue({});
+		Reader.init({
+			container: $('<div></div>').appendTo($('body')),
+			width: 400,
+			height: 600
+		});
+		Reader.Book.spine[data.chapter] = {};
+	});
+
+	afterEach(function(){
+		Reader.Book.spine = [];
+	});
+
+	it('should provide the Bookmarks interface', function () {
+		expect(Highlights).toBeObject();
+		expect(Highlights.getHighlights).toBeFunction();
+		expect(Highlights.setHighlights).toBeFunction();
+		expect(Highlights.setHighlight).toBeFunction();
+		expect(Highlights.removeHighlight).toBeFunction();
+		expect(Highlights.display).toBeFunction();
+		expect(Highlights.getVisibleHighlights).toBeFunction();
+		expect(Highlights.reset).toBeFunction();
+	});
+
+	describe('setHighlight', function(){
+
+		var highlights;
+
+		beforeEach(function(){
+			highlights = Highlights.getHighlights();
+		});
+
+		afterEach(function(){
+			// return Highlights manager object to a clean state
+			Highlights.reset();
+		});
+
+		it('should save the given cfi as a highlight in the correct location ', function(){
+
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+
+			expect(highlights).toBeEmptyArray();
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+		});
+
+		it('should generate a cfi from the user selection', function(){
+
+			spyOn(Epub, 'generateRangeCFI').and.returnValue(data.cfi);
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Reader.$iframe, 'contents').and.returnValue([{
+				getSelection: function(){
+					return {
+						rangeCount: 1,
+						isCollapsed: false,
+						getRangeAt: $.noop
+					};
+				}
+			}]);
+
+			expect(highlights).toBeEmptyArray();
+
+			Highlights.setHighlight();
+
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(Epub.generateRangeCFI).toHaveBeenCalled();
+			expect(Reader.$iframe.contents).toHaveBeenCalled();
+			expect(Epub.generateRangeCFI.calls.count()).toEqual(1);
+
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+		});
+
+		it('should trigger an error if no cfi exits', function(){
+			spyOn(Reader.$iframe, 'contents').and.returnValue([{
+				getSelection: function(){
+					return {
+						rangeCount: 0,
+						isCollapsed: true,
+						getRangeAt: $.noop
+					};
+				}
+			}]);
+
+			spyOn(Reader.Notify, 'error');
+			Highlights.setHighlight();
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
+			expect(Reader.$iframe.contents).toHaveBeenCalled();
+			expect(highlights).toBeEmptyArray();
+		});
+
+		it('should trigger an error if the bookmark has already been set', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Reader.Notify, 'error');
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_EXISTS, {details: data.cfi, call: 'setHighlight'}));
+			expect(highlights).not.toBeEmptyArray();
+			expect(highlights[data.chapter]).toBeArray(1);
+			expect(highlights[data.chapter][0]).toEqual(data.cfi);
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+		});
+
+		it('should trigger an error if the chapter cannot be extracted from the given CFI', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(-1);
+			spyOn(Reader.Notify, 'error');
+
+			Highlights.setHighlight(data.cfi);
+
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_ADD, {details: data.cfi, call: 'setHighlight'}));
+			expect(highlights).toBeEmptyArray();
+		});
+
+	});
+
+	describe('setHighlights', function(){
+		it('should set the given list of highlights and remove any old highlights', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Highlights, 'removeHighlight').and.returnValue(true);
+
+			// set up initial highlights
+			Highlights.setHighlights([data.cfi]);
+			expect(Highlights.getHighlights()).not.toBeEmptyArray();
+
+			// set new array of highlights and expect old highlights to be missing
+			Highlights.setHighlights([]);
+			expect(Highlights.removeHighlight).toHaveBeenCalledWith(data.cfi);
+			expect(Highlights.getHighlights()).toBeEmptyArray();
+		});
+	});
+
+	describe('removeHighlight', function(){
+		it('should remove specified highlight', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+
+			// set up initial highlights
+			Highlights.setHighlight(data.cfi);
+			expect(Highlights.getHighlights()).not.toBeEmptyArray();
+
+			Highlights.removeHighlight(data.cfi);
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(Highlights.getHighlights()[data.chapter]).toBeEmptyArray();
+		});
+
+		it('should throw error if highlight does not exist', function(){
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(-1);
+			spyOn(Reader.Notify, 'error');
+
+			Highlights.removeHighlight(data.cfi);
+
+			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_REMOVE, {details: data.cfi, call: 'removeHighlight'}));
+		});
+
+		it('should remove any markers and overlays related to the highlight');
+	});
+
+	describe('display', function(){
+		it('should return visible highlights on the page, false otherwise', function(){
+			var $marker = $('<span data-marker data-highlight></span>');
+
+			spyOn(Reader, 'returnPageElement').and.returnValue(data.page);
+			spyOn(Reader.Navigation, 'getPage').and.returnValue(data.page);
+			spyOn($.fn, 'each').and.callFake(function(cb){
+				cb(0, $marker[0]);
+			});
+
+			expect(Highlights.display()).toBe(true);
+
+			expect(Reader.returnPageElement).toHaveBeenCalledWith($marker[0]);
+			expect(Reader.Navigation.getPage).toHaveBeenCalled();
+			expect($.fn.each).toHaveBeenCalled();
+
+			Reader.returnPageElement.and.returnValue(-1);
+
+			expect(Highlights.display()).toBe(false);
+			expect(Reader.returnPageElement).toHaveBeenCalledWith($marker[0]);
+			expect(Reader.Navigation.getPage).toHaveBeenCalled();
+			expect($.fn.each).toHaveBeenCalled();
+		});
+
+		it('should inject marker when setting a highlight', function(){
+			spyOn(CFI, 'setHighlightCFI');
+			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
+			spyOn(Reader.Navigation, 'getChapter').and.returnValue(data.chapter);
+
+			Highlights.setHighlight(data.cfi);
+			expect(CFI.setHighlightCFI).toHaveBeenCalledWith(data.cfi);
+
+			Highlights.setHighlights([data.cfi]);
+			expect(CFI.setHighlightCFI).toHaveBeenCalledWith(data.cfi);
+		});
+
+		it('should append overlay when setting a highlight');
+		it('should resize the highlight overlay');
+	});
+
+	describe('getVisibleHighlights', function(){
+		it('should return the visible highlights on the page', function(){
+			var $markers = $(data.cfis.map(function(cfi){
+				return $('<span data-highlight data-cfi="'+cfi+'"></span>');
+			})), each = $.fn.each;
+
+			spyOn($.fn, 'each').and.callFake(function(cb){
+				each.apply($markers, [cb]);
+			});
+			spyOn(Reader.Navigation, 'getPage').and.returnValue(data.page);
+			spyOn(Reader, 'returnPageElement').and.callFake(function(el){
+				return data.cfis.indexOf($(el).attr('data-cfi'));
+			});
+
+			expect(Highlights.getVisibleHighlights()).toEqual([data.cfis[data.page]]);
+
+			expect($.fn.each).toHaveBeenCalled();
+			expect(Reader.Navigation.getPage).toHaveBeenCalled();
+			expect(Reader.returnPageElement).toHaveBeenCalled();
+		});
+	});
+
+});
+
 describe('Bookmarks', function() {
 
 	beforeEach(function () {
@@ -38,7 +287,7 @@ describe('Bookmarks', function() {
 			var result = Reader.Bookmarks.setBookmark();
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
-			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, true);
+			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
 			expect(result).toEqual(JSON.stringify(fixtures.BOOK.BOOKMARK));
 		});
 
@@ -52,7 +301,7 @@ describe('Bookmarks', function() {
 			expect(Reader.Notify.error).not.toHaveBeenCalled();
 			expect(Reader.Navigation.getCurrentCFI).not.toHaveBeenCalled();
 			expect(Reader.Bookmarks.display).toHaveBeenCalled();
-			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, true);
+			expect(Reader.CFI.setCFI).toHaveBeenCalledWith(fixtures.BOOK.BOOKMARK.CFI, Reader.Bookmarks.ATTRIBUTE);
 			expect(result).toEqual(fixtures.BOOK.BOOKMARK.CFI);
 		});
 
@@ -90,7 +339,7 @@ describe('Bookmarks', function() {
 			var result = Reader.Bookmarks.setBookmark(fixtures.BOOK.BOOKMARK.CFI);
 			expect(Reader.Bookmarks.display).not.toHaveBeenCalled();
 			expect(Reader.CFI.setCFI).not.toHaveBeenCalled();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_EXISTS, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'setBookmark'}));
+			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_BOOKMARK_ADD, {details: fixtures.BOOK.BOOKMARK.CFI, call: 'setBookmark'}));
 			expect(result).toBeFalsy();
 		});
 

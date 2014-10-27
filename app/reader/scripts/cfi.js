@@ -46,16 +46,48 @@ var Reader = (function (r) {
 		getCFI: function() {
 			return encodeURIComponent(JSON.stringify(r.CFI.getCFIObject()));
 		},
+		setBookmarkCFI: function(cfi){
+			return r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
+		},
+		setHighlightCFI: function(cfi){
+			try {
+				var data = r.CFI.parseCFI(cfi);
+
+				var range = r.$iframe.contents()[0].createRange();
+				range.setStart(data.startElement, data.startOffset);
+				range.setEnd(data.endElement, data.endOffset);
+
+				var rects = range.getClientRects(), reader = {
+					top: r.$reader.offset().top,
+					left: r.$reader.offset().left
+				};
+				for(var i = 0; i < rects.length; i++){
+					var rect = rects[i];
+					$('<div data-cfi="'+cfi+'" data-highlight></div>')
+						.css({
+							width: rect.width + 'px',
+							height: rect.height + 'px',
+							top: rect.top - reader.top + 'px',
+							left: rect.left - reader.left + 'px'
+						})
+						.appendTo(r.$overlay);
+				}
+			} catch(err){
+				// cannot insert CFI
+				r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setHighlightCFI'}));
+			}
+			return false;
+		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
-		setCFI: function (cfi, isBookmark) { // Add an element to a CFI point
-			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents());
+		setCFI: function (cfi, attr) { // Add an element to a CFI point
+			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents()), attrs = attr ? attr.split('=') : '';
 			if($marker.length){
-				if(isBookmark && !$marker.is('[data-bookmark]')){
-					$marker.attr('data-bookmark', '');
+				if(attr && !$marker.is('['+attr+']')){
+					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
 				}
 			} else {
 				try {
-					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
+					var marker = '<span class="cpr-marker" '+ attr +' data-cfi="' + cfi + '"></span>';
 					var $node = r.Epub.getElementAt(cfi);
 
 					// in case the cfi targets an svg child, target the svg element itself
@@ -65,12 +97,12 @@ var Reader = (function (r) {
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.attr('data-cfi', cfi);
-							if(isBookmark){
-								$node.attr('data-bookmark', '');
+							if(attr){
+								$node.attr(attrs[0], attrs.length > 1 ? name[1] : '');
 							}
 						}
 						if ($node[0].nodeType === 3) { // inject into the text node
-							r.CFI.addOneWordToCFI(cfi, $node, marker, isBookmark);
+							r.CFI.addOneWordToCFI(cfi, $node, marker, attr);
 						}
 					}
 					return $node;
@@ -82,7 +114,7 @@ var Reader = (function (r) {
 			}
 		},
 		// <a name="addOneNodeToCFI"></a> Helper function that moves the CFI to the next node. This is required to avoid a bug in some browsers that displays the current CFI on the previous page.
-		addOneNodeToCFI : function (cfi, el, marker, isBookmark) {
+		addOneNodeToCFI : function (cfi, el, marker, attr) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
@@ -94,15 +126,16 @@ var Reader = (function (r) {
 				if ($nextNode[0].nodeType === 3) {
 					if($nextNode[0].length > 1){
 						cfi = r.Epub.generateCFI($nextNode[0], 0);
-						r.CFI.addOneWordToCFI(cfi, $nextNode, marker, isBookmark, true);
+						r.CFI.addOneWordToCFI(cfi, $nextNode, marker, attr, true);
 					} else {
 						// the text node is not large enought to have a marker injected, need to prepend it
 						$nextNode.before(marker);
 					}
 				} else {
 					$nextNode.attr('data-cfi', cfi);
-					if(isBookmark){
-						$nextNode.attr('data-bookmark', '');
+					if(attr){
+						var name = attr.split('=');
+						$nextNode.attr(name[0], name.length > 1 ? name[1] : '');
 					}
 				}
 				return true;
@@ -110,7 +143,7 @@ var Reader = (function (r) {
 			return false;
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
-		addOneWordToCFI : function (cfi, el, marker, isBookmark, force) {
+		addOneWordToCFI : function (cfi, el, marker, attr, force) {
 			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
@@ -123,7 +156,7 @@ var Reader = (function (r) {
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
-				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
+				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, attr)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
 					r.Epub.injectMarker(cfi, marker);
@@ -132,6 +165,43 @@ var Reader = (function (r) {
 		},
 		isValidCFI: function (cfi) {
 			return /^epubcfi\(.+\)$/.test(cfi);
+		},
+		isRangeCFI: function(cfi){
+			return /^epubcfi\(.+,.+,.+\)$/.test(cfi);
+		},
+		parseCFI: function(cfi){
+			if(!r.CFI.isValidCFI(cfi)){
+				return false;
+			}
+
+			var data = {
+				isRange: false
+			}, offsetRegex = /(?::)(\d+)(?:\))/;
+
+			if(r.CFI.isRangeCFI(cfi)){
+				data.isRange= true;
+
+				var CFIs = cfi.split(',');
+
+				var $nodes = r.Epub.getRangeTargetElements(cfi);
+				data.startElement = $nodes[0];
+				data.endElement = $nodes[1];
+				data.startCFI =  CFIs[0] + CFIs[1] + ')';
+				data.endCFI = CFIs[0] + CFIs[2];
+
+				var startOffset = data.startCFI.match(offsetRegex),
+					endOffset = data.endCFI.match(offsetRegex);
+
+				data.startOffset = (startOffset && startOffset.length) ? parseInt(startOffset[1], 10) : null;
+				data.endOffset = (endOffset && endOffset.length) ? parseInt(endOffset[1], 10) : null;
+			} else {
+				var offset = cfi.match(offsetRegex);
+				
+				data.element = r.Epub.getElementAt(cfi);
+				data.offset = (offset && offset.length) ? parseInt(offset[1], 10) : null;
+			}
+
+			return data;
 		},
 		getCFISelector: function (cfi) {
 			return '*[data-cfi="' + cfi + '"]';
@@ -146,6 +216,11 @@ var Reader = (function (r) {
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
+						// handle range CFIs by assuming the start of the range as the position we want to go to
+						var data = r.CFI.parseCFI(cfi);
+						if(data && data.isRange){
+							cfi = data.startCFI;
+						}
 						r.CFI.setCFI(cfi);
 					}
 					return r.Navigation.loadPage(cfi, fixed);

@@ -8,7 +8,7 @@ var READER = (function() {
 	// The goal is to make the reader as client-ignorant as possible.
 
 	var _isLoading = false;
-	
+
 	// Generates an object summarizing the reader status.
 	function sendStatus(call) {
 		Reader.Notify.event($.extend({}, Reader.Event.getStatus(call)));
@@ -80,6 +80,9 @@ var READER = (function() {
 		setBookmark: statusWrap(Reader.Bookmarks, 'setBookmark'),
 		goToBookmark: loadingWrap(Reader.Bookmarks, 'goToBookmark'),
 		removeBookmark: statusWrap(Reader.Bookmarks, 'removeBookmark'),
+		setHighlight: statusWrap(Reader.Highlights, 'setHighlight'),
+		setHighlights: statusWrap(Reader.Highlights, 'setHighlights'),
+		removeHighlight: statusWrap(Reader.Highlights, 'removeHighlight'),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
 		resizeContainer: statusWrap(Reader.Layout, 'resizeContainer'),

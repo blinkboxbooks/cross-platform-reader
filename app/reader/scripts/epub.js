@@ -21,7 +21,7 @@ var Reader = (function (r, Epub) {
 
 		// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-		prototype.BLACKLIST = ['cpr-marker', 'cpr-subchapter-link'];
+		prototype.BLACKLIST = ['cpr-marker', 'cpr-highlight', 'cpr-subchapter-link'];
 		prototype.BODY_CFI = '!/4';
 
 		// Initialisation function, called when the reader is initialised.
@@ -87,7 +87,15 @@ var Reader = (function (r, Epub) {
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 
-			return $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
+			return  $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
+		};
+
+		prototype.getRangeTargetElements = function(cfi){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+
+			var nodes = EPUBcfi.getRangeTargetElements(cfi, this.document, this.BLACKLIST);
+			return $([nodes.startElement, nodes.endElement]);
 		};
 
 		// Generates the CFI that targets the given element
@@ -108,11 +116,30 @@ var Reader = (function (r, Epub) {
 			return cfi;
 		};
 
+		// Generate CFI range for a DOM range element
+		prototype.generateRangeCFI = function(range){
+			var cfi;
+
+			cfi = EPUBcfi.generateRangeComponent(range.startContainer, range.startOffset, range.endContainer, range.endOffset, this.BLACKLIST);
+			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
+			cfi = this.normalizeChapterPartCFI(cfi);
+			cfi = this.removeContext(cfi);
+
+			return cfi;
+		};
+
 		// Injects a marker in the specified position
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+		};
+
+		// Injects a marker in the specified range
+		prototype.injectRangeMarker = function(cfi, marker){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){
@@ -121,4 +148,4 @@ var Reader = (function (r, Epub) {
 		};
 
 		return Epub;
-	})(Reader || {}, new EpubCFIModule())));
+	})(Reader || {}, EPUBcfi)));
