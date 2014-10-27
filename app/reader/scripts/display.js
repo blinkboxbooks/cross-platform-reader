@@ -144,9 +144,11 @@ var Reader = (function (r) {
 		}
 	}
 
-	function _highlightHandler(){
+	function _highlightHandler(e){
 		/*jshint validthis:true */
 		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi')}));
+		e.preventDefault();
+		e.stopPropagation();
 	}
 
 	// Capture all the links in the reader
@@ -268,7 +270,12 @@ var Reader = (function (r) {
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
-		r.$container.on('click', '.cpr-highlight div', _highlightHandler);
+		r.$container.on('click touchstart', '.cpr-highlight div', _highlightHandler);
+		r.$container.on('touchmove touchend touchcancel', '.cpr-highlight div', function(e){
+			// we need to stop all touch events on highlight markers
+			e.preventDefault();
+			e.stopPropagation();
+		});
 
 		// Capture text selection events and notify client of text value.
 		var $doc = r.$iframe.contents();
