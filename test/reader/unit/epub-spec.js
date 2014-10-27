@@ -6,8 +6,9 @@ describe('Epub', function() {
 
 	beforeEach(function(){
 		// set up epub
+		Reader.Book.load(fixtures.BOOK.DATA);
 		Epub = Reader.Epub;
-		Epub.setUp(0, $(fixtures.BOOK.DATA.opf).filter('package'));
+		Epub.setUp(0, Reader.Book);
 		marker = '<i class="'+Epub.BLACKLIST[0]+'"></i>';
 
 		// create a demo document for test
