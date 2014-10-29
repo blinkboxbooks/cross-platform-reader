@@ -67,7 +67,8 @@ var Reader = (function (r) {
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
 
-				var rects = range.getClientRects(), reader = {
+				console.log('setHighlightCFI');
+				var rects = _getClientRects(range), reader = {
 					top: r.$reader.offset().top,
 					left: r.$reader.offset().left
 				};
@@ -426,6 +427,75 @@ var Reader = (function (r) {
 			offset: offset,
 			preview: preview
 		};
+	};
+
+	var _rangeIntersectsNode = function(range, node) {
+		var nodeRange = node.ownerDocument.createRange();
+		try {
+			nodeRange.selectNode(node);
+		} catch (e) {
+			nodeRange.selectNodeContents(node);
+		}
+
+		var rangeStartRange = range.cloneRange();
+		rangeStartRange.collapse(true);
+
+		var rangeEndRange = range.cloneRange();
+		rangeEndRange.collapse(false);
+
+		var nodeStartRange = nodeRange.cloneRange();
+		nodeStartRange.collapse(true);
+
+		var nodeEndRange = nodeRange.cloneRange();
+		nodeEndRange.collapse(false);
+
+		return rangeStartRange.compareBoundaryPoints(
+			Range.START_TO_START, nodeEndRange) === -1 &&
+			rangeEndRange.compareBoundaryPoints(
+				Range.START_TO_START, nodeStartRange) === 1;
+	};
+
+	var _getClientRects = function(range){
+		var containerElement = range.commonAncestorContainer,
+			treeWalker = document.createTreeWalker(
+			containerElement,
+			NodeFilter.SHOW_TEXT,
+			{
+				acceptNode: function(node) {
+					return (!node.isEqualNode(range.startContainer) && !node.isEqualNode(range.endContainer) && _rangeIntersectsNode(range, node)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+				}
+			},
+			false
+			),
+			rects = [],
+			rect,
+			i,
+			l,
+			r = document.createRange();
+
+		r.setStart(range.startContainer, range.startOffset);
+		r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+		rect = r.getClientRects();
+		for(i = 0, l = rect.length; i < l; i++){
+			rects.push(rect[i]);
+		}
+
+		r.setStart(range.endContainer, 0);
+		r.setEnd(range.endContainer, range.endOffset);
+		rect = r.getClientRects();
+		for(i = 0, l = rect.length; i < l; i++){
+			rects.push(rect[i]);
+		}
+
+		while (treeWalker.nextNode()) {
+			r.selectNode(treeWalker.currentNode);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		}
+
+		return rects;
 	};
 
 	var getNextNode = function ($el) {
