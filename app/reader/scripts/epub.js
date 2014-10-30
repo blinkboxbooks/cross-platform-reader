@@ -34,9 +34,13 @@ var Reader = (function (r, Epub) {
 
 		// <a name="setUp"></a> Initialises the CFI variables, should be called whenever we load a new chapter
 		// `chapter` the current chapter
-		prototype.setUp = function(chapter, $opf){
-			var chapterId = $opf.find('spine').children()[chapter].getAttribute('idref');
-			this.opfCFI = EPUBcfi.generatePackageDocumentCFIComponent(chapterId, $opf[0]);
+		prototype.setUp = function(chapter, book){
+			var chapterId = $(book.opfDoc.querySelector('spine')).children()[chapter].getAttribute('idref');
+
+			// EPUBcfi library doesn't handle element namespaces, so we remove them:
+			var opf = $(book.opf.replace(/<(\/)?\w+:(\w+)/g, '<$1$2')).filter('package')[0];
+
+			this.opfCFI = EPUBcfi.generatePackageDocumentCFIComponent(chapterId, opf);
 		};
 
 		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.

@@ -259,11 +259,12 @@ var Reader = (function (r) {
 					chapterPartUrl = r.Navigation.getNextChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter < bookChapters - 1) {
+				defer.notify({type: 'chapter.loading'});
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter + 1].href);
 				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					defer.notify({type: 'chapter.loading'});
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {
@@ -284,11 +285,12 @@ var Reader = (function (r) {
 					chapterPartUrl = r.Navigation.getPrevChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter > 0) {
+				defer.notify({type: 'chapter.loading'});
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter - 1].href);
 				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					defer.notify({type: 'chapter.loading'});
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {

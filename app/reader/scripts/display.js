@@ -310,7 +310,7 @@ var Reader = (function (r) {
 		var defer = $.Deferred(),
 				chapterUrl = r.Book.spine[chapterNumber].href;
 
-		r.Epub.setUp(chapterNumber, r.Book.$opf);
+		r.Epub.setUp(chapterNumber, r.Book);
 		r.Navigation.setChapter(chapterNumber);
 		r.setReaderOpacity(0);
 
