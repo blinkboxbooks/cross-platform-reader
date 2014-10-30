@@ -146,7 +146,7 @@ var Reader = (function (r) {
 
 	function _highlightHandler(e){
 		/*jshint validthis:true */
-		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi')}));
+		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi'), clientX: e.clientX, clientY: e.clientY}));
 		e.preventDefault();
 		e.stopPropagation();
 	}
