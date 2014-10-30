@@ -67,7 +67,6 @@ var Reader = (function (r) {
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
 
-				console.log('setHighlightCFI');
 				var rects = _getClientRects(range), reader = {
 					top: r.$reader.offset().top,
 					left: r.$reader.offset().left
