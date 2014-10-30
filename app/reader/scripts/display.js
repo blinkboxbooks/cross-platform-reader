@@ -145,8 +145,11 @@ var Reader = (function (r) {
 	}
 
 	function _highlightHandler(e){
+		var x = e.type === 'touchstart' ? e.originalEvent.touches[0].clientX : e.clientX,
+			y = e.type === 'touchstart' ? e.originalEvent.touches[0].clientY : e.clientY;
+
 		/*jshint validthis:true */
-		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi'), clientX: e.clientX, clientY: e.clientY}));
+		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi'), clientX: x, clientY: y}));
 		e.preventDefault();
 		e.stopPropagation();
 	}
