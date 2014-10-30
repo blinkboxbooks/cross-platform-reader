@@ -473,19 +473,29 @@ var Reader = (function (r) {
 			l,
 			r = document.createRange();
 
-		r.setStart(range.startContainer, range.startOffset);
-		r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
-		rect = r.getClientRects();
-		for(i = 0, l = rect.length; i < l; i++){
-			rects.push(rect[i]);
+		if(range.startContainer.isEqualNode(range.endContainer)){
+			r.setStart(range.startContainer, range.startOffset);
+			r.setEnd(range.endContainer, range.endOffset);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		} else {
+			r.setStart(range.startContainer, range.startOffset);
+			r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+
+			r.setStart(range.endContainer, 0);
+			r.setEnd(range.endContainer, range.endOffset);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
 		}
 
-		r.setStart(range.endContainer, 0);
-		r.setEnd(range.endContainer, range.endOffset);
-		rect = r.getClientRects();
-		for(i = 0, l = rect.length; i < l; i++){
-			rects.push(rect[i]);
-		}
 
 		while (treeWalker.nextNode()) {
 			r.selectNode(treeWalker.currentNode);
