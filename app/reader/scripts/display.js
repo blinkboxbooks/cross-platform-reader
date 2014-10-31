@@ -48,10 +48,6 @@ var Reader = (function (r) {
 		// Set the mobile flag.
 		r.mobile = !!((param.hasOwnProperty('mobile')));
 
-		// Save the initial bookmarks and highlights.
-		r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
-		r.Highlights.setHighlights((param.hasOwnProperty('highlights')) ? param.highlights : [], true);
-
 		// Initialise the epub module
 		r.Epub.init(r.$reader[0]);
 
@@ -78,6 +74,10 @@ var Reader = (function (r) {
 
 		// Start the party:
 		return r.Book.load(param.book).then(function (book) {
+			// Save the initial bookmarks and highlights.
+			r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
+			r.Highlights.setHighlights((param.hasOwnProperty('highlights')) ? param.highlights : [], true);
+
 			return initializeBook(book, param);
 		});
 	};
@@ -144,9 +144,14 @@ var Reader = (function (r) {
 		}
 	}
 
-	function _highlightHandler(){
+	function _highlightHandler(e){
+		var x = e.type === 'touchstart' ? e.originalEvent.touches[0].clientX : e.clientX,
+			y = e.type === 'touchstart' ? e.originalEvent.touches[0].clientY : e.clientY;
+
 		/*jshint validthis:true */
-		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi')}));
+		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi'), clientX: x, clientY: y}));
+		e.preventDefault();
+		e.stopPropagation();
 	}
 
 	// Capture all the links in the reader
@@ -268,7 +273,12 @@ var Reader = (function (r) {
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
-		r.$container.on('click', '.cpr-highlight div', _highlightHandler);
+		r.$container.on('click touchstart', '.cpr-highlight div', _highlightHandler);
+		r.$container.on('touchmove touchend touchcancel', '.cpr-highlight div', function(e){
+			// we need to stop all touch events on highlight markers
+			e.preventDefault();
+			e.stopPropagation();
+		});
 
 		// Capture text selection events and notify client of text value.
 		var $doc = r.$iframe.contents();

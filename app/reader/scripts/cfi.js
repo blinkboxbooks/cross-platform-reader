@@ -53,11 +53,21 @@ var Reader = (function (r) {
 			try {
 				var data = r.CFI.parseCFI(cfi);
 
+				// we might have markers injected, we need to handle this
+				if(data.startOffset > 0 && data.startElement.nodeType === Node.TEXT_NODE && data.startElement.nodeValue.length < data.startOffset){
+					data.startOffset -= data.startElement.nodeValue.length;
+					data.startElement = data.startElement.nextSibling.nextSibling;
+				}
+				if(data.endOffset > 0 && data.endElement.nodeType === Node.TEXT_NODE && data.endElement.nodeValue.length < data.endOffset){
+					data.endOffset -= data.endElement.nodeValue.length;
+					data.endElement = data.endElement.nextSibling.nextSibling;
+				}
+
 				var range = r.$iframe.contents()[0].createRange();
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
 
-				var rects = range.getClientRects(), reader = {
+				var rects = _getClientRects(range), reader = {
 					top: r.$reader.offset().top,
 					left: r.$reader.offset().left
 				};
@@ -277,7 +287,8 @@ var Reader = (function (r) {
 			offset = range.startOffset;
 		}
 
-		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset)){
+		// We need to ensure the element is within the reader content, visible on the current page and it is not part of a highlight (that appear above the text)
+		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset) || textNode.parentNode.id === 'cpr-overlay'){
 			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 			if(x < 3/4 * columnWidth){
 				x += columnWidth / 4;
@@ -416,6 +427,85 @@ var Reader = (function (r) {
 			offset: offset,
 			preview: preview
 		};
+	};
+
+	var _rangeIntersectsNode = function(range, node) {
+		var nodeRange = node.ownerDocument.createRange();
+		try {
+			nodeRange.selectNode(node);
+		} catch (e) {
+			nodeRange.selectNodeContents(node);
+		}
+
+		var rangeStartRange = range.cloneRange();
+		rangeStartRange.collapse(true);
+
+		var rangeEndRange = range.cloneRange();
+		rangeEndRange.collapse(false);
+
+		var nodeStartRange = nodeRange.cloneRange();
+		nodeStartRange.collapse(true);
+
+		var nodeEndRange = nodeRange.cloneRange();
+		nodeEndRange.collapse(false);
+
+		return rangeStartRange.compareBoundaryPoints(
+			Range.START_TO_START, nodeEndRange) === -1 &&
+			rangeEndRange.compareBoundaryPoints(
+				Range.START_TO_START, nodeStartRange) === 1;
+	};
+
+	var _getClientRects = function(range){
+		var containerElement = range.commonAncestorContainer,
+			treeWalker = document.createTreeWalker(
+			containerElement,
+			NodeFilter.SHOW_TEXT,
+			{
+				acceptNode: function(node) {
+					return (!node.isEqualNode(range.startContainer) && !node.isEqualNode(range.endContainer) && _rangeIntersectsNode(range, node)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+				}
+			},
+			false
+			),
+			rects = [],
+			rect,
+			i,
+			l,
+			r = document.createRange();
+
+		if(range.startContainer.isEqualNode(range.endContainer)){
+			r.setStart(range.startContainer, range.startOffset);
+			r.setEnd(range.endContainer, range.endOffset);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		} else {
+			r.setStart(range.startContainer, range.startOffset);
+			r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+
+			r.setStart(range.endContainer, 0);
+			r.setEnd(range.endContainer, range.endOffset);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		}
+
+
+		while (treeWalker.nextNode()) {
+			r.selectNode(treeWalker.currentNode);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		}
+
+		return rects;
 	};
 
 	var getNextNode = function ($el) {

@@ -25,6 +25,7 @@
 		"EPUBcfi": true,
 		"FilterJS": true,
 		"$": true,
-		"READER": true
+		"READER": true,
+		"Range": true
 	}
 }
