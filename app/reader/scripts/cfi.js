@@ -287,7 +287,8 @@ var Reader = (function (r) {
 			offset = range.startOffset;
 		}
 
-		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset)){
+		// We need to ensure the element is within the reader content, visible on the current page and it is not part of a highlight (that appear above the text)
+		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset) || textNode.parentNode.id === 'cpr-overlay'){
 			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
 			if(x < 3/4 * columnWidth){
 				x += columnWidth / 4;
