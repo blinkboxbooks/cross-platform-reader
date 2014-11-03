@@ -215,14 +215,17 @@ var Reader = (function (r) {
 						r.Highlights.display();
 					}
 
-					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage());
+					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()),
+						data = {
+							CFI: cfi,
+							preview: preview,
+							chapter: item.label,
+							href: item.href
+						};
 
-					return JSON.stringify({
-						CFI: cfi,
-						preview: preview,
-						chapter: item.label,
-						href: item.href
-					});
+					r.Notify.event($.extend({}, r.Event.HIGHLIGHT_ADDED, {call: 'setHighlight'}, data));
+
+					return JSON.stringify(data);
 				}
 			} else {
 				// cfi not recognised in book
