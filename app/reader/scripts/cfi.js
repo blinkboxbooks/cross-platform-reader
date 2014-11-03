@@ -462,7 +462,7 @@ var Reader = (function (r) {
 			NodeFilter.SHOW_TEXT,
 			{
 				acceptNode: function(node) {
-					return (!node.isEqualNode(range.startContainer) && !node.isEqualNode(range.endContainer) && _rangeIntersectsNode(range, node)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+					return (!node.isEqualNode(range.startContainer) && !node.isEqualNode(range.endContainer) && node.nodeValue.trim().length && _rangeIntersectsNode(range, node)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
 				}
 			},
 			false
