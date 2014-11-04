@@ -289,9 +289,14 @@ var Reader = (function (r) {
 
 		// We need to ensure the element is within the reader content, visible on the current page and it is not part of a highlight (that appear above the text)
 		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset) || textNode.parentNode.id === 'cpr-overlay'){
-			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-			if(x < 3/4 * columnWidth){
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2),
+				columnHeight = r.Layout.Reader.height;
+			
+			if(x <= 3/4 * columnWidth){
 				x += columnWidth / 4;
+				return _getElementAt(x, y);
+			} else if(y <= 3/4 * columnHeight){
+				y += columnHeight / 4;
 				return _getElementAt(x, y);
 			}
 			return null;
