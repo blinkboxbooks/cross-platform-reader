@@ -140,6 +140,10 @@ var Reader = (function (r) {
 			code: 26,
 			message: 'A highlight was clicked.'
 		},
+		HIGHLIGHT_ADDED: {
+			code: 27,
+			message: 'A highlight was added.'
+		},
 		getStatus: function (call) {
 			var data = {
 				'call': call || '',

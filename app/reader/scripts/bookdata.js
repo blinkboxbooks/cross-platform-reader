@@ -189,7 +189,12 @@ var Reader = (function (r) {
 				var selection = r.$iframe.contents()[0].getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
 					preview = selection.toString();
-					cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
+					try{
+						cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
+					} catch(e){
+						r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight', details: e}));
+						return false;
+					}
 					// clear selection
 					if (selection.empty) {  // Chrome
 						selection.empty();
@@ -215,14 +220,17 @@ var Reader = (function (r) {
 						r.Highlights.display();
 					}
 
-					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage());
+					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()),
+						data = {
+							CFI: cfi,
+							preview: preview,
+							chapter: item.label,
+							href: item.href
+						};
 
-					return JSON.stringify({
-						CFI: cfi,
-						preview: preview,
-						chapter: item.label,
-						href: item.href
-					});
+					r.Notify.event($.extend({}, r.Event.HIGHLIGHT_ADDED, {call: 'setHighlight'}, data));
+
+					return JSON.stringify(data);
 				}
 			} else {
 				// cfi not recognised in book
