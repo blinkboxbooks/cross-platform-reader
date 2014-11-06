@@ -158,7 +158,7 @@ var Reader = (function (r) {
 	function _clickHandler(e) {
 		/*jshint validthis:true */
 		// Retrieve the encoded relative version of the url:
-		var url = this.href.split('/').slice(-this.getAttribute('href').split('/').length).join('/'),
+		var url = this.getAttribute('href'),
 				type = this.getAttribute('data-link-type');
 		e.preventDefault();
 		e.stopPropagation();
@@ -166,6 +166,7 @@ var Reader = (function (r) {
 			// External link, notify client about it:
 			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href: url}));
 		} else if (type === 'internal') {
+			url = this.href.split('/').slice(-url.split('/').length).join('/');
 			// Internal link, notify client about it:
 			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href: url}));
 			// Load the given URL:
