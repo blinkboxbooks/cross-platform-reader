@@ -17,7 +17,8 @@ service nginx start
 # -------------------------------------------------------------------------
 chown -R vagrant:vagrant /usr/local/rvm/gems/*
 
-yum install Xvfb firefox -y
+# Install specific packages that are known to work with our test setup:
+yum install xorg-x11-server-Xvfb-1.15.0 firefox-31.1.0-5.el6.centos -y
 
 # required for headless firefox
 Xvfb :1 -screen 0 1280x768x24 &
