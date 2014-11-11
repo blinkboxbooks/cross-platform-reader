@@ -1,4 +1,4 @@
-var EpubCFIModule = function () {
+(function(global) {
 
 	var EPUBcfi = {};
 
@@ -1726,6 +1726,10 @@ var EpubCFIModule = function () {
 			throw EPUBcfi.TerminusError("Text", "Text offset:" + textOffset, "The offset exceeded the length of the text");
 		},
 
+		// Rationale: In order to inject an element into a specific position, access to the parent object
+		//   is required. This is obtained with the jquery parent() method. An alternative would be to
+		//   pass in the parent with a filtered list containing only children that are part of the target text node.
+
 		// Description: This method finds a target text node and then injects an element into the appropriate node
 		// Rationale: The possibility that cfi marker elements have been injected into a text node at some point previous to
 		//   this method being called (and thus splitting the original text node into two separate text nodes) necessitates that
@@ -2349,8 +2353,8 @@ var EpubCFIModule = function () {
 
 			// Create a document range to find the common ancestor
 			docRange = document.createRange();
-			docRange.setStart(rangeStartElement);
-			docRange.setEnd(rangeEndElement);
+			docRange.setStart(rangeStartElement, 0);
+			docRange.setEnd(rangeEndElement, rangeEndElement.childNodes.length);
 			commonAncestor = docRange.commonAncestorContainer;
 
 			// Generate range 1
@@ -2364,6 +2368,60 @@ var EpubCFIModule = function () {
 
 			// Return the result
 			return commonCFIComponent.substring(1, commonCFIComponent.length) + "," + range1CFI + "," + range2CFI;
+		},
+
+		generateRangeComponent : function (rangeStartElement, startOffset, rangeEndElement, endOffset, classBlacklist, elementBlacklist, idBlacklist) {
+			if(rangeStartElement.nodeType === Node.ELEMENT_NODE && rangeEndElement.nodeType === Node.ELEMENT_NODE){
+				return this.generateElementRangeComponent(rangeStartElement, rangeEndElement, classBlacklist, elementBlacklist, idBlacklist);
+			} else if(rangeStartElement.nodeType === Node.TEXT_NODE && rangeEndElement.nodeType === Node.TEXT_NODE){
+				return this.generateCharOffsetRangeComponent(rangeStartElement, startOffset, rangeEndElement, endOffset, classBlacklist, elementBlacklist, idBlacklist);
+			} else {
+				var docRange;
+				var range1CFI;
+				var range1OffsetStep;
+				var range2CFI;
+				var range2OffsetStep;
+
+				// Create a document range to find the common ancestor
+				docRange = document.createRange();
+				docRange.setStart(rangeStartElement, startOffset);
+				docRange.setEnd(rangeEndElement, endOffset);
+				commonAncestor = docRange.commonAncestorContainer;
+
+				if(rangeStartElement.nodeType === Node.ELEMENT_NODE){
+					this.validateStartElement(rangeStartElement);
+					range1CFI = this.createCFIElementSteps($(rangeStartElement), commonAncestor, classBlacklist, elementBlacklist, idBlacklist);
+				} else {
+					this.validateStartTextNode(rangeStartElement);
+					// Generate terminating offset and range 1
+					range1OffsetStep = this.createCFITextNodeStep($(rangeStartElement), startOffset, classBlacklist, elementBlacklist, idBlacklist);
+					if($(rangeStartElement).parent().is(commonAncestor)){
+						range1CFI = range1OffsetStep;
+					} else {
+						range1CFI = this.createCFIElementSteps($(rangeStartElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range1OffsetStep;
+					}
+				}
+
+				if(rangeEndElement.nodeType === Node.ELEMENT_NODE){
+					this.validateStartElement(rangeEndElement);
+					range2CFI = this.createCFIElementSteps($(rangeEndElement), commonAncestor, classBlacklist, elementBlacklist, idBlacklist);
+				} else {
+					this.validateStartTextNode(rangeEndElement);
+					// Generate terminating offset and range 2
+					range2OffsetStep = this.createCFITextNodeStep($(rangeEndElement), endOffset, classBlacklist, elementBlacklist, idBlacklist);
+					if($(rangeEndElement).parent().is(commonAncestor)){
+						range2CFI = range2OffsetStep;
+					} else {
+						range2CFI = this.createCFIElementSteps($(rangeEndElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range2OffsetStep;
+					}
+				}
+
+				// Generate shared component
+				commonCFIComponent = this.createCFIElementSteps($(commonAncestor), "html", classBlacklist, elementBlacklist, idBlacklist);
+
+				// Return the result
+				return commonCFIComponent.substring(1, commonCFIComponent.length) + "," + range1CFI + "," + range2CFI;
+			}
 		},
 
 		// Description: Generates a character offset CFI
@@ -2631,9 +2689,27 @@ var EpubCFIModule = function () {
 	var generator = EPUBcfi.Generator;
 	var instructions = EPUBcfi.CFIInstructions;
 
-	// The public interface
-	return {
 
+	if (global.EPUBcfi) {
+
+		throw new Error('The EPUB cfi library has already been defined');
+	} else {
+
+		global.EPUBcfi = EPUBcfi;
+	}
+
+	// The public interface
+	var CFIInstructions = EPUBcfi.CFIInstructions;
+	var Parser = EPUBcfi.Parser;
+	var OError = EPUBcfi.OutOfRangeError;
+	var Interp = EPUBcfi.Interpreter;
+
+	var NodeTypeError = EPUBcfi.NodeTypeError;
+	var OutOfRangeError = EPUBcfi.OutOfRangeError;
+	var TerminusError = EPUBcfi.TerminusError;
+	var CFIAssertionError = EPUBcfi.CFIAssertionError;
+
+	global.EPUBcfi = EPUBcfi =  {
 		getContentDocHref : function (CFI, packageDocument) {
 			return interpreter.getContentDocHref(CFI, packageDocument);
 		},
@@ -2678,9 +2754,24 @@ var EpubCFIModule = function () {
 		},
 		generateElementRangeComponent : function (rangeStartElement, rangeEndElement, classBlacklist, elementBlacklist, idBlacklist) {
 			return generator.generateElementRangeComponent(rangeStartElement, rangeEndElement, classBlacklist, elementBlacklist, idBlacklist);
+		},
+		generateRangeComponent : function (rangeStartElement, startOffset, rangeEndElement, endOffset, classBlacklist, elementBlacklist, idBlacklist) {
+			return generator.generateRangeComponent(rangeStartElement, startOffset, rangeEndElement, endOffset, classBlacklist, elementBlacklist, idBlacklist);
 		}
 	};
-};
+
+	EPUBcfi.CFIInstructions = CFIInstructions;
+	EPUBcfi.Parser = Parser;
+	EPUBcfi.OutOfRangeError = OError;
+	EPUBcfi.Interpreter = Interp;
+	EPUBcfi.Generator = generator;
+
+	EPUBcfi.NodeTypeError = NodeTypeError;
+	EPUBcfi.OutOfRangeError = OutOfRangeError;
+	EPUBcfi.TerminusError = TerminusError;
+	EPUBcfi.CFIAssertionError = CFIAssertionError;
+
+}) (typeof window === 'undefined' ? this : window);
 
 /*
  * Bugsense JavaScript SDK v1.1.1
@@ -3349,56 +3440,40 @@ var Reader = (function (r) {
 		author: '',
 		opfPath: '',
 		contentPathPrefix: '',
-		$opf: null,
+		opfDoc: null,
 		totalWordCount: 0,
 		totalImageCount: 0,
 		sample: false
 	};
 
-	// Retrieves the item with the given id from the OPF manifest:
-	function getManifestItem($opf, id) {
-		// Escape dots in the given id to get a valid id selector:
-		return $opf.find('#' + id.replace(/\./g, '\\.'));
-	}
-
-	// Retrieves the title from the OPF document:
-	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.1
-	function getTitleFromOPF($opf) {
-		return $opf.children('metadata').children('dc\\:title').first().text();
-	}
-
-	// Retrieves the author from the OPF document:
-	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.2
-	function getAuthorFromOPF($opf) {
-		return $opf.children('metadata').children('dc\\:creator').first().text();
-	}
+	var filesCache = {};
 
 	// Retrieves the spine data from the OPF document:
 	// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
-	function getSpineFromOPF($opf, pathPrefix) {
-		return $.map($opf.children('spine').children('itemref'), function (itemref) {
+	function getSpineFromOPF(opfDoc, pathPrefix) {
+		return $.map($(opfDoc.querySelector('spine')).children(), function (itemref) {
 			var id = itemref.getAttribute('idref'),
-					$item = getManifestItem($opf, id);
+					item = opfDoc.getElementById(id);
 			return {
 				itemId: id,
-				href: pathPrefix + $item.attr('href'),
+				href: pathPrefix + item.getAttribute('href'),
 				// The default is "yes", so unlike it's "no", the spine item is linear:
 				linear: itemref.getAttribute('linear') === 'no' ? false : true,
-				mediaType: $item.attr('media-type')
+				mediaType: item.getAttribute('media-type')
 			};
 		});
 	}
 
 	// Retrieves the TOC from a given navMap entry point (recursive function):
 	function getTOCFromNavMap(navMap, pathPrefix) {
-		return $.map(navMap.children('navPoint'), function (navPoint) {
+		return $.map($(navMap).children('navPoint'), function (navPoint) {
 			var $navPoint = $(navPoint),
 				data = {
 					// active: true, // false if HTML file is not available, e.g. in samples
 					href: pathPrefix + $navPoint.children('content').attr('src'),
 					label: $navPoint.children('navLabel').children('text').text()
 				},
-				children = getTOCFromNavMap($navPoint, pathPrefix);
+				children = getTOCFromNavMap(navPoint, pathPrefix);
 			if (children.length) {
 				data.children = children;
 			}
@@ -3425,7 +3500,15 @@ var Reader = (function (r) {
 
 	// Get a file from the server:
 	function loadFile(resource, type) {
-		var defer = $.Deferred();
+		var promise = filesCache[resource],
+				defer;
+		if (promise !== undefined) {
+			// Delete entries from the files cache as soon as they have been used.
+			// This prevents storing too much data in memory:
+			delete filesCache[resource];
+			return promise;
+		}
+		defer = $.Deferred();
 		$.ajax({
 			url: r.DOCROOT + '/' + resource,
 			dataType: type ? type : 'text'
@@ -3435,34 +3518,52 @@ var Reader = (function (r) {
 		return defer.promise();
 	}
 
+	// Load a file and store the promise in an in-memory store:
+	function preloadFile(resource, type) {
+		var promise = loadFile(resource, type);
+		filesCache[resource] = promise;
+		return promise;
+	}
+
 	// Retrieve the opfPath from the root file:
 	function loadOpfPath(data) {
 		return loadFile(r.ROOTFILE_INFO_PATH, 'xml').then(function rootFileLoaded(rootDoc) {
-			data.opfPath = $(rootDoc).find('rootfile').attr('full-path');
+			data.opfPath = rootDoc.querySelector('rootfile').getAttribute('full-path');
 			return data;
 		});
 	}
 
-	// Load opfFile and store $opf and contentPathPrefix in the given data object:
+	// Returns a document for a valid XML string:
+	function parseXML(content) {
+		return (new DOMParser()).parseFromString(content, 'text/xml');
+	}
+
+	// Load opfFile and store opfDoc and contentPathPrefix in the given data object:
 	function loadOpfData(data) {
-		if (data.opf) {
-			// OPF data is provided via XML string
-			data.$opf = $(data.opf).filter('package');
-			return $.Deferred().resolve(data).promise();
-		}
-		return loadFile(data.opfPath).then(function opfFileLoaded(opfDoc) {
+		if (data.opfPath) {
 			var pathPrefix = data.opfPath.split('/').slice(0, -1).join('/');
 			// Add a trailing slash if we have a path prefix:
 			data.contentPathPrefix = pathPrefix && pathPrefix + '/';
-			data.$opf = $(opfDoc).filter('package');
+		}
+		if (data.opf) {
+			// OPF data is provided via XML string
+			data.opfDoc = parseXML(data.opf);
+			return $.Deferred().resolve(data).promise();
+		}
+		return loadFile(data.opfPath).then(function opfFileLoaded(content) {
+			data.opf = content;
+			data.opfDoc = parseXML(content);
 			return data;
 		});
 	}
 
 	// Function to load the TOC data from the EPUB2 NCX file or the EPUB3 navigation document:
 	function loadTOCData(data) {
-		var navHref = data.$opf.children('manifest').children('item[properties="nav"]').attr('href'),
-				ncxHref = !navHref && getManifestItem(data.$opf, data.$opf.children('spine').attr('toc')).attr('href');
+		var opfDoc = data.opfDoc,
+				navItem = opfDoc.querySelector('manifest').querySelector('item[properties="nav"]'),
+				navHref = navItem && navItem.getAttribute('href'),
+				ncxId = !navHref && opfDoc.querySelector('spine').getAttribute('toc'),
+				ncxHref = ncxId && opfDoc.getElementById(ncxId).getAttribute('href');
 		if (navHref) {
 			// EPUB v3 navigation document:
 			// http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-nav
@@ -3475,7 +3576,7 @@ var Reader = (function (r) {
 		// EPUB2 NCX file:
 		// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
 		return loadFile(data.contentPathPrefix + ncxHref, 'xml').then(function ncxFileLoaded(ncxDoc) {
-			data.toc = getTOCFromNavMap($(ncxDoc).children('ncx').children('navMap'), data.contentPathPrefix);
+			data.toc = getTOCFromNavMap(ncxDoc.querySelector('navMap'), data.contentPathPrefix);
 			return data;
 		});
 	}
@@ -3486,11 +3587,16 @@ var Reader = (function (r) {
 			.then(loadOpfData)
 			.then(loadTOCData)
 			.then(function (data) {
-				var $opf = data.$opf;
+				// Retrieve meta data from OPF document:
+				// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2
+				var opfDoc = data.opfDoc,
+						metadata = opfDoc.querySelector('metadata'),
+						titleElement = metadata.querySelector('title'),
+						authorElement = metadata.querySelector('creator');
 				return $.extend(data, {
-					title: getTitleFromOPF($opf),
-					author: getAuthorFromOPF($opf),
-					spine: getSpineFromOPF($opf, data.contentPathPrefix)
+					title: titleElement && titleElement.textContent,
+					author: authorElement && authorElement.textContent,
+					spine: getSpineFromOPF(opfDoc, data.contentPathPrefix)
 				}, args);
 			});
 	}
@@ -3721,6 +3827,8 @@ var Reader = (function (r) {
 	r.Book = {
 		// Method to load a file from the book resources:
 		loadFile: loadFile,
+		// Method to preload a file for faster subsequent access:
+		preloadFile: preloadFile,
 		// Load the book information.
 		// Uses the given arguments and loads any missing data:
 		load: function (args) {
@@ -3768,7 +3876,7 @@ var Reader = (function (r) {
 					value;
 			for (prop in this) {
 				value = this[prop];
-				if (this.hasOwnProperty(prop) && typeof value !== 'function' && !(value instanceof $)) {
+				if (this.hasOwnProperty(prop) && typeof value !== 'function' && !(value instanceof Node)) {
 					data[prop] = value;
 				}
 			}
@@ -3802,6 +3910,7 @@ var Reader = (function (r) {
 	// * `reset`
 	// * [`display`](#display)
 	r.Bookmarks = {
+		ATTRIBUTE: 'data-bookmark',
 		// <a name="getBookmarks"></a> Public getter function.
 		getBookmarks: function(){
 			return _bookmarks;
@@ -3859,11 +3968,15 @@ var Reader = (function (r) {
 				if($.inArray(cfi, _bookmarks[index]) === -1){
 					_bookmarks[index].push(cfi);
 					if(!noMarker && index === r.Navigation.getChapter()){
-						r.CFI.setCFI(cfi, true);
+						r.CFI.setBookmarkCFI(cfi);
 						r.Bookmarks.display();
 					}
 					return cfiObj !== null ? JSON.stringify(cfiObj) : cfi;
 				}
+			}  else {
+				// cfi not recognised in book
+				r.Notify.error($.extend({}, r.Event.ERR_BOOKMARK_ADD, {details: cfi, call: 'setBookmark'}));
+				return false;
 			}
 			// bookmark exists
 			r.Notify.error($.extend({}, r.Event.ERR_BOOKMARK_EXISTS, {details: cfi, call: 'setBookmark'}));
@@ -3925,6 +4038,154 @@ var Reader = (function (r) {
 				$('#cpr-bookmark-ui', r.$iframe.contents()).hide();
 			}
 			return false;
+		}
+	};
+
+	// This is a private array of highlights for the current book. The data is organised based on chapters.
+	// Ex: `_highlights[1]` contains an array of bookmarks from the first chapter.
+	var _highlights = [];
+
+	r.Highlights = {
+		ATTRIBUTE: 'data-highlight',
+		getHighlights: function(){
+			return _highlights;
+		},
+		// <a name="setHighlights"></a>This function will set the highlights based on the chapter they appear in.
+		// `val` is an array of cfi-s representing the current book's bookmarks.
+		setHighlights: function(val){
+			if($.isArray(val)){
+				$.each(_highlights, function(i, el){
+					if($.isArray(el)){
+						$.each(el, function(index, cfi){
+							if(cfi){
+								r.Highlights.removeHighlight(cfi);
+							}
+						});
+					}
+				});
+				_highlights = [];
+				$.each(val, function(i, element){
+					r.Highlights.setHighlight(element);
+				});
+			}
+		},
+		// <a name="setHighlight"></a>This function saves a highlight in the appropriate location, based on the chapter it appears in, and returns the cfi associated with it.
+		//
+		// * `cfi` (optional) the cfi to save as a highlight, otherwise the current selection's cfi will be used. If no cfi exists and no selection is set, an exception is thrown.
+		setHighlight: function(cfi){
+
+			var preview = '';
+
+			if(!cfi){
+				// if cfi is not preset, we assume the current selection needs to be highlighted
+				var selection = r.$iframe.contents()[0].getSelection();
+				if(selection.rangeCount > 0 && !selection.isCollapsed){
+					preview = selection.toString();
+					try{
+						cfi = r.Epub.generateRangeCFI(selection.getRangeAt(0));
+					} catch(e){
+						r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight', details: e}));
+						return false;
+					}
+					// clear selection
+					if (selection.empty) {  // Chrome
+						selection.empty();
+					} else if (selection.removeAllRanges) {  // Firefox
+						selection.removeAllRanges();
+					}
+				} else {
+					// no selected text
+					r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
+					return false;
+				}
+			}
+
+			var chapter = r.CFI.getChapterFromCFI(cfi);
+			if(chapter !== -1){
+				if(!$.isArray(_highlights[chapter])){
+					_highlights[chapter] = [];
+				}
+				if($.inArray(cfi, _highlights[chapter]) === -1){
+					_highlights[chapter].push(cfi);
+					if(chapter === r.Navigation.getChapter()){
+						r.CFI.setHighlightCFI(cfi);
+						r.Highlights.display();
+					}
+
+					var item = r.Book.getTOCItem(r.Book.spine[chapter].href, r.Navigation.getPage()),
+						data = {
+							CFI: cfi,
+							preview: preview,
+							chapter: item.label,
+							href: item.href
+						};
+
+					r.Notify.event($.extend({}, r.Event.HIGHLIGHT_ADDED, {call: 'setHighlight'}, data));
+
+					return JSON.stringify(data);
+				}
+			} else {
+				// cfi not recognised in book
+				r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_ADD, {details: cfi, call: 'setHighlight'}));
+				return false;
+			}
+			// highlight already exists
+			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_EXISTS, {details: cfi, call: 'setHighlight'}));
+			return false;
+		},
+		removeHighlight: function(cfi){
+			var chapter = r.CFI.getChapterFromCFI(cfi);
+			if(chapter !== -1){
+				var index = $.inArray(cfi, _highlights[chapter]);
+				if($.isArray(_highlights[chapter]) && index !== -1){
+					_highlights[chapter].splice(index, 1);
+					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents()).remove();
+					r.Highlights.display();
+					return true;
+				}
+			}
+			// cannot remove bookmark
+			r.Notify.error($.extend({}, r.Event.ERR_HIGHLIGHT_REMOVE, {details: cfi, call: 'removeHighlight'}));
+			return false;
+		},
+		display: function(){
+			var isVisible = false;
+
+			// resize highlights
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).remove();
+			// Add all highlights for this chapter
+			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
+			if(highlights){
+				$.each(highlights, function(index, highlight){
+					// Ignore bookmarks not part of the current chapter part:
+					if (highlight && r.Navigation.isCFIInCurrentChapterPart(highlight)) {
+						r.CFI.setHighlightCFI(highlight);
+					}
+				});
+			}
+
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
+				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
+				if (isVisible) {
+					return false;
+				}
+			});
+			return isVisible;
+		},
+		getVisibleHighlights: function(){
+			var highlights = [];
+			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
+				if(r.returnPageElement(el) === r.Navigation.getPage()){
+					highlights.push($(el).attr('data-cfi'));
+				}
+			});
+			// the array must be unique
+			return highlights.filter(function(el, index){
+				return highlights.indexOf(el) === index;
+			});
+		},
+		reset: function(){
+			_highlights = [];
 		}
 	};
 
@@ -4000,16 +4261,58 @@ var Reader = (function (r) {
 		getCFI: function() {
 			return encodeURIComponent(JSON.stringify(r.CFI.getCFIObject()));
 		},
+		setBookmarkCFI: function(cfi){
+			return r.CFI.setCFI(cfi, r.Bookmarks.ATTRIBUTE);
+		},
+		setHighlightCFI: function(cfi){
+			try {
+				var data = r.CFI.parseCFI(cfi);
+
+				// we might have markers injected, we need to handle this
+				if(data.startOffset > 0 && data.startElement.nodeType === Node.TEXT_NODE && data.startElement.nodeValue.length < data.startOffset){
+					data.startOffset -= data.startElement.nodeValue.length;
+					data.startElement = data.startElement.nextSibling.nextSibling;
+				}
+				if(data.endOffset > 0 && data.endElement.nodeType === Node.TEXT_NODE && data.endElement.nodeValue.length < data.endOffset){
+					data.endOffset -= data.endElement.nodeValue.length;
+					data.endElement = data.endElement.nextSibling.nextSibling;
+				}
+
+				var range = r.$iframe.contents()[0].createRange();
+				range.setStart(data.startElement, data.startOffset);
+				range.setEnd(data.endElement, data.endOffset);
+
+				var rects = _getClientRects(range), reader = {
+					top: r.$reader.offset().top,
+					left: r.$reader.offset().left
+				};
+				for(var i = 0; i < rects.length; i++){
+					var rect = rects[i];
+					$('<div data-cfi="'+cfi+'" data-highlight></div>')
+						.css({
+							width: rect.width + 'px',
+							height: rect.height + 'px',
+							top: rect.top - reader.top + 'px',
+							left: rect.left - reader.left + 'px'
+						})
+						.appendTo(r.$overlay);
+				}
+			} catch(err){
+				// cannot insert CFI
+				r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setHighlightCFI'}));
+			}
+			return false;
+		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
-		setCFI: function (cfi, isBookmark) { // Add an element to a CFI point
-			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents());
+		setCFI: function (cfi, attr) { // Add an element to a CFI point
+			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents()), attrs = attr ? attr.split('=') : '';
 			if($marker.length){
-				if(isBookmark && !$marker.is('[data-bookmark]')){
-					$marker.attr('data-bookmark', '');
+				if(attr && !$marker.is('['+attr+']')){
+					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
 				}
 			} else {
 				try {
-					var marker = '<span class="cpr-marker" '+ (isBookmark ? 'data-bookmark' : '') +' data-cfi="' + cfi + '"></span>';
+					var marker = '<span class="cpr-marker" '+ attr +' data-cfi="' + cfi + '"></span>';
 					var $node = r.Epub.getElementAt(cfi);
 
 					// in case the cfi targets an svg child, target the svg element itself
@@ -4019,12 +4322,12 @@ var Reader = (function (r) {
 					if ($node.length) {
 						if ($node[0].nodeType === 1) { // append to element
 							$node.attr('data-cfi', cfi);
-							if(isBookmark){
-								$node.attr('data-bookmark', '');
+							if(attr){
+								$node.attr(attrs[0], attrs.length > 1 ? name[1] : '');
 							}
 						}
 						if ($node[0].nodeType === 3) { // inject into the text node
-							r.CFI.addOneWordToCFI(cfi, $node, marker, isBookmark);
+							r.CFI.addOneWordToCFI(cfi, $node, marker, attr);
 						}
 					}
 					return $node;
@@ -4036,7 +4339,7 @@ var Reader = (function (r) {
 			}
 		},
 		// <a name="addOneNodeToCFI"></a> Helper function that moves the CFI to the next node. This is required to avoid a bug in some browsers that displays the current CFI on the previous page.
-		addOneNodeToCFI : function (cfi, el, marker, isBookmark) {
+		addOneNodeToCFI : function (cfi, el, marker, attr) {
 			var $nextNode = getNextNode(el);
 
 			// get the leaf of next node to inject in the appropriate location
@@ -4048,15 +4351,16 @@ var Reader = (function (r) {
 				if ($nextNode[0].nodeType === 3) {
 					if($nextNode[0].length > 1){
 						cfi = r.Epub.generateCFI($nextNode[0], 0);
-						r.CFI.addOneWordToCFI(cfi, $nextNode, marker, isBookmark, true);
+						r.CFI.addOneWordToCFI(cfi, $nextNode, marker, attr, true);
 					} else {
 						// the text node is not large enought to have a marker injected, need to prepend it
 						$nextNode.before(marker);
 					}
 				} else {
 					$nextNode.attr('data-cfi', cfi);
-					if(isBookmark){
-						$nextNode.attr('data-bookmark', '');
+					if(attr){
+						var name = attr.split('=');
+						$nextNode.attr(name[0], name.length > 1 ? name[1] : '');
 					}
 				}
 				return true;
@@ -4064,7 +4368,7 @@ var Reader = (function (r) {
 			return false;
 		},
 		// <a name="addOneWordToCFI"></a> Add one position to the cfi if we are in a text node to avoid the CFI to be set in the previous page.
-		addOneWordToCFI : function (cfi, el, marker, isBookmark, force) {
+		addOneWordToCFI : function (cfi, el, marker, attr, force) {
 			var pos = parseInt(cfi.split(':')[1].split(')')[0], 10);
 			var words = el.text().substring(pos).split(/\s+/).filter(function(word){
 				return word.length;
@@ -4077,7 +4381,7 @@ var Reader = (function (r) {
 			} else {
 				// We must check if there are more nodes in the chapter.
 				// If not, we add the marker one character after the cfi position, if possible.
-				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, isBookmark)){
+				if(force || !r.CFI.addOneNodeToCFI(cfi, el, marker, attr)){
 					pos = pos + 1 < el.text().length ? pos + 1 : pos;
 					cfi = cfi.split(':')[0] + ':' + pos + ')';
 					r.Epub.injectMarker(cfi, marker);
@@ -4086,6 +4390,43 @@ var Reader = (function (r) {
 		},
 		isValidCFI: function (cfi) {
 			return /^epubcfi\(.+\)$/.test(cfi);
+		},
+		isRangeCFI: function(cfi){
+			return /^epubcfi\(.+,.+,.+\)$/.test(cfi);
+		},
+		parseCFI: function(cfi){
+			if(!r.CFI.isValidCFI(cfi)){
+				return false;
+			}
+
+			var data = {
+				isRange: false
+			}, offsetRegex = /(?::)(\d+)(?:\))/;
+
+			if(r.CFI.isRangeCFI(cfi)){
+				data.isRange= true;
+
+				var CFIs = cfi.split(',');
+
+				var $nodes = r.Epub.getRangeTargetElements(cfi);
+				data.startElement = $nodes[0];
+				data.endElement = $nodes[1];
+				data.startCFI =  CFIs[0] + CFIs[1] + ')';
+				data.endCFI = CFIs[0] + CFIs[2];
+
+				var startOffset = data.startCFI.match(offsetRegex),
+					endOffset = data.endCFI.match(offsetRegex);
+
+				data.startOffset = (startOffset && startOffset.length) ? parseInt(startOffset[1], 10) : null;
+				data.endOffset = (endOffset && endOffset.length) ? parseInt(endOffset[1], 10) : null;
+			} else {
+				var offset = cfi.match(offsetRegex);
+				
+				data.element = r.Epub.getElementAt(cfi);
+				data.offset = (offset && offset.length) ? parseInt(offset[1], 10) : null;
+			}
+
+			return data;
 		},
 		getCFISelector: function (cfi) {
 			return '*[data-cfi="' + cfi + '"]';
@@ -4100,6 +4441,11 @@ var Reader = (function (r) {
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
+						// handle range CFIs by assuming the start of the range as the position we want to go to
+						var data = r.CFI.parseCFI(cfi);
+						if(data && data.isRange){
+							cfi = data.startCFI;
+						}
 						r.CFI.setCFI(cfi);
 					}
 					return r.Navigation.loadPage(cfi, fixed);
@@ -4156,10 +4502,16 @@ var Reader = (function (r) {
 			offset = range.startOffset;
 		}
 
-		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset)){
-			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-			if(x < 3/4 * columnWidth){
+		// We need to ensure the element is within the reader content, visible on the current page and it is not part of a highlight (that appear above the text)
+		if(!r.$reader.has(textNode).length || !_nodeInViewport(textNode, offset) || textNode.parentNode.id === 'cpr-overlay'){
+			var columnWidth = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2),
+				columnHeight = r.Layout.Reader.height;
+			
+			if(x <= 3/4 * columnWidth){
 				x += columnWidth / 4;
+				return _getElementAt(x, y);
+			} else if(y <= 3/4 * columnHeight){
+				y += columnHeight / 4;
 				return _getElementAt(x, y);
 			}
 			return null;
@@ -4297,6 +4649,90 @@ var Reader = (function (r) {
 		};
 	};
 
+	var _rangeIntersectsNode = function(range, node) {
+		var nodeRange = node.ownerDocument.createRange();
+		try {
+			nodeRange.selectNode(node);
+		} catch (e) {
+			nodeRange.selectNodeContents(node);
+		}
+
+		var rangeStartRange = range.cloneRange();
+		rangeStartRange.collapse(true);
+
+		var rangeEndRange = range.cloneRange();
+		rangeEndRange.collapse(false);
+
+		var nodeStartRange = nodeRange.cloneRange();
+		nodeStartRange.collapse(true);
+
+		var nodeEndRange = nodeRange.cloneRange();
+		nodeEndRange.collapse(false);
+
+		return rangeStartRange.compareBoundaryPoints(
+			Range.START_TO_START, nodeEndRange) === -1 &&
+			rangeEndRange.compareBoundaryPoints(
+				Range.START_TO_START, nodeStartRange) === 1;
+	};
+
+	var _getClientRects = function(range){
+		var containerElement = range.commonAncestorContainer,
+			treeWalker = document.createTreeWalker(
+			containerElement,
+			NodeFilter.SHOW_TEXT,
+			{
+				acceptNode: function(node) {
+					return (
+						!node.isEqualNode(range.startContainer) &&
+						!node.isEqualNode(range.endContainer) &&
+						node.nodeValue.trim().length &&
+						_rangeIntersectsNode(range, node)
+					) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+				}
+			},
+			false
+			),
+			rects = [],
+			rect,
+			i,
+			l,
+			r = document.createRange();
+
+		if(range.startContainer.isEqualNode(range.endContainer)){
+			r.setStart(range.startContainer, range.startOffset);
+			r.setEnd(range.endContainer, range.endOffset);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		} else {
+			r.setStart(range.startContainer, range.startOffset);
+			r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+
+			r.setStart(range.endContainer, 0);
+			r.setEnd(range.endContainer, range.endOffset);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		}
+
+
+		while (treeWalker.nextNode()) {
+			r.selectNode(treeWalker.currentNode);
+			rect = r.getClientRects();
+			for(i = 0, l = rect.length; i < l; i++){
+				rects.push(rect[i]);
+			}
+		}
+
+		return rects;
+	};
+
 	var getNextNode = function ($el) {
 		$el = $el.last();
 		var nodes = $el.parent().contents(),
@@ -4346,6 +4782,7 @@ var Reader = (function (r) {
 	r.$header = null;
 	r.$footer = null;
 	r.$stylesheet = null;
+	r.$overlay = null;
 
 	// Indicates if the Reader has been called from a mobile app.
 	r.mobile = false;
@@ -4633,9 +5070,6 @@ var Reader = (function (r) {
 		// Set the mobile flag.
 		r.mobile = !!((param.hasOwnProperty('mobile')));
 
-		// Save the initial bookmarks.
-		r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
-
 		// Initialise the epub module
 		r.Epub.init(r.$reader[0]);
 
@@ -4662,6 +5096,10 @@ var Reader = (function (r) {
 
 		// Start the party:
 		return r.Book.load(param.book).then(function (book) {
+			// Save the initial bookmarks and highlights.
+			r.Bookmarks.setBookmarks((param.hasOwnProperty('bookmarks')) ? param.bookmarks : [], true);
+			r.Highlights.setHighlights((param.hasOwnProperty('highlights')) ? param.highlights : [], true);
+
 			return initializeBook(book, param);
 		});
 	};
@@ -4683,7 +5121,7 @@ var Reader = (function (r) {
 	}
 
 	function _addStyles() {
-		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;font-family:sans-serif}#cpr-header{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px;font-family:sans-serif}.cpr-placeholder{visibility:hidden;width:auto;height:100%}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:sans-serif;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin:0 0 1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:0 auto .5rem}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}';
+		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;font-family:sans-serif}#cpr-header{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px;font-family:sans-serif}.cpr-placeholder{visibility:hidden;width:auto;height:100%}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:sans-serif;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000;will-change:transform,opacity}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin:0 0 1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAKRGlDQ1BJQ0MgUHJvZmlsZQAASA2dlndUFNcXx9/MbC+0XZYiZem9twWkLr1IlSYKy+4CS1nWZRewN0QFIoqICFYkKGLAaCgSK6JYCAgW7AEJIkoMRhEVlczGHPX3Oyf5/U7eH3c+8333nnfn3vvOGQAoASECYQ6sAEC2UCKO9PdmxsUnMPG9AAZEgAM2AHC4uaLQKL9ogK5AXzYzF3WS8V8LAuD1LYBaAK5bBIQzmX/p/+9DkSsSSwCAwtEAOx4/l4tyIcpZ+RKRTJ9EmZ6SKWMYI2MxmiDKqjJO+8Tmf/p8Yk8Z87KFPNRHlrOIl82TcRfKG/OkfJSREJSL8gT8fJRvoKyfJc0WoPwGZXo2n5MLAIYi0yV8bjrK1ihTxNGRbJTnAkCgpH3FKV+xhF+A5gkAO0e0RCxIS5cwjbkmTBtnZxYzgJ+fxZdILMI53EyOmMdk52SLOMIlAHz6ZlkUUJLVlokW2dHG2dHRwtYSLf/n9Y+bn73+GWS9/eTxMuLPnkGMni/al9gvWk4tAKwptDZbvmgpOwFoWw+A6t0vmv4+AOQLAWjt++p7GLJ5SZdIRC5WVvn5+ZYCPtdSVtDP6386fPb8e/jqPEvZeZ9rx/Thp3KkWRKmrKjcnKwcqZiZK+Jw+UyL/x7ifx34VVpf5WEeyU/li/lC9KgYdMoEwjS03UKeQCLIETIFwr/r8L8M+yoHGX6aaxRodR8BPckSKPTRAfJrD8DQyABJ3IPuQJ/7FkKMAbKbF6s99mnuUUb3/7T/YeAy9BXOFaQxZTI7MprJlYrzZIzeCZnBAhKQB3SgBrSAHjAGFsAWOAFX4Al8QRAIA9EgHiwCXJAOsoEY5IPlYA0oAiVgC9gOqsFeUAcaQBM4BtrASXAOXARXwTVwE9wDQ2AUPAOT4DWYgSAID1EhGqQGaUMGkBlkC7Egd8gXCoEioXgoGUqDhJAUWg6tg0qgcqga2g81QN9DJ6Bz0GWoH7oDDUPj0O/QOxiBKTAd1oQNYSuYBXvBwXA0vBBOgxfDS+FCeDNcBdfCR+BW+Bx8Fb4JD8HP4CkEIGSEgeggFggLYSNhSAKSioiRlUgxUonUIk1IB9KNXEeGkAnkLQaHoWGYGAuMKyYAMx/DxSzGrMSUYqoxhzCtmC7MdcwwZhLzEUvFamDNsC7YQGwcNg2bjy3CVmLrsS3YC9ib2FHsaxwOx8AZ4ZxwAbh4XAZuGa4UtxvXjDuL68eN4KbweLwa3gzvhg/Dc/ASfBF+J/4I/gx+AD+Kf0MgE7QJtgQ/QgJBSFhLqCQcJpwmDBDGCDNEBaIB0YUYRuQRlxDLiHXEDmIfcZQ4Q1IkGZHcSNGkDNIaUhWpiXSBdJ/0kkwm65KdyRFkAXk1uYp8lHyJPEx+S1GimFLYlESKlLKZcpBylnKH8pJKpRpSPakJVAl1M7WBep76kPpGjiZnKRcox5NbJVcj1yo3IPdcnihvIO8lv0h+qXyl/HH5PvkJBaKCoQJbgaOwUqFG4YTCoMKUIk3RRjFMMVuxVPGw4mXFJ0p4JUMlXyWeUqHSAaXzSiM0hKZHY9O4tHW0OtoF2igdRzeiB9Iz6CX07+i99EllJWV75RjlAuUa5VPKQwyEYcgIZGQxyhjHGLcY71Q0VbxU+CqbVJpUBlSmVeeoeqryVYtVm1Vvqr5TY6r5qmWqbVVrU3ugjlE3VY9Qz1ffo35BfWIOfY7rHO6c4jnH5tzVgDVMNSI1lmkc0OjRmNLU0vTXFGnu1DyvOaHF0PLUytCq0DqtNa5N03bXFmhXaJ/RfspUZnoxs5hVzC7mpI6GToCOVGe/Tq/OjK6R7nzdtbrNug/0SHosvVS9Cr1OvUl9bf1Q/eX6jfp3DYgGLIN0gx0G3QbThkaGsYYbDNsMnxipGgUaLTVqNLpvTDX2MF5sXGt8wwRnwjLJNNltcs0UNnUwTTetMe0zg80czQRmu836zbHmzuZC81rzQQuKhZdFnkWjxbAlwzLEcq1lm+VzK32rBKutVt1WH60drLOs66zv2SjZBNmstemw+d3W1JZrW2N7w45q52e3yq7d7oW9mT3ffo/9bQeaQ6jDBodOhw+OTo5ixybHcSd9p2SnXU6DLDornFXKuuSMdfZ2XuV80vmti6OLxOWYy2+uFq6Zroddn8w1msufWzd3xE3XjeO2323Ineme7L7PfchDx4PjUevxyFPPk+dZ7znmZeKV4XXE67m3tbfYu8V7mu3CXsE+64P4+PsU+/T6KvnO9632fein65fm1+g36e/gv8z/bAA2IDhga8BgoGYgN7AhcDLIKWhFUFcwJTgquDr4UYhpiDikIxQODQrdFnp/nsE84by2MBAWGLYt7EG4Ufji8B8jcBHhETURjyNtIpdHdkfRopKiDke9jvaOLou+N994vnR+Z4x8TGJMQ8x0rE9seexQnFXcirir8erxgvj2BHxCTEJ9wtQC3wXbF4wmOiQWJd5aaLSwYOHlReqLshadSpJP4iQdT8YmxyYfTn7PCePUcqZSAlN2pUxy2dwd3Gc8T14Fb5zvxi/nj6W6pZanPklzS9uWNp7ukV6ZPiFgC6oFLzICMvZmTGeGZR7MnM2KzWrOJmQnZ58QKgkzhV05WjkFOf0iM1GRaGixy+LtiyfFweL6XCh3YW67hI7+TPVIjaXrpcN57nk1eW/yY/KPFygWCAt6lpgu2bRkbKnf0m+XYZZxl3Uu11m+ZvnwCq8V+1dCK1NWdq7SW1W4anS1/+pDa0hrMtf8tNZ6bfnaV+ti13UUahauLhxZ77++sUiuSFw0uMF1w96NmI2Cjb2b7Dbt3PSxmFd8pcS6pLLkfSm39Mo3Nt9UfTO7OXVzb5lj2Z4tuC3CLbe2emw9VK5YvrR8ZFvottYKZkVxxavtSdsvV9pX7t1B2iHdMVQVUtW+U3/nlp3vq9Orb9Z41zTv0ti1adf0bt7ugT2ee5r2au4t2ftun2Df7f3++1trDWsrD+AO5B14XBdT1/0t69uGevX6kvoPB4UHhw5FHupqcGpoOKxxuKwRbpQ2jh9JPHLtO5/v2pssmvY3M5pLjoKj0qNPv0/+/tax4GOdx1nHm34w+GFXC62luBVqXdI62ZbeNtQe395/IuhEZ4drR8uPlj8ePKlzsuaU8qmy06TThadnzyw9M3VWdHbiXNq5kc6kznvn487f6Iro6r0QfOHSRb+L57u9us9ccrt08rLL5RNXWFfarjpebe1x6Gn5yeGnll7H3tY+p772a87XOvrn9p8e8Bg4d93n+sUbgTeu3px3s//W/Fu3BxMHh27zbj+5k3Xnxd28uzP3Vt/H3i9+oPCg8qHGw9qfTX5uHnIcOjXsM9zzKOrRvRHuyLNfcn95P1r4mPq4ckx7rOGJ7ZOT437j154ueDr6TPRsZqLoV8Vfdz03fv7Db56/9UzGTY6+EL+Y/b30pdrLg6/sX3VOhU89fJ39ema6+I3am0NvWW+738W+G5vJf49/X/XB5EPHx+CP92ezZ2f/AAOY8/wRDtFgAAAACXBIWXMAAAsTAAALEwEAmpwYAAADx2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:0 auto .5rem}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}.cpr-highlight div{position:absolute;top:0;left:0;display:inline-block;background:#ff0;opacity:.2}';
 
 		var $style = $('<style>' + styles + '</style>').appendTo(r.$head);
 
@@ -4718,7 +5156,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '1.0.3-74'
+				appversion: '1.0.4-75'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -4728,11 +5166,21 @@ var Reader = (function (r) {
 		}
 	}
 
+	function _highlightHandler(e){
+		var x = e.type === 'touchstart' ? e.originalEvent.touches[0].clientX : e.clientX,
+			y = e.type === 'touchstart' ? e.originalEvent.touches[0].clientY : e.clientY;
+
+		/*jshint validthis:true */
+		r.Notify.event($.extend({}, Reader.Event.HIGHLIGHT_TAPPED, {call: 'userClick', cfi: $(this).attr('data-cfi'), clientX: x, clientY: y}));
+		e.preventDefault();
+		e.stopPropagation();
+	}
+
 	// Capture all the links in the reader
 	function _clickHandler(e) {
 		/*jshint validthis:true */
 		// Retrieve the encoded relative version of the url:
-		var url = this.href.split('/').slice(-this.getAttribute('href').split('/').length).join('/'),
+		var url = this.getAttribute('href'),
 				type = this.getAttribute('data-link-type');
 		e.preventDefault();
 		e.stopPropagation();
@@ -4740,6 +5188,7 @@ var Reader = (function (r) {
 			// External link, notify client about it:
 			r.Notify.event($.extend({}, Reader.Event.NOTICE_EXT_LINK, {call: 'userClick', href: url}));
 		} else if (type === 'internal') {
+			url = this.href.split('/').slice(-url.split('/').length).join('/');
 			// Internal link, notify client about it:
 			r.Notify.event($.extend({}, Reader.Event.NOTICE_INT_LINK, {call: 'userClick', href: url}));
 			// Load the given URL:
@@ -4791,7 +5240,18 @@ var Reader = (function (r) {
 				$.each(bookmarks, function(index, bookmark){
 					// Ignore bookmarks not part of the current chapter part:
 					if (bookmark && r.Navigation.isCFIInCurrentChapterPart(bookmark)) {
-						r.Navigation.setCFI(bookmark, true);
+						r.CFI.setBookmarkCFI(bookmark);
+					}
+				});
+			}
+
+			// Add all highlights for this chapter
+			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
+			if(highlights){
+				$.each(highlights, function(index, highlight){
+					// Ignore bookmarks not part of the current chapter part:
+					if (highlight && r.Navigation.isCFIInCurrentChapterPart(highlight)) {
+						r.CFI.setHighlightCFI(highlight);
 					}
 				});
 			}
@@ -4836,6 +5296,12 @@ var Reader = (function (r) {
 
 		// Capture the anchor links into the content
 		r.$container.on('click', 'a', _clickHandler);
+		r.$container.on('click touchstart', '.cpr-highlight div', _highlightHandler);
+		r.$container.on('touchmove touchend touchcancel', '.cpr-highlight div', function(e){
+			// we need to stop all touch events on highlight markers
+			e.preventDefault();
+			e.stopPropagation();
+		});
 
 		// Capture text selection events and notify client of text value.
 		var $doc = r.$iframe.contents();
@@ -4877,7 +5343,7 @@ var Reader = (function (r) {
 		var defer = $.Deferred(),
 				chapterUrl = r.Book.spine[chapterNumber].href;
 
-		r.Epub.setUp(chapterNumber, r.Book.$opf);
+		r.Epub.setUp(chapterNumber, r.Book);
 		r.Navigation.setChapter(chapterNumber);
 		r.setReaderOpacity(0);
 
@@ -4935,7 +5401,7 @@ var Reader = (function (r, Epub) {
 
 		// Private array for blacklisted classes. The CFI library will ignore any DOM elements that have these classes.
 		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
-		prototype.BLACKLIST = ['cpr-marker', 'cpr-subchapter-link'];
+		prototype.BLACKLIST = ['cpr-marker', 'cpr-highlight', 'cpr-subchapter-link'];
 		prototype.BODY_CFI = '!/4';
 
 		// Initialisation function, called when the reader is initialised.
@@ -4948,9 +5414,13 @@ var Reader = (function (r, Epub) {
 
 		// <a name="setUp"></a> Initialises the CFI variables, should be called whenever we load a new chapter
 		// `chapter` the current chapter
-		prototype.setUp = function(chapter, $opf){
-			var chapterId = $opf.find('spine').children()[chapter].getAttribute('idref');
-			this.opfCFI = EPUBcfi.generatePackageDocumentCFIComponent(chapterId, $opf[0]);
+		prototype.setUp = function(chapter, book){
+			var chapterId = $(book.opfDoc.querySelector('spine')).children()[chapter].getAttribute('idref');
+
+			// EPUBcfi library doesn't handle element namespaces, so we remove them:
+			var opf = $(book.opf.replace(/<(\/)?\w+:(\w+)/g, '<$1$2')).filter('package')[0];
+
+			this.opfCFI = EPUBcfi.generatePackageDocumentCFIComponent(chapterId, opf);
 		};
 
 		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.
@@ -4997,7 +5467,15 @@ var Reader = (function (r, Epub) {
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 
-			return $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
+			return  $(EPUBcfi.getTargetElement(cfi, this.document, this.BLACKLIST));
+		};
+
+		prototype.getRangeTargetElements = function(cfi){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+
+			var nodes = EPUBcfi.getRangeTargetElements(cfi, this.document, this.BLACKLIST);
+			return $([nodes.startElement, nodes.endElement]);
 		};
 
 		// Generates the CFI that targets the given element
@@ -5018,11 +5496,30 @@ var Reader = (function (r, Epub) {
 			return cfi;
 		};
 
+		// Generate CFI range for a DOM range element
+		prototype.generateRangeCFI = function(range){
+			var cfi;
+
+			cfi = EPUBcfi.generateRangeComponent(range.startContainer, range.startOffset, range.endContainer, range.endOffset, this.BLACKLIST);
+			cfi = EPUBcfi.generateCompleteCFI(this.opfCFI, cfi);
+			cfi = this.normalizeChapterPartCFI(cfi);
+			cfi = this.removeContext(cfi);
+
+			return cfi;
+		};
+
 		// Injects a marker in the specified position
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
 			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+		};
+
+		// Injects a marker in the specified range
+		prototype.injectRangeMarker = function(cfi, marker){
+			cfi = this.addContext(cfi);
+			cfi = this.normalizeChapterPartCFI(cfi, true);
+			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){
@@ -5031,7 +5528,8 @@ var Reader = (function (r, Epub) {
 		};
 
 		return Epub;
-	})(Reader || {}, new EpubCFIModule())));
+	})(Reader || {}, EPUBcfi)));
+
 'use strict';
 
 /* jshint unused: true */
@@ -5092,7 +5590,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '1.0.3-74'
+			'version': '1.0.4-75'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5158,11 +5656,33 @@ var Reader = (function (r) {
 			message: 'Some text has been selected',
 			call: 'selection'
 		},
+		ERR_HIGHLIGHT_ADD:{
+			code: 23,
+			message: 'Could not add the highlight.'
+		},
+		ERR_HIGHLIGHT_EXISTS: {
+			code: 24,
+			message: 'Could not add the highlight because one already exists in this location.'
+		},
+		ERR_HIGHLIGHT_REMOVE: {
+			code: 25,
+			message: 'Could not remove highlight.'
+		},
+		HIGHLIGHT_TAPPED: {
+			code: 26,
+			message: 'A highlight was clicked.'
+		},
+		HIGHLIGHT_ADDED: {
+			code: 27,
+			message: 'A highlight was added.'
+		},
 		getStatus: function (call) {
 			var data = {
 				'call': call || '',
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
 				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
+				'highlightsInPage': Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
+				'highlights': Reader.Highlights.getHighlights(), // array of highlights from the book
 				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
 				'progress': Reader.Navigation.getProgress(), // the progress of the book
 				'chapter': Reader.Navigation.getChapter(), // the current chapter
@@ -5466,12 +5986,17 @@ var Reader = (function (r) {
 		return content;
 	};
 
+	var _appendHighlightOverlay = function(){
+		r.$overlay = $('<div id="cpr-overlay" class="cpr-highlight"></div>').appendTo(r.$reader);
+	};
+
 	// Register all the anchors.
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_DISPLAY, _anchorData);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseImages);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseSVG);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseVideos);
 	filters.addFilter(HOOKS.BEFORE_CHAPTER_PARSE, _parseCSSLinks);
+	filters.addFilter(HOOKS.AFTER_CHAPTER_DISPLAY, _appendHighlightOverlay);
 
 	r.Filters = $.extend({HOOKS: HOOKS}, filters);
 
@@ -5818,6 +6343,7 @@ var Reader = (function (r) {
 		r.Epub.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
+		r.Highlights.reset();
 		r.Book.reset();
 
 		// Remove book content.
@@ -5831,6 +6357,7 @@ var Reader = (function (r) {
 			r.$header = null;
 			r.$footer = null;
 			r.$stylesheet = null;
+			r.$overlay = null;
 
 			// reset link to CSS rules
 			r.preferences.lineHeight.rules = [];
@@ -5919,6 +6446,7 @@ var Reader = (function (r) {
 		}
 		return promise.then(function () {
 			r.Bookmarks.display();
+			r.Highlights.display();
 			r.Navigation.updateProgress();
 		});
 	};
@@ -6031,11 +6559,12 @@ var Reader = (function (r) {
 					chapterPartUrl = r.Navigation.getNextChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter < bookChapters - 1) {
+				defer.notify({type: 'chapter.loading'});
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter + 1].href);
 				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					defer.notify({type: 'chapter.loading'});
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {
@@ -6056,11 +6585,12 @@ var Reader = (function (r) {
 					chapterPartUrl = r.Navigation.getPrevChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter > 0) {
+				defer.notify({type: 'chapter.loading'});
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter - 1].href);
 				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					defer.notify({type: 'chapter.loading'});
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {
@@ -6072,12 +6602,6 @@ var Reader = (function (r) {
 				defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
-		},
-		setCFI: function(cfi, isBookmark){
-			if (!cfi) {
-				cfi = r.CFI.getCFIObject();
-			}
-			r.CFI.setCFI(cfi, isBookmark);
 		},
 		reset: function(){
 			bookChapters = 0;
@@ -6361,7 +6885,7 @@ var Reader = (function (r) {
 							$el.addClass('cpr-img-small');
 						}
 						// Notify on each image load:
-						mainDefer.notify({type: 'load.img', element: el});
+						mainDefer.notify({type: 'img.load', element: el});
 						updatedImages = updatedImages.add(el);
 						// Resolve the promise for the current image:
 						defer.resolve();
@@ -6376,6 +6900,8 @@ var Reader = (function (r) {
 						// Resolve the promise for the current image:
 						defer.resolve();
 					});
+					// Notify on each image loading start:
+					mainDefer.notify({type: 'img.loading', element: el});
 					// Start the image load by using the data-src for the actual img src:
 					el.setAttribute('src', dataSrc);
 					// Remove the obsolete data-src:
@@ -6462,17 +6988,25 @@ var Reader = (function (r) {
 				page - 1,
 				r.preferences.transitionDuration.value
 			).then(function () {
+				var imgLoad;
 				r.Navigation.updateCurrentCFI();
-				r.setReaderOpacity(0);
 				return loadImages(true)
-					.progress(function () {
-						pagesByChapter = _getColumnsNumber();
-						r.CFI.goToCFI(_cfi.CFI, true);
+					.progress(function (data) {
+						if (!imgLoad && data.type === 'img.loading') {
+							r.setReaderOpacity(0);
+							imgLoad = true;
+						} else if (data.type === 'img.load') {
+							pagesByChapter = _getColumnsNumber();
+							r.CFI.goToCFI(_cfi.CFI, true);
+						}
 					})
 					.then(function () {
 						r.Navigation.updateProgress();
 						r.Bookmarks.display();
-						r.setReaderOpacity(1);
+						r.Highlights.display();
+						if (imgLoad) {
+							r.setReaderOpacity(1);
+						}
 					});
 			});
 		},
@@ -7036,7 +7570,7 @@ var READER = (function() {
 	// The goal is to make the reader as client-ignorant as possible.
 
 	var _isLoading = false;
-	
+
 	// Generates an object summarizing the reader status.
 	function sendStatus(call) {
 		Reader.Notify.event($.extend({}, Reader.Event.getStatus(call)));
@@ -7108,6 +7642,9 @@ var READER = (function() {
 		setBookmark: statusWrap(Reader.Bookmarks, 'setBookmark'),
 		goToBookmark: loadingWrap(Reader.Bookmarks, 'goToBookmark'),
 		removeBookmark: statusWrap(Reader.Bookmarks, 'removeBookmark'),
+		setHighlight: statusWrap(Reader.Highlights, 'setHighlight'),
+		setHighlights: statusWrap(Reader.Highlights, 'setHighlights'),
+		removeHighlight: statusWrap(Reader.Highlights, 'removeHighlight'),
 		showHeaderAndFooter: Reader.showHeaderAndFooter,
 		hideHeaderAndFooter: Reader.hideHeaderAndFooter,
 		resizeContainer: statusWrap(Reader.Layout, 'resizeContainer'),
