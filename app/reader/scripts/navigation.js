@@ -34,6 +34,7 @@ var Reader = (function (r) {
 		r.Epub.reset();
 		r.Navigation.reset();
 		r.Bookmarks.reset();
+		r.Highlights.reset();
 		r.Book.reset();
 
 		// Remove book content.
@@ -47,6 +48,7 @@ var Reader = (function (r) {
 			r.$header = null;
 			r.$footer = null;
 			r.$stylesheet = null;
+			r.$overlay = null;
 
 			// reset link to CSS rules
 			r.preferences.lineHeight.rules = [];
@@ -135,6 +137,7 @@ var Reader = (function (r) {
 		}
 		return promise.then(function () {
 			r.Bookmarks.display();
+			r.Highlights.display();
 			r.Navigation.updateProgress();
 		});
 	};
@@ -247,11 +250,12 @@ var Reader = (function (r) {
 					chapterPartUrl = r.Navigation.getNextChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter < bookChapters - 1) {
+				defer.notify({type: 'chapter.loading'});
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter + 1].href);
 				Page.moveTo(
 					page + 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					defer.notify({type: 'chapter.loading'});
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {
@@ -272,11 +276,12 @@ var Reader = (function (r) {
 					chapterPartUrl = r.Navigation.getPrevChapterPartUrl(),
 					loadPromise;
 			if (chapterPartUrl || chapter > 0) {
+				defer.notify({type: 'chapter.loading'});
+				r.Book.preloadFile(chapterPartUrl || r.Book.spine[chapter - 1].href);
 				Page.moveTo(
 					page - 1,
 					r.preferences.transitionDuration.value
 				).then(function () {
-					defer.notify({type: 'chapter.loading'});
 					if (chapterPartUrl) {
 						loadPromise = r.Navigation.loadChapter(chapterPartUrl);
 					} else {
@@ -288,12 +293,6 @@ var Reader = (function (r) {
 				defer.reject(r.Event.START_OF_BOOK);
 			}
 			return defer.promise();
-		},
-		setCFI: function(cfi, isBookmark){
-			if (!cfi) {
-				cfi = r.CFI.getCFIObject();
-			}
-			r.CFI.setCFI(cfi, isBookmark);
 		},
 		reset: function(){
 			bookChapters = 0;
@@ -577,7 +576,7 @@ var Reader = (function (r) {
 							$el.addClass('cpr-img-small');
 						}
 						// Notify on each image load:
-						mainDefer.notify({type: 'load.img', element: el});
+						mainDefer.notify({type: 'img.load', element: el});
 						updatedImages = updatedImages.add(el);
 						// Resolve the promise for the current image:
 						defer.resolve();
@@ -592,6 +591,8 @@ var Reader = (function (r) {
 						// Resolve the promise for the current image:
 						defer.resolve();
 					});
+					// Notify on each image loading start:
+					mainDefer.notify({type: 'img.loading', element: el});
 					// Start the image load by using the data-src for the actual img src:
 					el.setAttribute('src', dataSrc);
 					// Remove the obsolete data-src:
@@ -678,17 +679,25 @@ var Reader = (function (r) {
 				page - 1,
 				r.preferences.transitionDuration.value
 			).then(function () {
+				var imgLoad;
 				r.Navigation.updateCurrentCFI();
-				r.setReaderOpacity(0);
 				return loadImages(true)
-					.progress(function () {
-						pagesByChapter = _getColumnsNumber();
-						r.CFI.goToCFI(_cfi.CFI, true);
+					.progress(function (data) {
+						if (!imgLoad && data.type === 'img.loading') {
+							r.setReaderOpacity(0);
+							imgLoad = true;
+						} else if (data.type === 'img.load') {
+							pagesByChapter = _getColumnsNumber();
+							r.CFI.goToCFI(_cfi.CFI, true);
+						}
 					})
 					.then(function () {
 						r.Navigation.updateProgress();
 						r.Bookmarks.display();
-						r.setReaderOpacity(1);
+						r.Highlights.display();
+						if (imgLoad) {
+							r.setReaderOpacity(1);
+						}
 					});
 			});
 		},

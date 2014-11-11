@@ -124,11 +124,33 @@ var Reader = (function (r) {
 			message: 'Some text has been selected',
 			call: 'selection'
 		},
+		ERR_HIGHLIGHT_ADD:{
+			code: 23,
+			message: 'Could not add the highlight.'
+		},
+		ERR_HIGHLIGHT_EXISTS: {
+			code: 24,
+			message: 'Could not add the highlight because one already exists in this location.'
+		},
+		ERR_HIGHLIGHT_REMOVE: {
+			code: 25,
+			message: 'Could not remove highlight.'
+		},
+		HIGHLIGHT_TAPPED: {
+			code: 26,
+			message: 'A highlight was clicked.'
+		},
+		HIGHLIGHT_ADDED: {
+			code: 27,
+			message: 'A highlight was added.'
+		},
 		getStatus: function (call) {
 			var data = {
 				'call': call || '',
 				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
 				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
+				'highlightsInPage': Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
+				'highlights': Reader.Highlights.getHighlights(), // array of highlights from the book
 				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
 				'progress': Reader.Navigation.getProgress(), // the progress of the book
 				'chapter': Reader.Navigation.getChapter(), // the current chapter

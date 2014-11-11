@@ -22,7 +22,7 @@ module.exports = function(config) {
 			// the tests
 			'test/reader/helpers.js',
 			'test/reader/fixtures.js',
-			'test/reader/unit/*.js',
+			'test/reader/unit/*-spec.js',
 
 			// the books
 			{

@@ -22,9 +22,10 @@
 		"angular": false,
 		"app": true,
 		"routes": true,
-		"EpubCFIModule": true,
+		"EPUBcfi": true,
 		"FilterJS": true,
 		"$": true,
-		"READER": true
+		"READER": true,
+		"Range": true
 	}
 }

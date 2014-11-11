@@ -8,7 +8,7 @@ beforeEach(function() {
 		toMatch: function() {
 			return {
 				compare: function(actual, input){
-					return { pass: actual.is(input) };
+					return { pass: $(actual).is(input) };
 				}
 			};
 		},
@@ -20,6 +20,13 @@ beforeEach(function() {
 						result = (actual.length === input);
 					}
 					return { pass: result };
+				}
+			};
+		},
+		toBeEmptyArray: function() {
+			return {
+				compare: function(actual){
+					return { pass: $.isArray(actual) && actual.length === 0 };
 				}
 			};
 		},

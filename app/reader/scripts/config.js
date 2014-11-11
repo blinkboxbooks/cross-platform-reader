@@ -25,6 +25,7 @@ var Reader = (function (r) {
 	r.$header = null;
 	r.$footer = null;
 	r.$stylesheet = null;
+	r.$overlay = null;
 
 	// Indicates if the Reader has been called from a mobile app.
 	r.mobile = false;
