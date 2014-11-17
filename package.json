@@ -8,8 +8,6 @@
 	},
 	"private": true,
   "scripts": {
-    "pages": "sh config/pages.sh",
-		"push": "sh config/push.sh",
 		"install": "node node_modules/protractor/bin/webdriver-manager update"
   },
   "dependencies": {},
