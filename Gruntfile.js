@@ -455,10 +455,12 @@ module.exports = function (grunt) {
 	grunt.config.set('readerVersion', pkg ? pkg.version : '0.0.0');
 
 	grunt.registerTask('ci-init', function() {
-		var fullVersion = pkg.version+'-'+process.env.BUILD_NUMBER; // append Jenkins build number
-		var buildNumber = parseInt(process.env.BUILD_NUMBER, 10);   // use build number to avoid conflicting test ports when multiple jobs are running
+		var buildNumber = parseInt(process.env.BUILD_NUMBER, 10);
+		var buildSuffix = process.env.BUILD_SUFFIX;
+		var fullVersion = pkg.version + (buildSuffix ? '-' + buildSuffix : '') + '-' + buildNumber; // append Jenkins build number
 
 		grunt.config.set('readerVersion', fullVersion);
+		// use build number to avoid conflicting test ports when multiple jobs are running:
 		grunt.config.set('testPort', 7000+buildNumber);         // port used by Karma test framework
 		grunt.config.set('testRunnerPort', 8000+buildNumber);   // port used by Karma test runner which launches PhantomJS
 		grunt.config.set('testConnectPort', 9000+buildNumber);  // port used by the nodejs test server
