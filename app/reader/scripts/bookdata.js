@@ -224,8 +224,8 @@ var Reader = (function (r) {
 						data = {
 							CFI: cfi,
 							preview: preview,
-							chapter: item.label,
-							href: item.href
+							chapter: item && item.label,
+							href: item && item.href
 						};
 
 					r.Notify.event($.extend({}, r.Event.HIGHLIGHT_ADDED, {call: 'setHighlight'}, data));
