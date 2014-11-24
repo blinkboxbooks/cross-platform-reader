@@ -385,8 +385,9 @@ var Reader = (function (r) {
 
 		// Loops through all adjacent nodes to generate the preview, starting with the first text node.
 		var generatePreview = function () {
+			var ellipsis = '…';
 			var $currentNode = $(textNode);
-			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
+			var text = offset ? ellipsis + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
 			while (!hasDesiredLength(text)) {
 				var $next = getNextNode($currentNode);
 
@@ -401,7 +402,7 @@ var Reader = (function (r) {
 
 			// Trim preview to 100 words.
 			var trimmed = text.replace(/\s+/g, ' ').trim().match(/((\S+\s+){100})/);
-			return trimmed && trimmed.length ? trimmed[0] : text;
+			return trimmed && trimmed.length ? trimmed[0].replace(/\s+$/, ellipsis) : text;
 		};
 
 		// Get the top element that is the child of the reader container.
