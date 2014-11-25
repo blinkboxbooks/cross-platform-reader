@@ -2296,6 +2296,8 @@
 
 			var docRange;
 			var commonAncestor;
+			var $rangeStartParent;
+			var $rangeEndParent;
 			var range1OffsetStep;
 			var range1CFI;
 			var range2OffsetStep;
@@ -2322,11 +2324,23 @@
 
 				// Generate terminating offset and range 1
 				range1OffsetStep = this.createCFITextNodeStep($(rangeStartElement), startOffset, classBlacklist, elementBlacklist, idBlacklist);
-				range1CFI = this.createCFIElementSteps($(rangeStartElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range1OffsetStep;
+				$rangeStartParent = $(rangeStartElement).parent();
+				if ($rangeStartParent[0] === commonAncestor) {
+					// rangeStartElement is a text child node of the commonAncestor, so it's CFI sub-path is only the text node step:
+					range1CFI = range1OffsetStep;
+				} else {
+					range1CFI = this.createCFIElementSteps($rangeStartParent, commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range1OffsetStep;
+				}
 
 				// Generate terminating offset and range 2
 				range2OffsetStep = this.createCFITextNodeStep($(rangeEndElement), endOffset, classBlacklist, elementBlacklist, idBlacklist);
-				range2CFI = this.createCFIElementSteps($(rangeEndElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range2OffsetStep;
+				$rangeEndParent = $(rangeEndElement).parent();
+				if ($rangeEndParent[0] === commonAncestor) {
+					// rangeEndElement is a text child node of the commonAncestor, so it's CFI sub-path is only the text node step:
+					range2CFI = range2OffsetStep;
+				} else {
+					range2CFI = this.createCFIElementSteps($rangeEndParent, commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range2OffsetStep;
+				}
 
 				// Generate shared component
 				commonCFIComponent = this.createCFIElementSteps($(commonAncestor), "html", classBlacklist, elementBlacklist, idBlacklist);
@@ -4116,8 +4130,8 @@ var Reader = (function (r) {
 						data = {
 							CFI: cfi,
 							preview: preview,
-							chapter: item.label,
-							href: item.href
+							chapter: item && item.label,
+							href: item && item.href
 						};
 
 					r.Notify.event($.extend({}, r.Event.HIGHLIGHT_ADDED, {call: 'setHighlight'}, data));
@@ -4600,8 +4614,9 @@ var Reader = (function (r) {
 
 		// Loops through all adjacent nodes to generate the preview, starting with the first text node.
 		var generatePreview = function () {
+			var ellipsis = '…';
 			var $currentNode = $(textNode);
-			var text = offset ? '&#8230;' + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
+			var text = offset ? ellipsis + $currentNode.text().substr(offset) : $currentNode.text(); // prepend ellipses to previews which don't begin at the start of a sentence
 			while (!hasDesiredLength(text)) {
 				var $next = getNextNode($currentNode);
 
@@ -4616,7 +4631,7 @@ var Reader = (function (r) {
 
 			// Trim preview to 100 words.
 			var trimmed = text.replace(/\s+/g, ' ').trim().match(/((\S+\s+){100})/);
-			return trimmed && trimmed.length ? trimmed[0] : text;
+			return trimmed && trimmed.length ? trimmed[0].replace(/\s+$/, ellipsis) : text;
 		};
 
 		// Get the top element that is the child of the reader container.
@@ -5156,7 +5171,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '1.0.4-77'
+				appversion: '1.0.6-78'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -5590,7 +5605,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '1.0.4-77'
+			'version': '1.0.6-78'
 		},
 		START_OF_BOOK : {
 			code: 8,
