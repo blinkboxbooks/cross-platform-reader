@@ -446,7 +446,7 @@ describe('CFI', function() {
 			}
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: '&#8230;Banana',
+				preview: '…Banana',
 				chapter : fixtures.BOOK.BOOKMARK.chapter,
 				href: fixtures.BOOK.BOOKMARK.href
 			});
@@ -548,8 +548,9 @@ describe('CFI', function() {
 
 		it('should trim the generated preview to 100 words', function () {
 			var doc = Reader.$iframe.contents()[0],
-				wordList = new Array(101).join('Banana '),
-				element = $('<span>' + wordList + wordList + '</span>').appendTo(Reader.$reader);
+				longText = new Array(201).join('Banana '),
+				expectedPreview = (new Array(101).join('Banana ')).replace(/\s+$/, '…'),
+				element = $('<span>' + longText + '</span>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
 			spyOn(doc, 'createRange').and.returnValue({
@@ -571,7 +572,7 @@ describe('CFI', function() {
 			}
 			expect(Reader.CFI.getCFIObject()).toEqual({
 				CFI: fixtures.BOOK.BOOKMARK.CFI,
-				preview: wordList,
+				preview: expectedPreview,
 				chapter : fixtures.BOOK.BOOKMARK.chapter,
 				href : fixtures.BOOK.BOOKMARK.href
 			});

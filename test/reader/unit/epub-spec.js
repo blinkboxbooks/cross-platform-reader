@@ -16,7 +16,7 @@ describe('Epub', function() {
 			'<body>' +
 				'<div id="textRange">Text node</div>' +
 				'<div id="nodeRange">' +
-					'<span></span>Text node<span></span>' +
+					'<span>Text node</span>Text node<span>Text node</span>' +
 				'</div>' +
 				'<div id="dots.dots..dots">Text node</div>' +
 			'</body></html>', 'text/xml'));
@@ -105,6 +105,15 @@ describe('Epub', function() {
 			range.setEnd($node.contents()[1], 1);
 
 			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2,/1:1)');
+		});
+
+		it('should generate range cfi for a text node in an element node and a text node with the same parent', function(){
+			var range = $dom[0].createRange();
+
+			range.setStart($nodes.contents()[0], 0);
+			range.setEnd($node.contents()[1], 1);
+
+			expect(Epub.generateRangeCFI(range)).toEqual('epubcfi(/6/2!/2/4[nodeRange],/2/1:0,/1:1)');
 		});
 
 		it('should inject marker for a range CFI', function(){
