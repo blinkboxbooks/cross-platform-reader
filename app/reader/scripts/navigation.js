@@ -144,6 +144,10 @@ var Reader = (function (r) {
 
 	// The current book progress.
 	var _progress = 0;
+	// The user reading speed in words per minute (WPM) as integer:
+	var _readingSpeed = 250;
+	// The remaining seconds to read the current chapter:
+	var _remainingSecondsForChapter = 0;
 
 	// ## Navigation API
 	// The Navigation object exposes methods to allow the user to navigate within the book.
@@ -200,6 +204,7 @@ var Reader = (function (r) {
 			return Page.load(p, fixed);
 		},
 		setChapter: function(c){
+
 			chapter = c;
 			// Update the chapter doc name.
 			try {
@@ -302,18 +307,30 @@ var Reader = (function (r) {
 			_cfi = null;
 			_progress = 0;
 		},
+		getRemainingSecondsForChapter: function () {
+			return _remainingSecondsForChapter;
+		},
+		updateRemainingSecondsForChapter: function (chapterWordCount, chapterReadFactor) {
+			var wordsLeft = chapterWordCount * (1 - chapterReadFactor);
+			var wordsPerSecond = _readingSpeed / 60;
+			_remainingSecondsForChapter = Math.ceil(wordsLeft / wordsPerSecond);
+		},
 		getProgress: function(){
 			return _progress;
 		},
 		updateProgress: function () {
 			var totalWordCount = r.Book.getTotalWordCount(),
 					spineItem = r.Book.spine.length && r.Book.spine[chapter],
+					chapterWordCount = (spineItem && r.Book.getWordCount(spineItem)) || 0,
+					chapterReadFactor = r.Navigation.getChapterReadFactor(),
 					// Get the current word count from the chapter progress
 					// (which adds one word to the number of words of previous chapters):
 					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += spineItem ? r.Book.getWordCount(spineItem) * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += chapterWordCount * chapterReadFactor;
+
+			r.Navigation.updateRemainingSecondsForChapter(chapterWordCount, chapterReadFactor);
 
 			// Calculate progress.
 			var progress = currentWordCount / totalWordCount * 100;
