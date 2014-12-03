@@ -146,18 +146,19 @@ var Reader = (function (r) {
 		},
 		getStatus: function (call) {
 			var data = {
-				'call': call || '',
-				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
-				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
-				'highlightsInPage': Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
-				'highlights': Reader.Highlights.getHighlights(), // array of highlights from the book
-				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
-				'progress': Reader.Navigation.getProgress(), // the progress of the book
-				'chapter': Reader.Navigation.getChapter(), // the current chapter
-				'chapters': Reader.Navigation.getNumberOfChapters(), // total number of chapters
-				'page': Reader.Navigation.getPage(), // the current page
-				'pages': Reader.Navigation.getNumberOfPages(), // the total number of pages in the current chapter
-				'preferences': {
+				call: call || '',
+				bookmarksInPage: Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
+				bookmarks: Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
+				highlightsInPage: Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
+				highlights: Reader.Highlights.getHighlights(), // array of highlights from the book
+				cfi: Reader.Navigation.getCurrentCFI(), // the current CFI
+				progress: Reader.Navigation.getProgress(), // the progress of the book
+				remainingSecondsForChapter: Reader.Navigation.getRemainingSecondsForChapter(),
+				chapter: Reader.Navigation.getChapter(), // the current chapter
+				chapters: Reader.Navigation.getNumberOfChapters(), // total number of chapters
+				page: Reader.Navigation.getPage(), // the current page
+				pages: Reader.Navigation.getNumberOfPages(), // the total number of pages in the current chapter
+				preferences: {
 					lineHeight: r.preferences.lineHeight.value,
 					fontSize: r.preferences.fontSize.value,
 					textAlign: r.preferences.textAlign.value,
@@ -165,7 +166,7 @@ var Reader = (function (r) {
 					margin: r.preferences.margin.value,
 					theme: r.preferences.theme.value
 				},
-				'layout': {
+				layout: {
 					width: r.Layout.Container.width,
 					height: r.Layout.Container.height,
 					columns: r.Layout.Reader.columns,
