@@ -16,6 +16,7 @@
     "FilterJS": "~0.0.1",
     "normalize-scss": "~3.0.1",
     "bootstrap": "3.0.3",
-    "bootswatch": "3.0.3"
+    "bootswatch": "3.0.3",
+    "polymer": "Polymer/polymer#0.5.2"
   }
 }
