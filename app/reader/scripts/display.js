@@ -27,8 +27,9 @@ var Reader = (function (r) {
 		// todo validate container
 		r.$parent = $(param.container).empty();
 		r.$iframe = $('<iframe id="cpr-iframe" name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
-		r.$head = r.$iframe.contents().find('head');
-		r.$wrap = r.$iframe.contents().find('body');
+		r.$document = r.$iframe.contents();
+		r.$head = r.$document.find('head');
+		r.$wrap = r.$document.find('body');
 		r.$container = $('<div></div>').appendTo(r.$wrap);
 		r.$reader = $('<div id="cpr-reader"></div>').appendTo(r.$container);
 		r.$header = $('<div id="cpr-header"></div>').insertBefore(r.$container);
@@ -83,7 +84,7 @@ var Reader = (function (r) {
 	};
 
 	function _getTransitionEndProperty() {
-		var element= document.createElement('div');
+		var element= r.$document[0].createElement('div');
 		if (element.style.webkitTransition !== undefined) {
 			return 'webkitTransitionEnd';
 		}
@@ -238,7 +239,7 @@ var Reader = (function (r) {
 
 	// Check if the browser supports css-columns.
 	function areColumnsSupported() {
-		var elemStyle = document.createElement('ch').style,
+		var elemStyle = r.$document[0].createElement('ch').style,
 			domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
 			prop = 'columnCount',
 			uc_prop = prop.charAt(0).toUpperCase() + prop.substr(1),
