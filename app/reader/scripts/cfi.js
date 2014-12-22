@@ -436,7 +436,7 @@ var Reader = (function (r) {
 	};
 
 	var _rangeIntersectsNode = function(range, node) {
-		var nodeRange = node.ownerDocument.createRange();
+		var nodeRange = r.$document[0].createRange();
 		try {
 			nodeRange.selectNode(node);
 		} catch (e) {
@@ -463,7 +463,7 @@ var Reader = (function (r) {
 
 	var _getClientRects = function(range){
 		var containerElement = range.commonAncestorContainer,
-			treeWalker = document.createTreeWalker(
+			treeWalker = r.$document[0].createTreeWalker(
 			containerElement,
 			NodeFilter.SHOW_TEXT,
 			{
@@ -482,26 +482,26 @@ var Reader = (function (r) {
 			rect,
 			i,
 			l,
-			r = document.createRange();
+			range2 = r.$document[0].createRange();
 
 		if(range.startContainer.isEqualNode(range.endContainer)){
-			r.setStart(range.startContainer, range.startOffset);
-			r.setEnd(range.endContainer, range.endOffset);
-			rect = r.getClientRects();
+			range2.setStart(range.startContainer, range.startOffset);
+			range2.setEnd(range.endContainer, range.endOffset);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
 		} else {
-			r.setStart(range.startContainer, range.startOffset);
-			r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
-			rect = r.getClientRects();
+			range2.setStart(range.startContainer, range.startOffset);
+			range2.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
 
-			r.setStart(range.endContainer, 0);
-			r.setEnd(range.endContainer, range.endOffset);
-			rect = r.getClientRects();
+			range2.setStart(range.endContainer, 0);
+			range2.setEnd(range.endContainer, range.endOffset);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
@@ -509,8 +509,8 @@ var Reader = (function (r) {
 
 
 		while (treeWalker.nextNode()) {
-			r.selectNode(treeWalker.currentNode);
-			rect = r.getClientRects();
+			range2.selectNode(treeWalker.currentNode);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
