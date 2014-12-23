@@ -212,7 +212,8 @@ angular.module('app', ['ngRoute'])
 			if(val){
 				// Call the Reader
 				READER.enableDebug();
-				var promise = READER.init({
+				var cprElement = $('cross-platform-reader')[0];
+				var promise = cprElement.init({
 					container: '#reader_container',
 					width: $scope.layout.width,
 					height: $scope.layout.height,

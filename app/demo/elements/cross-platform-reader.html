@@ -1,7 +1,37 @@
 <link rel="import" href="../../components/polymer/polymer.html">
 
-<polymer-element name="cross-platform-reader" noscript>
+<polymer-element name="cross-platform-reader">
   <template>
-    <span>Hello from <b>cross-platform-reader</b>. This is my Shadow DOM.</span>
+  	<h1>Hello, CPR element!</h1>
+    <div id="reader_container"></div>
+
+
+    <script src="../../lib/epubcfi.min.js"></script>
+    <script src="../../lib/bugsense.js"></script>
+    <script src="../../reader/scripts/book.js"></script>
+    <script src="../../reader/scripts/bookdata.js"></script>
+    <script src="../../reader/scripts/cfi.js"></script>
+    <script src="../../reader/scripts/config.js"></script>
+    <script src="../../reader/scripts/display.js"></script>
+    <script src="../../reader/scripts/epub.js"></script>
+    <script src="../../reader/scripts/events.js"></script>
+    <script src="../../reader/scripts/filters.js"></script>
+    <script src="../../reader/scripts/layout.js"></script>
+    <script src="../../reader/scripts/formatting.js"></script>
+    <script src="../../reader/scripts/navigation.js"></script>
+    <script src="../../reader/scripts/parse.js"></script>
+    <script src="../../reader/scripts/styles.js"></script>
+    <script src="../../reader/scripts/touch.js"></script>
+    <script src="../../reader/scripts/wrapper.js"></script>
   </template>
+
+  <script>
+  	Polymer({
+  		init: function(options){
+  			console.log('cross-platform-reader init function called');
+  			options.container = this.$.reader_container;
+  			return READER.init(options);
+  		}
+  	});
+  </script>
 </polymer-element>
