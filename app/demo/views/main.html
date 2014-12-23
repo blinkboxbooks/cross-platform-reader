@@ -21,7 +21,7 @@
 			<button class="btn btn-default" ng-disabled="!book.hasPrevious" ng-click="handlers.prev()"  data-test="prev-button">Previous</button>
 			<button class="btn btn-default" ng-disabled="!book.hasNext" ng-click="handlers.next()" data-test="next-button">Next</button>
 		</p>
-		<div id="reader_container" data-test="reader"></div>
+		<cross-platform-reader></cross-platform-reader>
 		<p>
 			<a class="btn btn-default" ng-click="handlers.bookmark()" data-test="bookmark-button">Bookmark</a>
 			<a class="btn btn-default" ng-click="handlers.highlight()" data-test="highlight-button">Highlight</a>
