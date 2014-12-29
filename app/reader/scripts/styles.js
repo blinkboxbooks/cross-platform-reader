@@ -133,16 +133,17 @@ var Reader = (function (r) {
 							if (rule.style[key]) {
 								// convert px font-size to rem, todo: convert other sizes?
 								if (key === 'fontSize') {
-									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
+									cssText += whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
 								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key === 'textIndent') {
-									cssText += ';' + whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
+									cssText += whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
 								} else {
-									cssText += ';' + whitelist[key] + ':' + rule.style[key];
+									cssText += whitelist[key] + ':' + rule.style[key];
 								}
+								cssText += ';';
 							}
 						}
 						if (cssText && rule.selectorText && rule.selectorText.indexOf('html') === -1 && rule.selectorText.indexOf('body') === -1) {
-							sheet.insertRule(rule.selectorText + '{' + cssText + '}', sheet.cssRules.length);
+							sheet.insertRule(rule.selectorText + '{' + cssText + '}');
 						}
 					}
 				}
