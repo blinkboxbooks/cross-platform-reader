@@ -1,11 +1,12 @@
 <link rel="import" href="../../components/polymer/polymer.html">
+<link rel="import" href="cpr-frame.html">
 
 <polymer-element name="cross-platform-reader">
   <template>
-  	<h1>Hello, CPR element!</h1>
-    <div id="reader_container"></div>
-
-
+    <div id="parent">
+      <cpr-frame id="cprframe"></cpr-frame>  
+    </div>
+    
     <script src="../../lib/epubcfi.min.js"></script>
     <script src="../../lib/bugsense.js"></script>
     <script src="../../reader/scripts/book.js"></script>
@@ -27,10 +28,10 @@
 
   <script>
   	Polymer({
-  		init: function(options){
-  			console.log('cross-platform-reader init function called');
-  			options.container = this.$.reader_container;
-  			return READER.init(options);
+  		init: function(param){
+  			param.container = this.$.parent;
+        param.cprframe = this.$.cprframe;
+  			return READER.init(param);
   		}
   	});
   </script>

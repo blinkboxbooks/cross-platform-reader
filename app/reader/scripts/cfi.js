@@ -274,7 +274,7 @@ var Reader = (function (r) {
 	};
 
 	var _getElementAt = function(x, y){
-		var range, textNode, offset, doc = r.$iframe.contents()[0];
+		var range, textNode, offset, doc = window.document;
 		/* standard */
 		if (doc.caretPositionFromPoint) {
 			range = doc.caretPositionFromPoint(x, y);
@@ -436,7 +436,7 @@ var Reader = (function (r) {
 	};
 
 	var _rangeIntersectsNode = function(range, node) {
-		var nodeRange = r.$document[0].createRange();
+		var nodeRange = window.document.createRange();
 		try {
 			nodeRange.selectNode(node);
 		} catch (e) {
@@ -463,7 +463,7 @@ var Reader = (function (r) {
 
 	var _getClientRects = function(range){
 		var containerElement = range.commonAncestorContainer,
-			treeWalker = r.$document[0].createTreeWalker(
+			treeWalker = window.document.createTreeWalker(
 			containerElement,
 			NodeFilter.SHOW_TEXT,
 			{
@@ -482,7 +482,7 @@ var Reader = (function (r) {
 			rect,
 			i,
 			l,
-			range2 = r.$document[0].createRange();
+			range2 = window.document.createRange();
 
 		if(range.startContainer.isEqualNode(range.endContainer)){
 			range2.setStart(range.startContainer, range.startOffset);
