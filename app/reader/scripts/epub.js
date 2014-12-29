@@ -30,7 +30,7 @@ var Reader = (function (r, Epub) {
 			var elCFI = EPUBcfi.generateElementCFIComponent(reader);
 
 			this.document = reader.ownerDocument;
-			this.context = elCFI.substring(2); // remove the body cfi step, i.e. /4
+			this.context = elCFI.substring(8); // remove the body cfi step, i.e. /4[body]
 		};
 
 		// <a name="setUp"></a> Initialises the CFI variables, should be called whenever we load a new chapter
