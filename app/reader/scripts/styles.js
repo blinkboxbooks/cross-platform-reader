@@ -143,7 +143,7 @@ var Reader = (function (r) {
 							}
 						}
 						if (cssText && rule.selectorText && rule.selectorText.indexOf('html') === -1 && rule.selectorText.indexOf('body') === -1) {
-							sheet.insertRule(rule.selectorText + '{' + cssText + '}');
+							sheet.insertRule(rule.selectorText + '{' + cssText + '}', sheet.cssRules.length);
 						}
 					}
 				}
