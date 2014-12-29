@@ -1,3 +1,11 @@
+/**
+ * ReaderJS v1.0.0
+ * (c) 2013 BlinkboxBooks
+ * parse.js: methods to parse and clean the content
+ */
+
+'use strict';
+
 /*
  * DOMParser HTML extension
  * 2012-09-04
@@ -11,17 +19,14 @@
 /*global document, DOMParser*/
 
 (function(DOMParser) {
-	"use strict";
 
-	var
-		DOMParser_proto = DOMParser.prototype
-		, real_parseFromString = DOMParser_proto.parseFromString
-		;
+	var DOMParser_proto = DOMParser.prototype;
+	var real_parseFromString = DOMParser_proto.parseFromString;
 
 	// Firefox/Opera/IE throw errors on unsupported types
 	try {
 		// WebKit returns null on unsupported types
-		if ((new DOMParser).parseFromString("", "text/html")) {
+		if ((new DOMParser()).parseFromString('', 'text/html')) {
 			// text/html parsing is natively supported
 			return;
 		}
@@ -30,7 +35,7 @@
 	DOMParser_proto.parseFromString = function(markup, type) {
 		if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
 			var
-				doc = document.implementation.createHTMLDocument("")
+				doc = document.implementation.createHTMLDocument('')
 				;
 			if (markup.toLowerCase().indexOf('<!doctype') > -1) {
 				doc.documentElement.innerHTML = markup;
@@ -44,15 +49,6 @@
 		}
 	};
 }(DOMParser));
-
-
-/**
- * ReaderJS v1.0.0
- * (c) 2013 BlinkboxBooks
- * parse.js: methods to parse and clean the content
- */
-
-'use strict';
 
 var Reader = (function (r) {
 
@@ -68,15 +64,14 @@ var Reader = (function (r) {
 		}
 
 		switch (mimetype) {
-		case 'application/xhtml+xml':
-			content = parseXHTML(content, options);
-			break;
-		default:
-			break;
+			case 'text/html':
+			case 'application/xhtml+xml':
+				content = parseXHTML(content, options);
+				break;
 		}
 
-		var head = content.split(/<head[^>]*>/)[1].split('</head>')[0],
-			body = content.split(/<body[^>]*>/)[1].split('</body>')[0];
+		var head = (content.split(/<head[^>]*>/)[1] || '').split('</head>')[0],
+				body = (content.split(/<body[^>]*>/)[1] || '').split('</body>')[0];
 
 		// Extract the contents of the body only thus ignoring any styles declared in head
 		return {
