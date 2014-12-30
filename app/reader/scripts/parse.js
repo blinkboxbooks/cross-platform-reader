@@ -6,6 +6,50 @@
 
 'use strict';
 
+/*
+ * DOMParser HTML extension
+ * 2012-09-04
+ *
+ * By Eli Grey, http://eligrey.com
+ * Public domain.
+ * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+ */
+
+/*! @source https://gist.github.com/1129031 */
+/*global document, DOMParser*/
+
+(function(DOMParser) {
+
+	var DOMParser_proto = DOMParser.prototype;
+	var real_parseFromString = DOMParser_proto.parseFromString;
+
+	// Firefox/Opera/IE throw errors on unsupported types
+	try {
+		// WebKit returns null on unsupported types
+		if ((new DOMParser()).parseFromString('', 'text/html')) {
+			// text/html parsing is natively supported
+			return;
+		}
+	} catch (ex) {}
+
+	DOMParser_proto.parseFromString = function(markup, type) {
+		if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
+			var
+				doc = document.implementation.createHTMLDocument('')
+				;
+			if (markup.toLowerCase().indexOf('<!doctype') > -1) {
+				doc.documentElement.innerHTML = markup;
+			}
+			else {
+				doc.body.innerHTML = markup;
+			}
+			return doc;
+		} else {
+			return real_parseFromString.apply(this, arguments);
+		}
+	};
+}(DOMParser));
+
 var Reader = (function (r) {
 
 	// Parses the content according its mimetype. Returns the parsed content
@@ -20,15 +64,14 @@ var Reader = (function (r) {
 		}
 
 		switch (mimetype) {
-		case 'application/xhtml+xml':
-			content = parseXHTML(content, options);
-			break;
-		default:
-			break;
+			case 'text/html':
+			case 'application/xhtml+xml':
+				content = parseXHTML(content, options);
+				break;
 		}
 
-		var head = content.split(/<head[^>]*>/)[1].split('</head>')[0],
-			body = content.split(/<body[^>]*>/)[1].split('</body>')[0];
+		var head = (content.split(/<head[^>]*>/)[1] || '').split('</head>')[0],
+				body = (content.split(/<body[^>]*>/)[1] || '').split('</body>')[0];
 
 		// Extract the contents of the body only thus ignoring any styles declared in head
 		return {
@@ -125,7 +168,7 @@ var Reader = (function (r) {
 			content = content.split('<!-- livereload snippet -->')[0].trim() + '</body></html>';
 		}
 
-		var object = parser.parseFromString(content, 'application/xhtml+xml');
+		var object = parser.parseFromString(content, 'text/html');
 		if(object.getElementsByTagName('parsererror').length > 0){
 			// TODO Refactor
 			// Parsing failures should be handled differently than just sending an error to the client
