@@ -135,14 +135,14 @@ var Reader = (function (r, Epub) {
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+			EPUBcfi.injectElement(cfi, r.$document, marker, this.BLACKLIST);
 		};
 
 		// Injects a marker in the specified range
 		prototype.injectRangeMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
+			EPUBcfi.injectRangeElements(cfi, r.$document, marker, marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){

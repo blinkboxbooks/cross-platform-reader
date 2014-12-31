@@ -63,7 +63,7 @@ var Reader = (function (r) {
 					data.endElement = data.endElement.nextSibling.nextSibling;
 				}
 
-				var range = r.$iframe.contents()[0].createRange();
+				var range = window.document.createRange();
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
 
@@ -90,7 +90,7 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point
-			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents()), attrs = attr ? attr.split('=') : '';
+			var $marker = $('[data-cfi="' + cfi + '"]', r.$body.contents()), attrs = attr ? attr.split('=') : '';
 			if($marker.length){
 				if(attr && !$marker.is('['+attr+']')){
 					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
@@ -217,7 +217,7 @@ var Reader = (function (r) {
 			return '*[data-cfi="' + cfi + '"]';
 		},
 		findCFIElement : function (value) {
-			var $elem = $(r.CFI.getCFISelector(value), r.$iframe.contents());
+			var $elem = $(r.CFI.getCFISelector(value), r.$body.contents());
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
@@ -258,7 +258,7 @@ var Reader = (function (r) {
 		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
 		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
 		if(el.nodeType === 3){
-			var range = r.$iframe.contents()[0].createRange();
+			var range = window.document.createRange();
 			range.setStart(el, offset || 0);
 			var rects = range.getClientRects();
 			if(rects && rects.length){

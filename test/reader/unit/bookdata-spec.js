@@ -528,7 +528,7 @@ describe('Bookmarks', function() {
 				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			expect(Reader.Bookmarks.display()).toBeTruthy();
-			expect(Reader.$wrap.find('#cpr-bookmark-ui').css('display')).toBe('block');
+			expect(Reader.$body.find('#cpr-bookmark-ui').css('display')).toBe('block');
 		});
 
 		it('should return true for mobile clients if bookmarks are visible but not display the bookmark ui', function () {
@@ -540,7 +540,7 @@ describe('Bookmarks', function() {
 			);
 			Reader.mobile = true;
 			expect(Reader.Bookmarks.display()).toBeTruthy();
-			expect(Reader.$wrap.find('#cpr-bookmark-ui').css('display')).toBe('none');
+			expect(Reader.$body.find('#cpr-bookmark-ui').css('display')).toBe('none');
 		});
 
 		it('should return false if no bookmarks are visible', function () {
@@ -551,7 +551,7 @@ describe('Bookmarks', function() {
 				'<span data-bookmark data-cfi="' + fixtures.BOOK.BOOKMARK.CFI + '"></span>'
 			);
 			expect(Reader.Bookmarks.display()).toBeFalsy();
-			expect(Reader.$wrap.find('#cpr-bookmark-ui').is(':visible')).toBeFalsy();
+			expect(Reader.$body.find('#cpr-bookmark-ui').is(':visible')).toBeFalsy();
 		});
 
 	});

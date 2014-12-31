@@ -36,7 +36,12 @@ var Reader = (function (r) {
 			r.Layout.Reader.width = columnWidth * r.Layout.Reader.columns + (r.Layout.Reader.columns - 1) * r.Layout.Reader.padding;
 
 			// Apply new size
-			r.$iframe.css({
+			r.$cprframe.css({
+				width: r.Layout.Container.width + 'px',
+				height: r.Layout.Container.height + 'px'
+			});
+
+			r.$cprElement.css({
 				width: r.Layout.Container.width + 'px',
 				height: r.Layout.Container.height + 'px'
 			});

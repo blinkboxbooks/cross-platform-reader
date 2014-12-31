@@ -38,10 +38,10 @@ var Reader = (function (r) {
 		r.Book.reset();
 
 		// Remove book content.
+		alert('TODO - reset ');
 		if(r.$parent){
 			r.$parent.empty();
-			r.$iframe = null;
-			r.$wrap = null;
+			r.$body = null;
 			r.$head = null;
 			r.$container = null;
 			r.$reader = null;
@@ -96,7 +96,7 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
+		var obj = $(r.$document.getElementById(String(id)));
 		if (obj.length === 0) {
 			return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
 		} else {
@@ -111,7 +111,7 @@ var Reader = (function (r) {
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		obj = (obj instanceof $) ? obj : $(obj, r.$body.contents());
 		if (!obj.length) {
 			return -1;
 		}
@@ -343,7 +343,7 @@ var Reader = (function (r) {
 
 			if (r.mobile) {
 				// Update footer and display progress.
-				var progressContainer = $('#cpr-progress', r.$iframe.contents());
+				var progressContainer = $('#cpr-progress', r.$body.contents());
 				if (!progressContainer.length) {
 					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}

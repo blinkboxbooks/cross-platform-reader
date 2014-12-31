@@ -310,9 +310,9 @@ module.exports = function (grunt) {
 					patterns:[
 						{
 							replacement: function(){
-								return 'var styles = \'' + grunt.file.read('.tmp/styles/reader.css') + '\';';
+								return '/* grunt replace: reader.css */ ' + grunt.file.read('.tmp/styles/reader.css');
 							},
-							match: /var styles = '.*';/g
+							match: /\/\* grunt replace: reader\.css \*\/.*/g
 						}
 					]
 				},
@@ -320,8 +320,8 @@ module.exports = function (grunt) {
 					{
 						expand: true,
 						flatten: true,
-						src: ['<%= yeoman.reader %>/scripts/*.js'],
-						dest: '<%= yeoman.reader %>/scripts'
+						src: ['<%= yeoman.reader %>/elements/*.html'],
+						dest: '<%= yeoman.reader %>/elements'
 					}
 				]
 			},
@@ -375,12 +375,12 @@ module.exports = function (grunt) {
 		protractor: {
 			e2e: {
 				options: {
-					configFile: 'protractor.conf.js',
+					configFile: 'protractor.conf.js'
 				}
 			},
 			cucumber: {
 				options: {
-					configFile: 'cucumber.conf.js',
+					configFile: 'cucumber.conf.js'
 				}
 			}
 		}

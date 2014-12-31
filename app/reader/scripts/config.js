@@ -17,8 +17,7 @@ var Reader = (function (r) {
 	r.ROOTFILE_INFO_PATH = 'META-INF/container.xml';
 
 	// Initial settings.
-	r.$iframe = null;
-	r.$wrap = null;
+	r.$body = null;
 	r.$head = null;
 	r.$container = null;
 	r.$reader = null;
