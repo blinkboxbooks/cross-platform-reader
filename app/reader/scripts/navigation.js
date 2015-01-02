@@ -96,7 +96,7 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
+		var obj = $(r.document.getElementById(String(id)));
 		if (obj.length === 0) {
 			return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
 		} else {

@@ -3,10 +3,12 @@
 	<div class="input-group">
 		<input class="form-control" ng-model="book.isbn" ng-pattern="/\d{9}[\d|X]/" placeholder="Enter a valid ISBN...">
 		<div class="input-group-btn">
-			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">{{environment.current.label}} <span class="caret"></span></button>
+			<button type="button" class="btn dropdown-toggle" data-toggle="dropdown">{{environment.current.label}} <span class="caret"></span></button>
 			<ul class="dropdown-menu pull-right">
 				<li ng-repeat="env in environment.options"><a ng-click="environment.current = env"><span class="glyphicon glyphicon-ok pull-right" ng-show="environment.current == env"></span> {{env.label}}</a></li>
 			</ul>
+            <button class="btn btn-success" ng-click="openIframeReader()">IFrame</button>
+            <button class="btn btn-success" ng-click="openPopupReader()">Popup</button>
 		</div><!-- /btn-group -->
 	</div><!-- /input-group -->
 </form>

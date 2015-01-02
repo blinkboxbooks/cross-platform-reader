@@ -186,7 +186,7 @@ var Reader = (function (r) {
 
 			if(!cfi){
 				// if cfi is not preset, we assume the current selection needs to be highlighted
-				var selection = r.$iframe.contents()[0].getSelection();
+				var selection = r.document.getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
 					preview = selection.toString();
 					try{
