@@ -41,6 +41,7 @@ describe('Epub', function() {
 				return $dom;
 			}
 		};
+		Reader.document = $dom[0];
 		// workaround PhantomJS. manipulating dom nodes using a range from a different document throws a WRONG_DOCUMENT_ERR that does not exist in other browsers.
 		spyOn(document, 'createRange').and.callFake(function(){
 			return $dom[0].createRange();
