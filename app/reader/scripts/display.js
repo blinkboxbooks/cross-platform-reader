@@ -62,7 +62,7 @@ var Reader = (function (r) {
 		r.Epub.init(r.$reader[0]);
 
 		// Initialize the touch module:
-		r.Touch.init(r.$iframe.contents());
+		r.Touch.init($(r.document));
 
 		// Resize the container with the width and height (if they exist).
 		_createContainer(param.width, param.height, param.columns, param.padding);
@@ -292,7 +292,7 @@ var Reader = (function (r) {
 		});
 
 		// Capture text selection events and notify client of text value.
-		var $doc = r.$iframe.contents();
+		var $doc = $(r.document);
 		$doc.bind('selectionchange', function(){
 			var selection = $doc[0].getSelection().toString();
 			r.Notify.event($.extend({value: selection}, r.Event.TEXT_SELECTION_EVENT));
