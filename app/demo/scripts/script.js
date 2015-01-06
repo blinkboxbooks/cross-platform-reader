@@ -79,7 +79,10 @@ angular.module('app', ['ngRoute'])
 			window.Reader = originalReader;
 
 			if($routeParams.iframe && $routeParams.iframe === 'no'){
+				$('link[rel="stylesheet"], style').remove();
 				openReader(false);
+				$('body').css('overflow', 'auto');
+				// remove all styles
 			} else {
 				openReader(iframe);
 			}
@@ -101,7 +104,7 @@ angular.module('app', ['ngRoute'])
 
 		// Reader event handler
 		function _log(e){
-			var $p = $('<p>' + JSON.stringify(e) + '</p>');
+			var $p = $('<p>' + JSON.stringify(e) + '</p>').attr('data-json', JSON.stringify(e));
 			switch(e.code){
 				case 0: // last page
 					$scope.book.hasNext = false;

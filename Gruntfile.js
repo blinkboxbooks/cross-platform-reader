@@ -376,11 +376,16 @@ module.exports = function (grunt) {
 			e2e: {
 				options: {
 					configFile: 'protractor.conf.js',
+					args: {
+						params: {
+							noiframe: grunt.option('noiframe')
+						}
+					}
 				}
 			},
 			cucumber: {
 				options: {
-					configFile: 'cucumber.conf.js',
+					configFile: 'cucumber.conf.js'
 				}
 			}
 		}
