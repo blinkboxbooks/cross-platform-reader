@@ -7,8 +7,8 @@
 			<ul class="dropdown-menu pull-right">
 				<li ng-repeat="env in environment.options"><a ng-click="environment.current = env"><span class="glyphicon glyphicon-ok pull-right" ng-show="environment.current == env"></span> {{env.label}}</a></li>
 			</ul>
-            <button class="btn btn-success" ng-click="openIframeReader()">IFrame</button>
-            <button class="btn btn-success" ng-click="openPopupReader()">Popup</button>
+            <button class="btn btn-success" ng-click="openIframeReader(true)" data-test="iframebutton">IFrame</button>
+            <button class="btn btn-success" ng-click="openPopupReader()" data-test="popupbutton">Popup</button>
 		</div><!-- /btn-group -->
 	</div><!-- /input-group -->
 </form>

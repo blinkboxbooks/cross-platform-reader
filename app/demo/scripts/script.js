@@ -1,7 +1,8 @@
 'use strict';
 
 /* globals READER, $*/
-
+var originalReader = window.Reader;
+var originalREADER = window.READER;
 // Controller for configure the Reader and init it.
 angular.module('app', ['ngRoute'])
 	.config(function($routeProvider, $locationProvider) {
@@ -31,7 +32,8 @@ angular.module('app', ['ngRoute'])
 		var status = null;
 
 		var _isWatching = false; // flag that tells us if we enabled the watches
-		$scope.openIframeReader = function (frameless) {
+
+		var openReader = function(hasIframe){
 			if ($scope.book.isbn) {
 				// ng-pattern will validate the input for us, we can assume the ISBN is valid (the book may not exist though)
 				Book.get($scope.environment.current.url + $scope.book.isbn).then(function (url) {
@@ -54,7 +56,7 @@ angular.module('app', ['ngRoute'])
 							preferences: $scope.preferences,
 							initCFI: $scope.initCFI,
 							initURL: $scope.initURL,
-							iframe: frameless
+							iframe: hasIframe
 						});
 
 						// watch for new watches
@@ -72,12 +74,25 @@ angular.module('app', ['ngRoute'])
 			}
 		};
 
+		$scope.openIframeReader = function (iframe) {
+			window.READER = originalREADER;
+			window.Reader = originalReader;
+
+			if($routeParams.iframe && $routeParams.iframe === 'no'){
+				openReader(false);
+			} else {
+				openReader(iframe);
+			}
+		};
+
+
+
 		$scope.openPopupReader = function(){
 			var popupWindow = window.open('iframeless.html', 'PopupReader');
 			popupWindow.onload = function(){
 				window.READER = popupWindow.READER;
 				window.Reader = popupWindow.Reader;
-				$scope.openIframeReader(false);
+				openReader(false);
 			};
 		};
 
