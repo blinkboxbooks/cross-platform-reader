@@ -357,11 +357,13 @@ describe('CFI', function() {
 		});
 
 		it('should trigger an error event if the given CFI is invalid', function () {
+			var error;
 			spyOn(Reader.Navigation, 'loadPage');
 			spyOn(Reader, 'loadChapter');
-			spyOn(Reader.Notify, 'error').and.callThrough();
-			expect(Reader.CFI.goToCFI('banana').then).toBeFunction();
-			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: 'banana', call: 'goToCFI'}));
+			Reader.CFI.goToCFI('banana').fail(function (err) {
+				error = err;
+			});
+			expect(error).toEqual($.extend({}, Reader.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: 'banana', call: 'goToCFI'}));
 			expect(Reader.Navigation.loadPage).not.toHaveBeenCalled();
 			expect(Reader.loadChapter).not.toHaveBeenCalled();
 		});

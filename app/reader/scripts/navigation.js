@@ -139,6 +139,8 @@ var Reader = (function (r) {
 			r.Bookmarks.display();
 			r.Highlights.display();
 			r.Navigation.updateProgress();
+		}, function (err) {
+			r.Notify.error(err);
 		});
 	};
 
@@ -334,9 +336,11 @@ var Reader = (function (r) {
 			}
 		},
 		goToProgress: function (progress) {
+			var error;
 			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
-				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
-				return $.Deferred().reject().promise();
+				error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'});
+				r.Notify.error(error);
+				return $.Deferred().reject(error).promise();
 			}
 			var targetWordCount = Math.ceil(progress / 100 * r.Book.getTotalWordCount()),
 					wordCount = 0,
@@ -688,7 +692,9 @@ var Reader = (function (r) {
 							imgLoad = true;
 						} else if (data.type === 'img.load') {
 							pagesByChapter = _getColumnsNumber();
-							r.CFI.goToCFI(_cfi.CFI, true);
+							r.CFI.goToCFI(_cfi.CFI, true).fail(function (err) {
+								r.Notify.error(err);
+							});
 						}
 					})
 					.then(function () {

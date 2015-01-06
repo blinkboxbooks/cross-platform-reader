@@ -27,7 +27,7 @@ var READER = (function() {
 	function loadingWrap(obj, method) {
 		return function() {
 			if (_isLoading) {
-				return $.Deferred().reject().promise();
+				return $.Deferred().reject(Reader.Event.LOADING_STARTED).promise();
 			}
 			return obj[method].apply(obj, arguments).always(function complete() {
 				if (_isLoading) {
