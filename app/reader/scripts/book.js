@@ -135,7 +135,11 @@ var Reader = (function (r) {
 		var opfDoc = data.opfDoc,
 				navItem = opfDoc.querySelector('manifest').querySelector('item[properties="nav"]'),
 				navHref = navItem && navItem.getAttribute('href'),
-				ncxId = !navHref && opfDoc.querySelector('spine').getAttribute('toc'),
+				// EPUB v2 requirements state:
+				// > The item that describes the NCX must be referenced by the spine toc attribute.
+				// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2
+				// However, some books might not honor that requirement, so we fall back to the ID "ncx" as a default:
+				ncxId = !navHref && (opfDoc.querySelector('spine').getAttribute('toc') || 'ncx'),
 				ncxHref = ncxId && opfDoc.getElementById(ncxId).getAttribute('href');
 		if (navHref) {
 			// EPUB v3 navigation document:
