@@ -291,6 +291,7 @@ var Reader = (function (r) {
 	}
 
 	function initializeBook(book, param) {
+		var defer = $.Deferred();
 		// Use startCFI if initCFI is not already set:
 		var initCFI = param.initCFI || book.startCfi;
 		var chapter = r.CFI.getChapterFromCFI(initCFI),
@@ -314,7 +315,21 @@ var Reader = (function (r) {
 				});
 			});
 		}
-		return promise;
+		promise.then(
+			defer.resolve,
+			function (err) {
+				if (err && err.call === 'goToCFI') {
+					Reader.Notify.error(err);
+					// The initCFI or startCfi might be invalid, try loading the book without them:
+					delete param.initCFI;
+					delete book.startCfi;
+					initializeBook(book, param).then(defer.resolve, defer.reject);
+				} else {
+					defer.reject(err);
+				}
+			}
+		);
+		return defer.promise();
 	}
 
 	// Load a chapter with the index from the spine of this chapter
@@ -335,9 +350,9 @@ var Reader = (function (r) {
 
 				var cfi = r.CFI.isValidCFI(String(page)) && page;
 				if (cfi) {
-					r.CFI.goToCFI(cfi).then(defer.resolve);
+					r.CFI.goToCFI(cfi).then(defer.resolve, defer.reject);
 				} else {
-					r.Navigation.loadPage(page).then(defer.resolve);
+					r.Navigation.loadPage(page).then(defer.resolve, defer.reject);
 				}
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		}

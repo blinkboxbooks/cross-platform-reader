@@ -95,6 +95,7 @@ var Reader = (function (r) {
 				if(attr && !$marker.is('['+attr+']')){
 					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
 				}
+				return $marker;
 			} else {
 				try {
 					var marker = '<span class="cpr-marker" '+ attr +' data-cfi="' + cfi + '"></span>';
@@ -116,8 +117,7 @@ var Reader = (function (r) {
 						}
 					}
 					return $node;
-				}
-				catch (err) {
+				} catch (err) {
 					// cannot insert CFI
 					r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setCFI'}));
 				}
@@ -181,7 +181,7 @@ var Reader = (function (r) {
 		},
 		parseCFI: function(cfi){
 			if(!r.CFI.isValidCFI(cfi)){
-				return false;
+				throw 'Invalid CFI';
 			}
 
 			var data = {
@@ -223,12 +223,19 @@ var Reader = (function (r) {
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
+			var data;
+			var error;
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
-						// handle range CFIs by assuming the start of the range as the position we want to go to
-						var data = r.CFI.parseCFI(cfi);
+						try {
+							data = r.CFI.parseCFI(cfi);
+						} catch (err) {
+							error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: err, value: cfi, call: 'goToCFI'});
+							return $.Deferred().reject(error).promise();
+						}
 						if(data && data.isRange){
+							// handle range CFIs by assuming the start of the range as the position we want to go to:
 							cfi = data.startCFI;
 						}
 						r.CFI.setCFI(cfi);
@@ -238,8 +245,8 @@ var Reader = (function (r) {
 					return r.loadChapter(chapter, cfi);
 				}
 			}
-			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
-			return $.Deferred().reject().promise();
+			error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'});
+			return $.Deferred().reject(error).promise();
 		},
 		// <a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).
 		getChapterFromCFI: function(cfi){
