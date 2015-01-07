@@ -132,7 +132,7 @@ var Reader = (function (r) {
 			children.slice(maxElements * (part + 1)).remove();
 			if (part) {
 				// Add a link to the previous part:
-				$(r.$document[0].createElement(nodeName))
+				$(r.document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-prev')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
@@ -145,7 +145,7 @@ var Reader = (function (r) {
 			}
 			if (part < parts - 1) {
 				// Add a link to the next part:
-				$(r.$document[0].createElement(nodeName))
+				$(r.document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-next')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part + 1)))

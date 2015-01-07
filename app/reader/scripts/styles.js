@@ -55,7 +55,7 @@ var Reader = (function (r) {
 	}
 
 	function _parseCSS(style) {
-		var doc = r.$document[0].implementation.createHTMLDocument(''),
+		var doc = r.document.implementation.createHTMLDocument(''),
 				styleElement = doc.createElement('style');
 
 		styleElement.textContent = style;

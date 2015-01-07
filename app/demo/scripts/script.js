@@ -1,7 +1,8 @@
 'use strict';
 
 /* globals READER, $*/
-
+var originalReader = window.Reader;
+var originalREADER = window.READER;
 // Controller for configure the Reader and init it.
 angular.module('app', ['ngRoute'])
 	.config(function($routeProvider, $locationProvider) {
@@ -30,12 +31,80 @@ angular.module('app', ['ngRoute'])
 		// keep track of the reader status
 		var status = null;
 
+		var _isWatching = false; // flag that tells us if we enabled the watches
+
+		var openReader = function(hasIframe){
+			if ($scope.book.isbn) {
+				// ng-pattern will validate the input for us, we can assume the ISBN is valid (the book may not exist though)
+				Book.get($scope.environment.current.url + $scope.book.isbn).then(function (url) {
+						$scope.book.url = url;
+						READER.enableDebug();
+
+						var promise = READER.init({
+							container: '#reader_container',
+							width: $scope.layout.width,
+							height: $scope.layout.height,
+							padding: $scope.layout.padding,
+							columns: $scope.layout.columns,
+							url: url,
+							bookmarks: [],
+							listener: function (e) {
+								$timeout(function () {
+									_log(e);
+								});
+							},
+							preferences: $scope.preferences,
+							initCFI: $scope.initCFI,
+							initURL: $scope.initURL,
+							iframe: hasIframe
+						});
+
+						// watch for new watches
+						if (!_isWatching) {
+							promise.then(function () {
+								$scope.$watch('preferences', $scope.handlers.preferences, true);
+								$scope.$watch('layout', $scope.handlers.layout, true);
+							});
+							_isWatching = true;
+						}
+					},
+					function (error) {
+						$exceptionHandler({message: error.status, stack: error.config}, error);
+					});
+			}
+		};
+
+		$scope.openIframeReader = function (iframe) {
+			window.READER = originalREADER;
+			window.Reader = originalReader;
+
+			if($routeParams.iframe && $routeParams.iframe === 'no'){
+				$('link[rel="stylesheet"], style').remove();
+				openReader(false);
+				$('body').css('overflow', 'auto');
+				// remove all styles
+			} else {
+				openReader(iframe);
+			}
+		};
+
+
+
+		$scope.openPopupReader = function(){
+			var popupWindow = window.open('iframeless.html', 'PopupReader');
+			popupWindow.onload = function(){
+				window.READER = popupWindow.READER;
+				window.Reader = popupWindow.Reader;
+				openReader(false);
+			};
+		};
+
 		// Make parts of the status available on the scope:
 		$scope.status = {};
 
 		// Reader event handler
 		function _log(e){
-			var $p = $('<p>' + JSON.stringify(e) + '</p>');
+			var $p = $('<p>' + JSON.stringify(e) + '</p>').attr('data-json', JSON.stringify(e));
 			switch(e.code){
 				case 0: // last page
 					$scope.book.hasNext = false;
@@ -194,48 +263,6 @@ angular.module('app', ['ngRoute'])
 				READER.resizeContainer(layout);
 			}
 		};
-
-		$scope.$watch('environment.current.url + book.isbn', function(val){
-			if ($scope.book.isbn) {
-				// ng-pattern will validate the input for us, we can assume the ISBN is valid (the book may not exist though)
-				Book.get(val).then(function (url) {
-					$scope.book.url = url;
-				},
-				function (error) {
-					$exceptionHandler({message: error.status, stack: error.config}, error);
-				});
-			}
-		});
-
-		var _isWatching = false; // flag that tells us if we enabled the watches
-		$scope.$watch('book.url', function(val){
-			if(val){
-				// Call the Reader
-				READER.enableDebug();
-				var promise = READER.init({
-					container: '#reader_container',
-					width: $scope.layout.width,
-					height: $scope.layout.height,
-					padding: $scope.layout.padding,
-					columns: $scope.layout.columns,
-					url: val,
-					bookmarks: [],
-					listener: function(e){ $timeout(function(){_log(e);}); },
-					preferences: $scope.preferences,
-					initCFI: $scope.initCFI,
-					initURL: $scope.initURL
-				});
-
-				// watch for new watches
-				if(!_isWatching){
-					promise.then(function(){
-						$scope.$watch('preferences', $scope.handlers.preferences, true);
-						$scope.$watch('layout', $scope.handlers.layout, true);
-					});
-					_isWatching = true;
-				}
-			}
-		});
 
 		$scope.$on('keydown:66', function(){
 			$timeout($scope.handlers.bookmark);

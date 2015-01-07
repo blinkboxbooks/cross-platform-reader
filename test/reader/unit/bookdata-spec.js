@@ -71,15 +71,11 @@ describe('Highlights', function(){
 
 			spyOn(Epub, 'generateRangeCFI').and.returnValue(data.cfi);
 			spyOn(CFI, 'getChapterFromCFI').and.returnValue(data.chapter);
-			spyOn(Reader.$iframe, 'contents').and.returnValue([{
-				getSelection: function(){
-					return {
-						rangeCount: 1,
-						isCollapsed: false,
-						getRangeAt: $.noop
-					};
-				}
-			}]);
+			spyOn(Reader.document, 'getSelection').and.returnValue({
+				rangeCount: 1,
+				isCollapsed: false,
+				getRangeAt: $.noop
+			});
 
 			expect(highlights).toBeEmptyArray();
 
@@ -87,7 +83,7 @@ describe('Highlights', function(){
 
 			expect(CFI.getChapterFromCFI).toHaveBeenCalledWith(data.cfi);
 			expect(Epub.generateRangeCFI).toHaveBeenCalled();
-			expect(Reader.$iframe.contents).toHaveBeenCalled();
+			expect(Reader.document.getSelection).toHaveBeenCalled();
 			expect(Epub.generateRangeCFI.calls.count()).toEqual(1);
 
 			expect(highlights).not.toBeEmptyArray();
@@ -96,20 +92,16 @@ describe('Highlights', function(){
 		});
 
 		it('should trigger an error if no cfi exits', function(){
-			spyOn(Reader.$iframe, 'contents').and.returnValue([{
-				getSelection: function(){
-					return {
-						rangeCount: 0,
-						isCollapsed: true,
-						getRangeAt: $.noop
-					};
-				}
-			}]);
+			spyOn(Reader.document, 'getSelection').and.returnValue({
+				rangeCount: 0,
+				isCollapsed: true,
+				getRangeAt: $.noop
+			});
 
 			spyOn(Reader.Notify, 'error');
 			Highlights.setHighlight();
 			expect(Reader.Notify.error).toHaveBeenCalledWith($.extend({}, Reader.Event.ERR_HIGHLIGHT_ADD, {call: 'setHighlight'}));
-			expect(Reader.$iframe.contents).toHaveBeenCalled();
+			expect(Reader.document.getSelection).toHaveBeenCalled();
 			expect(highlights).toBeEmptyArray();
 		});
 

@@ -14,7 +14,8 @@ var Page = function(){
 		height = element(by.css('[data-test="height"]')),
 		columns = element(by.css('[data-test="columns"]')),
 		padding = element(by.css('[data-test="padding"]')),
-		reader = element(by.css('[data-test="reader"] iframe')),
+		reader = element(by.css('[data-test="reader"] #cpr-iframe')),
+		iframeButton = element(by.css('[data-test="iframebutton"]')),
 		window = null;
 
 	this.fontFamily = element.all(by.css('[data-test="font-family"] option'));
@@ -23,9 +24,17 @@ var Page = function(){
 	this.margin = element.all(by.css('[data-test="margin"] option'));
 	this.isbn = element(by.css('[data-test="isbn"]'));
 
-	this.load = function(isbn, env, publisherStyles){
-		browser.get(this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0');
+	this.useIframe = true;
 
+	this.load = function(isbn, env, publisherStyles){
+		var path = this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0';
+
+		if(!this.useIframe){
+			path += '&iframe=no';
+		}
+
+		browser.get(path);
+		iframeButton.click();
 		// wait at maximum 2 seconds for the reader to load the content (which means waiting for a status updated from the reader).
 		var status = this.status;
 		return browser.getWindowHandle().then(function(handle){
@@ -64,7 +73,7 @@ var Page = function(){
 		return browser.wait(function() {
 			return status.isPresent();
 		}, 60000).then(function(){
-				return status.getText().then(function(e){
+				return status.getAttribute('data-json').then(function(e){
 					return JSON.parse(e);
 				});
 			});
@@ -77,7 +86,10 @@ var Page = function(){
 	this.readerContext = function(action){
 		var ptor = protractor.getInstance();
 
-		ptor.switchTo().frame('reader');
+		if(this.useIframe){
+			ptor.switchTo().frame('reader');
+		}
+
 		ptor.ignoreSynchronization = true;
 
 		action(
@@ -86,7 +98,7 @@ var Page = function(){
 			element(by.css('#cpr-reader')),
 			element(by.css('#cpr-header')),
 			element(by.css('#cpr-footer')),
-			element(by.css('body > div:nth-of-type(2)')) // todo better selector
+			element(by.css('#cpr-reader')).element(by.xpath('..')) // gets the container element
 		);
 
 		// this does not seem to work, we need to reload page t oswitch back to original window
@@ -172,7 +184,7 @@ var Page = function(){
 				_input(width, dimension.width),
 				_input(height, dimension.height),
 				_input(columns, dimension.columns),
-				_input(padding, dimension.padding),
+				_input(padding, dimension.padding)
 			]).then(function(){
 				return reader.getSize();
 			});
