@@ -1,5 +1,5 @@
 'use strict';
-[false, true].forEach(function (useIframe) {
+(function (useIframe) {
 
   var iframeTestSuffix = ' : ' + (useIframe ? 'with iframe' : 'without iframe');
 
@@ -31,4 +31,4 @@
       });
     });
   });
-});
+})(/*grunt:useiframe*/true);

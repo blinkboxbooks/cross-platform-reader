@@ -127,6 +127,9 @@ module.exports = function (grunt) {
 						'**/.tmp'
 					]
 				}]
+			},
+			e2e: {
+				files: [{'src': ['<%= yeoman.tmp %>/noiframe','test/reader/e2e/noiframe*.js']}]
 			}
 		},
 		// Make sure code styles are up to par and there are no obvious mistakes
@@ -302,6 +305,23 @@ module.exports = function (grunt) {
 						'<%= yeoman.app %>/components/jquery/jquery.min.js'
 					]
 				}]
+			},
+			e2e: {
+				files: [{
+					expand: true,
+					cwd: 'test/reader/e2e/',
+					dest: '<%= yeoman.tmp %>/noiframe',
+					src: ['*.js', '!noiframe_*.js'],
+					rename: function(dest, src){
+						return 'test/reader/e2e/noiframe_' + src;
+					},
+					flatten: true
+				}],
+				options: {
+					process: function(content){
+						return content.replace(/\/\*grunt:useiframe\*\/true/,'/*grunt:useiframe*/false');
+					}
+				}
 			}
 		},
 		replace: {
@@ -391,7 +411,7 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask('test', ['jshint', 'karma:unit', 'connect:test', 'protractor']);
+	grunt.registerTask('test', ['jshint', 'karma:unit', 'connect:test', 'clean:e2e', 'copy:e2e', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([

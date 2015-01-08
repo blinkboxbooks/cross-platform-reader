@@ -1,5 +1,5 @@
 'use strict';
-[false,true].forEach(function(useIframe) {
+(function(useIframe) {
 	var iframeTestSuffix = ' : ' + (useIframe ? 'with iframe' : 'without iframe');
 	describe('Layout'+iframeTestSuffix, function() {
 
@@ -44,4 +44,4 @@
 				});
 		});
 	});
-});
+})(/*grunt:useiframe*/true);
