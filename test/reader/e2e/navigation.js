@@ -1,5 +1,5 @@
 'use strict';
-[false,true].forEach(function(useIframe){
+(function(useIframe){
 	var iframeTestSuffix = ' : ' + (useIframe ? 'with iframe' : 'without iframe');
 	describe('Navigation' + iframeTestSuffix, function() {
 
@@ -73,4 +73,4 @@
 			});
 		});
 	});
-});
+})(/*grunt:useiframe*/true);
