@@ -411,7 +411,7 @@ module.exports = function (grunt) {
 		}
 	});
 
-	grunt.registerTask('test', ['jshint', 'karma:unit', 'connect:test', 'clean:e2e', 'copy:e2e', 'protractor']);
+	grunt.registerTask('test', ['jshint', 'karma:unit', 'connect:test', 'protractor']);
 
 	grunt.registerTask('reader', function (target) {
 		grunt.task.run([
