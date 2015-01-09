@@ -29,7 +29,7 @@ var Page = function(){
 	this.load = function(isbn, env, publisherStyles){
 		var path = this.path + (isbn || '9780007441235') + '?env=' + (typeof env === 'undefined' ? 2 : env) + '&publisherStyles='+(!!publisherStyles ? 'true' : 'false')+'&transitionDuration=0';
 
-		if(!this.useIframe){
+		if(!this.useIframe || browser.params.noiframe === true){
 			path += '&iframe=no';
 		}
 
@@ -86,7 +86,7 @@ var Page = function(){
 	this.readerContext = function(action){
 		var ptor = protractor.getInstance();
 
-		if(this.useIframe){
+		if(this.useIframe && !browser.params.noiframe){
 			ptor.switchTo().frame('reader');
 		}
 
