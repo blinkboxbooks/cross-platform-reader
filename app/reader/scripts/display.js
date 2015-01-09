@@ -27,8 +27,8 @@ var Reader = (function (r) {
 		// todo validate container
 		r.$parent = $(param.container).empty();
 
-		// default to iframe, unless explicitly set to false.
-		r.iframe = param.iframe !== false;
+		// default to no iframe, unless explicitly set to true.
+		r.iframe = param.iframe === true;
 		if(r.iframe){
 			r.$iframe = $('<iframe id="cpr-iframe" name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
 		} else {
