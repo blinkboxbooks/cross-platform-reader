@@ -16,7 +16,6 @@ var Reader = (function (r) {
 			touchDelta,
 			isVerticalScroll,
 			leftPosition,
-      waitingTap = false,
       navInterface,
       touchTimeout;
 
@@ -26,7 +25,8 @@ var Reader = (function (r) {
 	}
 
   function sendUnhandledTouchEvent(touchStartData) {
-    waitingTap = false;
+    clearTimeout(touchTimeout);
+    touchTimeout = null;
     r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
   }
 
@@ -86,23 +86,28 @@ var Reader = (function (r) {
 				if (touchDelta && !isVerticalScroll) {
 					resetPosition();
 				}
-				if (isShortDuration && !$(e.target).closest('a').length && !waitingTap) {
-          if ($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) {
-            waitingTap = true;
-            touchStartDataCopy = touchStartData;
-            touchTimeout = setTimeout(function () {
-              sendUnhandledTouchEvent(touchStartDataCopy);
-            }, r.preferences.doubleTapDelay.value);
-          } else {
-            sendUnhandledTouchEvent(touchStartData);
-          }
-				} else if (($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) && waitingTap) {
-          clearTimeout(touchTimeout);
-          waitingTap = false;
-          r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
-            src: $(e.target).attr('data-original-src')
-          }));
-        }
+				// Handle touch events which are not intended as swipes:
+				if (isShortDuration) {
+					// Handle targets which can handle double taps (for now only images):
+					if (!$(e.target).closest('a').length && $(e.target).is('img,image,svg')) {
+						if (touchTimeout) {
+							// This is a double tap
+							clearTimeout(touchTimeout);
+							touchTimeout = null;
+							r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
+								src: $(e.target).attr('data-original-src')
+							}));
+						} else {
+							// This is a first tap, start a timer to check for a double tap:
+							touchStartDataCopy = touchStartData;
+							touchTimeout = setTimeout(function () {
+								sendUnhandledTouchEvent(touchStartDataCopy);
+							}, r.preferences.doubleTapDelay.value);
+						}
+					} else {
+						sendUnhandledTouchEvent(touchStartData);
+					}
+				}
 			}
 			this.reset();
 		},
