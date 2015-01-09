@@ -373,7 +373,7 @@ describe('CFI', function() {
 	describe('getCFIObject', function () {
 
 		it('should return the CFI for the current position for a text node', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -399,7 +399,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for the current position for an element node', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div>Banana</div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -425,7 +425,7 @@ describe('CFI', function() {
 		});
 
 		it('should adjust the generated preview based on the element offset', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>test Banana</span>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -456,7 +456,7 @@ describe('CFI', function() {
 		});
 
 		it('should ignore empty text nodes', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><span>Banana</span>   <span>Apple</span></div>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -487,7 +487,7 @@ describe('CFI', function() {
 		});
 
 		it('should handle comment nodes', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><!-- HTML Comment --></div>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -518,7 +518,7 @@ describe('CFI', function() {
 		});
 
 		it('should ignore script content for the generated preview', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span><script>var banana = "Banana";</script><span>Apple</span>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -549,7 +549,7 @@ describe('CFI', function() {
 		});
 
 		it('should trim the generated preview to 100 words', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				longText = new Array(201).join('Banana '),
 				expectedPreview = (new Array(101).join('Banana ')).replace(/\s+$/, '…'),
 				element = $('<span>' + longText + '</span>').appendTo(Reader.$reader);
@@ -583,7 +583,7 @@ describe('CFI', function() {
 
 		it('should return the correct label for a chapter identified via URL anchor', function () {
 			Reader.Book.load(fixtures.BOOK_2.DATA);
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 					wrapper = $('<span id="int02">Banana</span>').appendTo(Reader.$reader),
 					element = wrapper.contents();
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK_2.BOOKMARK.CFI);
@@ -611,7 +611,7 @@ describe('CFI', function() {
 
 		it('should return the correct label for a TOC child element', function () {
 			Reader.Book.load(fixtures.BOOK_2.DATA);
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 					wrapper = $('<span id="bk01ch01">Banana</span><span id="bk01ch02">Apple</span><span id="bk01ch03">Orange</span>')
 						.appendTo(Reader.$reader),
 					element = wrapper.contents();
@@ -658,7 +658,7 @@ describe('CFI', function() {
 			var clonedData = $.extend(true, fixtures.BOOK_2.DATA);
 			clonedData.toc[7].children[0].href = clonedData.toc[7].children[0].href.split('#')[0];
 			Reader.Book.load(clonedData);
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 					wrapper = $('<span id="bk01ch02">Apple</span><span id="bk01ch03">Orange</span>')
 						.appendTo(Reader.$reader),
 					element = wrapper.contents();
@@ -700,7 +700,7 @@ describe('CFI', function() {
 		});
 
 		it('should handle if the chapter cannot be extracted from the given CFI', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(null);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -729,7 +729,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for the given text node if no range could be generated', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -755,7 +755,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for adjacent text nodes if the original target is not in the viewport', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 					element = $('<span>Banana</span>').contents().appendTo(Reader.$reader),
 					left = -100;
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
@@ -800,7 +800,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for the first element in the viewport if the target cannot be found', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -834,7 +834,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for the first element of the reader if no element can be found in the viewport', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -868,7 +868,7 @@ describe('CFI', function() {
 		});
 
 		it('should use the img alt text for the generated preview', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Banana"></div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -899,7 +899,7 @@ describe('CFI', function() {
 		});
 
 		it('should create a generic preview for images without alt text', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="></div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -930,7 +930,7 @@ describe('CFI', function() {
 		});
 
 		it('should create a generic preview for tables as target element', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><table></table></div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -961,7 +961,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for the parent SVG if the CFI targets one of its child nodes', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 					wrapper = $('<div><svg><circle cx="32" cy="32" r="32"/></svg></div>').appendTo(Reader.$reader),
 					element = wrapper.find('circle');
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
@@ -994,7 +994,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for target element if the only child is a blacklisted marker', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><span class="cpr-marker"></span></div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -1026,7 +1026,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for target element if all child elements are blacklisted', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><span class="cpr-marker"></span><span class="cpr-marker"></span></div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -1058,7 +1058,7 @@ describe('CFI', function() {
 		});
 
 		it('should return the CFI for the child element that is not a blacklisted marker', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<div><span class="cpr-marker"></span><span>Banana</span></div>').appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
@@ -1085,7 +1085,7 @@ describe('CFI', function() {
 		});
 
 		it('should trigger an error event if generating the CFI fails', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader),
 				err = new Error('ERROR');
 			spyOn(Reader.Notify, 'error').and.callThrough();
@@ -1113,7 +1113,7 @@ describe('CFI', function() {
 		});
 
 		it('should provide cross-platform methods of retrieving the caret position', function () {
-			var doc = Reader.$iframe.contents()[0],
+			var doc = Reader.document,
 				element = $('<span>Banana</span>').contents().appendTo(Reader.$reader);
 			spyOn(Reader.Epub, 'generateCFI').and.returnValue(fixtures.BOOK.BOOKMARK.CFI);
 			spyOn(Reader.Epub, 'getElementAt').and.returnValue(element);
