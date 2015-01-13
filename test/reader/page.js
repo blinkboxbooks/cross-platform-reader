@@ -87,7 +87,7 @@ var Page = function(){
 		var ptor = protractor.getInstance();
 
 		if(this.useIframe && !browser.params.noiframe){
-			ptor.switchTo().frame('reader');
+			ptor.switchTo().frame(reader);
 		}
 
 		ptor.ignoreSynchronization = true;
