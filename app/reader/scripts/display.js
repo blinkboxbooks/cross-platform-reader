@@ -28,7 +28,7 @@ var Reader = (function (r) {
 		r.$parent = $(param.container).empty();
 
 		// default to iframe, unless explicitly set to false.
-		r.iframe = param.iframe !== true;
+		r.iframe = param.iframe !== false;
 		if(r.iframe){
 			r.$iframe = $('<iframe id="cpr-iframe" name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
 		} else {
