@@ -25,7 +25,7 @@ var Reader = (function (r) {
 		},
 		getVisibleBookmarks: function(){
 			var bookmarks = [];
-			$('[data-bookmark][data-cfi]', r.$iframe.contents()).each(function(index, el){
+			$('[data-bookmark][data-cfi]', r.document).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					bookmarks.push($(el).attr('data-cfi'));
 				}
@@ -99,7 +99,7 @@ var Reader = (function (r) {
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter].splice(index, 1);
 
-					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.$iframe.contents());
+					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.document);
 					if($marker.length){
 						if($marker.hasClass('cpr-marker')){
 							var $parent = $marker.parent();
@@ -130,7 +130,7 @@ var Reader = (function (r) {
 		// <a name="display"></a>This function refreshes the bookmark UI. If a bookmark is visible on the current page, it will display the bookmark UI. Ignores mobile readers.
 		display: function(){
 			var isVisible = false;
-			$('[data-bookmark]', r.$iframe.contents()).each(function(index, el){
+			$('[data-bookmark]', $(r.document)).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -140,10 +140,10 @@ var Reader = (function (r) {
 				return isVisible;
 			}
 			if(isVisible){
-				$('#cpr-bookmark-ui', r.$iframe.contents()).show();
+				$('#cpr-bookmark-ui', $(r.document)).show();
 				return isVisible;
 			} else {
-				$('#cpr-bookmark-ui', r.$iframe.contents()).hide();
+				$('#cpr-bookmark-ui', $(r.document)).hide();
 			}
 			return false;
 		}
@@ -186,7 +186,7 @@ var Reader = (function (r) {
 
 			if(!cfi){
 				// if cfi is not preset, we assume the current selection needs to be highlighted
-				var selection = r.$iframe.contents()[0].getSelection();
+				var selection = r.document.getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
 					preview = selection.toString();
 					try{
@@ -247,7 +247,7 @@ var Reader = (function (r) {
 				var index = $.inArray(cfi, _highlights[chapter]);
 				if($.isArray(_highlights[chapter]) && index !== -1){
 					_highlights[chapter].splice(index, 1);
-					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents()).remove();
+					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', $(r.document)).remove();
 					r.Highlights.display();
 					return true;
 				}
@@ -260,7 +260,7 @@ var Reader = (function (r) {
 			var isVisible = false;
 
 			// resize highlights
-			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).remove();
+			$('['+r.Highlights.ATTRIBUTE+']', $(r.document)).remove();
 			// Add all highlights for this chapter
 			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
 			if(highlights){
@@ -272,7 +272,7 @@ var Reader = (function (r) {
 				});
 			}
 
-			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
+			$('['+r.Highlights.ATTRIBUTE+']', $(r.document)).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -282,7 +282,7 @@ var Reader = (function (r) {
 		},
 		getVisibleHighlights: function(){
 			var highlights = [];
-			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
+			$('['+r.Highlights.ATTRIBUTE+']', $(r.document)).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					highlights.push($(el).attr('data-cfi'));
 				}

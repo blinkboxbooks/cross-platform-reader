@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>iframeless Reader</title>
+    <style>
+        body {margin:0; padding:0; -webkit-tap-highlight-color:rgba(0,0,0,0); -webkit-touch-callout:none;}
+    </style>
+
+    <!-- build:js scripts/vendor.min.js-->
+    <script src="../components/angular/angular.min.js"></script>
+    <script src="../components/angular-route/angular-route.min.js"></script>
+    <script src="../components/jquery/jquery.min.js"></script>
+    <script src="../components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="../components/bootswatch/assets/js/bootswatch.js"></script>
+    <script src="../components/FilterJS/FilterJS.min.js"></script>
+    <script src="../lib/epubcfi.min.js"></script>
+    <script src="../lib/bugsense.js"></script>
+    <script src="../reader/scripts/book.js"></script>
+    <script src="../reader/scripts/bookdata.js"></script>
+    <script src="../reader/scripts/cfi.js"></script>
+    <script src="../reader/scripts/config.js"></script>
+    <script src="../reader/scripts/display.js"></script>
+    <script src="../reader/scripts/epub.js"></script>
+    <script src="../reader/scripts/events.js"></script>
+    <script src="../reader/scripts/filters.js"></script>
+    <script src="../reader/scripts/layout.js"></script>
+    <script src="../reader/scripts/formatting.js"></script>
+    <script src="../reader/scripts/navigation.js"></script>
+    <script src="../reader/scripts/parse.js"></script>
+    <script src="../reader/scripts/styles.js"></script>
+    <script src="../reader/scripts/touch.js"></script>
+    <script src="../reader/scripts/wrapper.js"></script>
+    <!-- endbuild -->
+
+    <!-- build:js scripts/script.min.js-->
+    <script src="scripts/script.js"></script>
+    <!-- endbuild -->
+
+</head>
+<body>
+<div id="reader_container"></div>
+</body>
+</html>

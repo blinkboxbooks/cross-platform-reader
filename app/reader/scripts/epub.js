@@ -23,6 +23,7 @@ var Reader = (function (r, Epub) {
 		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
 		prototype.BLACKLIST = ['cpr-marker', 'cpr-highlight', 'cpr-subchapter-link'];
 		prototype.BODY_CFI = '!/4';
+		prototype.BODY_ID_RGX = /!\/4\[.*?\]/;
 
 		// Initialisation function, called when the reader is initialised.
 		prototype.init = function(reader){
@@ -45,6 +46,8 @@ var Reader = (function (r, Epub) {
 
 		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.
 		prototype.addContext = function(cfi){
+			// if the body has an id assertion, we need to strip it out CR-493
+			cfi = cfi.replace(this.BODY_ID_RGX, this.BODY_CFI);
 			var contextSplit = cfi.split(this.BODY_CFI);
 			return contextSplit[0] + this.BODY_CFI + this.context + contextSplit[1];
 		};
@@ -132,14 +135,14 @@ var Reader = (function (r, Epub) {
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+			EPUBcfi.injectElement(cfi, r.document, marker, this.BLACKLIST);
 		};
 
 		// Injects a marker in the specified range
 		prototype.injectRangeMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
+			EPUBcfi.injectRangeElements(cfi, r.document, marker, marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){

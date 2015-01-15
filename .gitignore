@@ -7,3 +7,4 @@ coverage/
 .idea
 .vagrant
 screenshots/
+test/reader/e2e/noiframe_*.js

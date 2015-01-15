@@ -1,26 +1,34 @@
 'use strict';
+(function (useIframe) {
 
-describe('Bookmarks', function() {
+  var iframeTestSuffix = ' : ' + (useIframe ? 'with iframe' : 'without iframe');
 
-	var page = require('../page.js');
+  describe('Bookmarks' + iframeTestSuffix, function () {
 
-	it('should reload demo app', function() {
-		page.load();
-		expect(browser.getCurrentUrl()).toContain(page.path);
-	});
+    var page = require('../page.js');
 
-	it('should bookmark every page', function() {
+    beforeEach(function () {
+      page.useIframe = useIframe;
+    });
 
-		page.loop(function(status){
-			expect(status.bookmarksInPage).toBeEmptyArray();
+    it('should reload demo app', function () {
+      page.load(undefined, undefined, undefined, useIframe);
+      expect(browser.getCurrentUrl()).toContain(page.path);
+    });
 
-			return page.bookmark().then(function(status){
-				expect(status.bookmarksInPage).toBeArrayOfSize(1);
+    it('should bookmark every page', function () {
 
-				return page.bookmark().then(function(status){
-					expect(status.bookmarksInPage).toBeEmptyArray();
-				});
-			});
-		});
-	});
-});
+      page.loop(function (status) {
+        expect(status.bookmarksInPage).toBeEmptyArray();
+
+        return page.bookmark().then(function (status) {
+          expect(status.bookmarksInPage).toBeArrayOfSize(1);
+
+          return page.bookmark().then(function (status) {
+            expect(status.bookmarksInPage).toBeEmptyArray();
+          });
+        });
+      });
+    });
+  });
+})(/*grunt:useiframe*/true);

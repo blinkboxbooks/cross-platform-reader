@@ -127,6 +127,9 @@ module.exports = function (grunt) {
 						'**/.tmp'
 					]
 				}]
+			},
+			e2e: {
+				files: [{'src': ['<%= yeoman.tmp %>/noiframe','test/reader/e2e/noiframe*.js']}]
 			}
 		},
 		// Make sure code styles are up to par and there are no obvious mistakes
@@ -302,6 +305,23 @@ module.exports = function (grunt) {
 						'<%= yeoman.app %>/components/jquery/jquery.min.js'
 					]
 				}]
+			},
+			e2e: {
+				files: [{
+					expand: true,
+					cwd: 'test/reader/e2e/',
+					dest: '<%= yeoman.tmp %>/noiframe',
+					src: ['*.js', '!noiframe_*.js'],
+					rename: function(dest, src){
+						return 'test/reader/e2e/noiframe_' + src;
+					},
+					flatten: true
+				}],
+				options: {
+					process: function(content){
+						return content.replace(/\/\*grunt:useiframe\*\/true/,'/*grunt:useiframe*/false');
+					}
+				}
 			}
 		},
 		replace: {
@@ -376,11 +396,16 @@ module.exports = function (grunt) {
 			e2e: {
 				options: {
 					configFile: 'protractor.conf.js',
+					args: {
+						params: {
+							noiframe: grunt.option('noiframe')
+						}
+					}
 				}
 			},
 			cucumber: {
 				options: {
-					configFile: 'cucumber.conf.js',
+					configFile: 'cucumber.conf.js'
 				}
 			}
 		}

@@ -63,7 +63,7 @@ var Reader = (function (r) {
 					data.endElement = data.endElement.nextSibling.nextSibling;
 				}
 
-				var range = r.$iframe.contents()[0].createRange();
+				var range = r.document.createRange();
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
 
@@ -90,11 +90,12 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point
-			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents()), attrs = attr ? attr.split('=') : '';
+			var $marker = $('[data-cfi="' + cfi + '"]', $(r.document)), attrs = attr ? attr.split('=') : '';
 			if($marker.length){
 				if(attr && !$marker.is('['+attr+']')){
 					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
 				}
+				return $marker;
 			} else {
 				try {
 					var marker = '<span class="cpr-marker" '+ attr +' data-cfi="' + cfi + '"></span>';
@@ -116,8 +117,7 @@ var Reader = (function (r) {
 						}
 					}
 					return $node;
-				}
-				catch (err) {
+				} catch (err) {
 					// cannot insert CFI
 					r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setCFI'}));
 				}
@@ -181,7 +181,7 @@ var Reader = (function (r) {
 		},
 		parseCFI: function(cfi){
 			if(!r.CFI.isValidCFI(cfi)){
-				return false;
+				throw 'Invalid CFI';
 			}
 
 			var data = {
@@ -217,18 +217,25 @@ var Reader = (function (r) {
 			return '*[data-cfi="' + cfi + '"]';
 		},
 		findCFIElement : function (value) {
-			var $elem = $(r.CFI.getCFISelector(value), r.$iframe.contents());
+			var $elem = $(r.CFI.getCFISelector(value), $(r.document));
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
+			var data;
+			var error;
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
-						// handle range CFIs by assuming the start of the range as the position we want to go to
-						var data = r.CFI.parseCFI(cfi);
+						try {
+							data = r.CFI.parseCFI(cfi);
+						} catch (err) {
+							error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: err, value: cfi, call: 'goToCFI'});
+							return $.Deferred().reject(error).promise();
+						}
 						if(data && data.isRange){
+							// handle range CFIs by assuming the start of the range as the position we want to go to:
 							cfi = data.startCFI;
 						}
 						r.CFI.setCFI(cfi);
@@ -238,8 +245,8 @@ var Reader = (function (r) {
 					return r.loadChapter(chapter, cfi);
 				}
 			}
-			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
-			return $.Deferred().reject().promise();
+			error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'});
+			return $.Deferred().reject(error).promise();
 		},
 		// <a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).
 		getChapterFromCFI: function(cfi){
@@ -258,7 +265,7 @@ var Reader = (function (r) {
 		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
 		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
 		if(el.nodeType === 3){
-			var range = r.$iframe.contents()[0].createRange();
+			var range = r.document.createRange();
 			range.setStart(el, offset || 0);
 			var rects = range.getClientRects();
 			if(rects && rects.length){
@@ -274,7 +281,7 @@ var Reader = (function (r) {
 	};
 
 	var _getElementAt = function(x, y){
-		var range, textNode, offset, doc = r.$iframe.contents()[0];
+		var range, textNode, offset, doc = r.document;
 		/* standard */
 		if (doc.caretPositionFromPoint) {
 			range = doc.caretPositionFromPoint(x, y);
@@ -436,7 +443,7 @@ var Reader = (function (r) {
 	};
 
 	var _rangeIntersectsNode = function(range, node) {
-		var nodeRange = node.ownerDocument.createRange();
+		var nodeRange = r.document.createRange();
 		try {
 			nodeRange.selectNode(node);
 		} catch (e) {
@@ -463,7 +470,7 @@ var Reader = (function (r) {
 
 	var _getClientRects = function(range){
 		var containerElement = range.commonAncestorContainer,
-			treeWalker = document.createTreeWalker(
+			treeWalker = r.document.createTreeWalker(
 			containerElement,
 			NodeFilter.SHOW_TEXT,
 			{
@@ -482,26 +489,26 @@ var Reader = (function (r) {
 			rect,
 			i,
 			l,
-			r = document.createRange();
+			range2 = r.document.createRange();
 
 		if(range.startContainer.isEqualNode(range.endContainer)){
-			r.setStart(range.startContainer, range.startOffset);
-			r.setEnd(range.endContainer, range.endOffset);
-			rect = r.getClientRects();
+			range2.setStart(range.startContainer, range.startOffset);
+			range2.setEnd(range.endContainer, range.endOffset);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
 		} else {
-			r.setStart(range.startContainer, range.startOffset);
-			r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
-			rect = r.getClientRects();
+			range2.setStart(range.startContainer, range.startOffset);
+			range2.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
 
-			r.setStart(range.endContainer, 0);
-			r.setEnd(range.endContainer, range.endOffset);
-			rect = r.getClientRects();
+			range2.setStart(range.endContainer, 0);
+			range2.setEnd(range.endContainer, range.endOffset);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
@@ -509,8 +516,8 @@ var Reader = (function (r) {
 
 
 		while (treeWalker.nextNode()) {
-			r.selectNode(treeWalker.currentNode);
-			rect = r.getClientRects();
+			range2.selectNode(treeWalker.currentNode);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}

@@ -96,7 +96,7 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
+		var obj = $(r.document.getElementById(String(id)));
 		if (obj.length === 0) {
 			return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
 		} else {
@@ -111,7 +111,7 @@ var Reader = (function (r) {
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		obj = (obj instanceof $) ? obj : $(obj, $(r.document));
 		if (!obj.length) {
 			return -1;
 		}
@@ -139,11 +139,17 @@ var Reader = (function (r) {
 			r.Bookmarks.display();
 			r.Highlights.display();
 			r.Navigation.updateProgress();
+		}, function (err) {
+			r.Notify.error(err);
 		});
 	};
 
 	// The current book progress.
 	var _progress = 0;
+	// The user reading speed in words per minute (WPM) as integer:
+	var _readingSpeed = 250;
+	// The remaining seconds to read the current chapter:
+	var _remainingSecondsForChapter = 0;
 
 	// ## Navigation API
 	// The Navigation object exposes methods to allow the user to navigate within the book.
@@ -200,6 +206,7 @@ var Reader = (function (r) {
 			return Page.load(p, fixed);
 		},
 		setChapter: function(c){
+
 			chapter = c;
 			// Update the chapter doc name.
 			try {
@@ -302,18 +309,30 @@ var Reader = (function (r) {
 			_cfi = null;
 			_progress = 0;
 		},
+		getRemainingSecondsForChapter: function () {
+			return _remainingSecondsForChapter;
+		},
+		updateRemainingSecondsForChapter: function (chapterWordCount, chapterReadFactor) {
+			var wordsLeft = chapterWordCount * (1 - chapterReadFactor);
+			var wordsPerSecond = _readingSpeed / 60;
+			_remainingSecondsForChapter = Math.ceil(wordsLeft / wordsPerSecond);
+		},
 		getProgress: function(){
 			return _progress;
 		},
 		updateProgress: function () {
 			var totalWordCount = r.Book.getTotalWordCount(),
 					spineItem = r.Book.spine.length && r.Book.spine[chapter],
+					chapterWordCount = (spineItem && r.Book.getWordCount(spineItem)) || 0,
+					chapterReadFactor = r.Navigation.getChapterReadFactor(),
 					// Get the current word count from the chapter progress
 					// (which adds one word to the number of words of previous chapters):
 					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += spineItem ? r.Book.getWordCount(spineItem) * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += chapterWordCount * chapterReadFactor;
+
+			r.Navigation.updateRemainingSecondsForChapter(chapterWordCount, chapterReadFactor);
 
 			// Calculate progress.
 			var progress = currentWordCount / totalWordCount * 100;
@@ -326,7 +345,7 @@ var Reader = (function (r) {
 
 			if (r.mobile) {
 				// Update footer and display progress.
-				var progressContainer = $('#cpr-progress', r.$iframe.contents());
+				var progressContainer = $('#cpr-progress', $(r.document));
 				if (!progressContainer.length) {
 					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}
@@ -334,9 +353,11 @@ var Reader = (function (r) {
 			}
 		},
 		goToProgress: function (progress) {
+			var error;
 			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
-				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
-				return $.Deferred().reject().promise();
+				error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'});
+				r.Notify.error(error);
+				return $.Deferred().reject(error).promise();
 			}
 			var targetWordCount = Math.ceil(progress / 100 * r.Book.getTotalWordCount()),
 					wordCount = 0,
@@ -688,7 +709,9 @@ var Reader = (function (r) {
 							imgLoad = true;
 						} else if (data.type === 'img.load') {
 							pagesByChapter = _getColumnsNumber();
-							r.CFI.goToCFI(_cfi.CFI, true);
+							r.CFI.goToCFI(_cfi.CFI, true).fail(function (err) {
+								r.Notify.error(err);
+							});
 						}
 					})
 					.then(function () {
