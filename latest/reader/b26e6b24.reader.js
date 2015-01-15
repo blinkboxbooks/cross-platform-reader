@@ -1680,6 +1680,7 @@
 		//   is required. This is obtained with the jquery parent() method. An alternative would be to
 		//   pass in the parent with a filtered list containing only children that are part of the target text node.
 		injectCFIMarkerIntoText : function ($textNodeList, textOffset, elementToInject) {
+			var document = $textNodeList[0].ownerDocument;
 
 			var nodeNum;
 			var currNodeLength;
@@ -2293,6 +2294,7 @@
 		// ------------------------------------------------------------------------------------ //
 
 		generateCharOffsetRangeComponent : function (rangeStartElement, startOffset, rangeEndElement, endOffset, classBlacklist, elementBlacklist, idBlacklist) {
+			var document = rangeStartElement.ownerDocument;
 
 			var docRange;
 			var commonAncestor;
@@ -2351,6 +2353,7 @@
 		},
 
 		generateElementRangeComponent : function (rangeStartElement, rangeEndElement, classBlacklist, elementBlacklist, idBlacklist) {
+			var document = rangeStartElement.ownerDocument;
 
 			var docRange;
 			var commonAncestor;
@@ -2385,6 +2388,8 @@
 		},
 
 		generateRangeComponent : function (rangeStartElement, startOffset, rangeEndElement, endOffset, classBlacklist, elementBlacklist, idBlacklist) {
+			var document = rangeStartElement.ownerDocument;
+
 			if(rangeStartElement.nodeType === Node.ELEMENT_NODE && rangeEndElement.nodeType === Node.ELEMENT_NODE){
 				return this.generateElementRangeComponent(rangeStartElement, rangeEndElement, classBlacklist, elementBlacklist, idBlacklist);
 			} else if(rangeStartElement.nodeType === Node.TEXT_NODE && rangeEndElement.nodeType === Node.TEXT_NODE){
@@ -3576,7 +3581,11 @@ var Reader = (function (r) {
 		var opfDoc = data.opfDoc,
 				navItem = opfDoc.querySelector('manifest').querySelector('item[properties="nav"]'),
 				navHref = navItem && navItem.getAttribute('href'),
-				ncxId = !navHref && opfDoc.querySelector('spine').getAttribute('toc'),
+				// EPUB v2 requirements state:
+				// > The item that describes the NCX must be referenced by the spine toc attribute.
+				// http://www.idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1.2
+				// However, some books might not honor that requirement, so we fall back to the ID "ncx" as a default:
+				ncxId = !navHref && (opfDoc.querySelector('spine').getAttribute('toc') || 'ncx'),
 				ncxHref = ncxId && opfDoc.getElementById(ncxId).getAttribute('href');
 		if (navHref) {
 			// EPUB v3 navigation document:
@@ -3931,7 +3940,7 @@ var Reader = (function (r) {
 		},
 		getVisibleBookmarks: function(){
 			var bookmarks = [];
-			$('[data-bookmark][data-cfi]', r.$iframe.contents()).each(function(index, el){
+			$('[data-bookmark][data-cfi]', r.document).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					bookmarks.push($(el).attr('data-cfi'));
 				}
@@ -4005,7 +4014,7 @@ var Reader = (function (r) {
 				if($.isArray(_bookmarks[chapter]) && index !== -1){
 					_bookmarks[chapter].splice(index, 1);
 
-					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.$iframe.contents());
+					var $marker = $('[data-bookmark][data-cfi="' + cfi + '"]', r.document);
 					if($marker.length){
 						if($marker.hasClass('cpr-marker')){
 							var $parent = $marker.parent();
@@ -4036,7 +4045,7 @@ var Reader = (function (r) {
 		// <a name="display"></a>This function refreshes the bookmark UI. If a bookmark is visible on the current page, it will display the bookmark UI. Ignores mobile readers.
 		display: function(){
 			var isVisible = false;
-			$('[data-bookmark]', r.$iframe.contents()).each(function(index, el){
+			$('[data-bookmark]', $(r.document)).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -4046,10 +4055,10 @@ var Reader = (function (r) {
 				return isVisible;
 			}
 			if(isVisible){
-				$('#cpr-bookmark-ui', r.$iframe.contents()).show();
+				$('#cpr-bookmark-ui', $(r.document)).show();
 				return isVisible;
 			} else {
-				$('#cpr-bookmark-ui', r.$iframe.contents()).hide();
+				$('#cpr-bookmark-ui', $(r.document)).hide();
 			}
 			return false;
 		}
@@ -4092,7 +4101,7 @@ var Reader = (function (r) {
 
 			if(!cfi){
 				// if cfi is not preset, we assume the current selection needs to be highlighted
-				var selection = r.$iframe.contents()[0].getSelection();
+				var selection = r.document.getSelection();
 				if(selection.rangeCount > 0 && !selection.isCollapsed){
 					preview = selection.toString();
 					try{
@@ -4153,7 +4162,7 @@ var Reader = (function (r) {
 				var index = $.inArray(cfi, _highlights[chapter]);
 				if($.isArray(_highlights[chapter]) && index !== -1){
 					_highlights[chapter].splice(index, 1);
-					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', r.$iframe.contents()).remove();
+					$('['+r.Highlights.ATTRIBUTE+'][data-cfi="' + cfi + '"]', $(r.document)).remove();
 					r.Highlights.display();
 					return true;
 				}
@@ -4166,7 +4175,7 @@ var Reader = (function (r) {
 			var isVisible = false;
 
 			// resize highlights
-			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).remove();
+			$('['+r.Highlights.ATTRIBUTE+']', $(r.document)).remove();
 			// Add all highlights for this chapter
 			var highlights = r.Highlights.getHighlights()[r.Navigation.getChapter()];
 			if(highlights){
@@ -4178,7 +4187,7 @@ var Reader = (function (r) {
 				});
 			}
 
-			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
+			$('['+r.Highlights.ATTRIBUTE+']', $(r.document)).each(function(index, el){
 				isVisible = r.returnPageElement(el) === r.Navigation.getPage();
 				if (isVisible) {
 					return false;
@@ -4188,7 +4197,7 @@ var Reader = (function (r) {
 		},
 		getVisibleHighlights: function(){
 			var highlights = [];
-			$('['+r.Highlights.ATTRIBUTE+']', r.$iframe.contents()).each(function(index, el){
+			$('['+r.Highlights.ATTRIBUTE+']', $(r.document)).each(function(index, el){
 				if(r.returnPageElement(el) === r.Navigation.getPage()){
 					highlights.push($(el).attr('data-cfi'));
 				}
@@ -4292,7 +4301,7 @@ var Reader = (function (r) {
 					data.endElement = data.endElement.nextSibling.nextSibling;
 				}
 
-				var range = r.$iframe.contents()[0].createRange();
+				var range = r.document.createRange();
 				range.setStart(data.startElement, data.startOffset);
 				range.setEnd(data.endElement, data.endOffset);
 
@@ -4319,11 +4328,12 @@ var Reader = (function (r) {
 		},
 		// <a name="setCFI"></a> This function will inject a blacklisted market into the DOM to allow the user to identify where a CFI points to.
 		setCFI: function (cfi, attr) { // Add an element to a CFI point
-			var $marker = $('[data-cfi="' + cfi + '"]', r.$iframe.contents()), attrs = attr ? attr.split('=') : '';
+			var $marker = $('[data-cfi="' + cfi + '"]', $(r.document)), attrs = attr ? attr.split('=') : '';
 			if($marker.length){
 				if(attr && !$marker.is('['+attr+']')){
 					$marker.attr(attrs[0], attrs.length > 1 ? attrs[1] : '');
 				}
+				return $marker;
 			} else {
 				try {
 					var marker = '<span class="cpr-marker" '+ attr +' data-cfi="' + cfi + '"></span>';
@@ -4345,8 +4355,7 @@ var Reader = (function (r) {
 						}
 					}
 					return $node;
-				}
-				catch (err) {
+				} catch (err) {
 					// cannot insert CFI
 					r.Notify.error($.extend({}, r.Event.ERR_CFI_INSERTION, {details: err, call: 'setCFI'}));
 				}
@@ -4410,7 +4419,7 @@ var Reader = (function (r) {
 		},
 		parseCFI: function(cfi){
 			if(!r.CFI.isValidCFI(cfi)){
-				return false;
+				throw 'Invalid CFI';
 			}
 
 			var data = {
@@ -4446,18 +4455,25 @@ var Reader = (function (r) {
 			return '*[data-cfi="' + cfi + '"]';
 		},
 		findCFIElement : function (value) {
-			var $elem = $(r.CFI.getCFISelector(value), r.$iframe.contents());
+			var $elem = $(r.CFI.getCFISelector(value), $(r.document));
 			return $elem.length ? r.returnPageElement($elem) : -1;
 		},
 		// <a name="goToCFI"></a>Find and load the page that contains the CFI's marker. If the marker does not exist, it will be injected in the chapter. If the CFI points to another chapter it will load that chapter first.
 		goToCFI : function (cfi, fixed) {
 			var chapter = r.CFI.getChapterFromCFI(cfi);
+			var data;
+			var error;
 			if(chapter !== -1){
 				if (r.Navigation.getChapter() === chapter && r.Navigation.isCFIInCurrentChapterPart(cfi)) {
 					if (r.CFI.findCFIElement(cfi) === -1) {
-						// handle range CFIs by assuming the start of the range as the position we want to go to
-						var data = r.CFI.parseCFI(cfi);
+						try {
+							data = r.CFI.parseCFI(cfi);
+						} catch (err) {
+							error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: err, value: cfi, call: 'goToCFI'});
+							return $.Deferred().reject(error).promise();
+						}
 						if(data && data.isRange){
+							// handle range CFIs by assuming the start of the range as the position we want to go to:
 							cfi = data.startCFI;
 						}
 						r.CFI.setCFI(cfi);
@@ -4467,8 +4483,8 @@ var Reader = (function (r) {
 					return r.loadChapter(chapter, cfi);
 				}
 			}
-			r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'}));
-			return $.Deferred().reject().promise();
+			error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid CFI', value: cfi, call: 'goToCFI'});
+			return $.Deferred().reject(error).promise();
 		},
 		// <a name="getChapterFromCFI"></a> This function will calculate what chapter the CFI is pointing at and return the its index (or -1 on failure).
 		getChapterFromCFI: function(cfi){
@@ -4487,7 +4503,7 @@ var Reader = (function (r) {
 		// caretRangeFromPoint does not always return the correct node for some Android devices (even Kit-Kat)
 		// we need to perform a check for all text nodes to ensure that they really appear in the viewport befpre continuing
 		if(el.nodeType === 3){
-			var range = r.$iframe.contents()[0].createRange();
+			var range = r.document.createRange();
 			range.setStart(el, offset || 0);
 			var rects = range.getClientRects();
 			if(rects && rects.length){
@@ -4503,7 +4519,7 @@ var Reader = (function (r) {
 	};
 
 	var _getElementAt = function(x, y){
-		var range, textNode, offset, doc = r.$iframe.contents()[0];
+		var range, textNode, offset, doc = r.document;
 		/* standard */
 		if (doc.caretPositionFromPoint) {
 			range = doc.caretPositionFromPoint(x, y);
@@ -4665,7 +4681,7 @@ var Reader = (function (r) {
 	};
 
 	var _rangeIntersectsNode = function(range, node) {
-		var nodeRange = node.ownerDocument.createRange();
+		var nodeRange = r.document.createRange();
 		try {
 			nodeRange.selectNode(node);
 		} catch (e) {
@@ -4692,7 +4708,7 @@ var Reader = (function (r) {
 
 	var _getClientRects = function(range){
 		var containerElement = range.commonAncestorContainer,
-			treeWalker = document.createTreeWalker(
+			treeWalker = r.document.createTreeWalker(
 			containerElement,
 			NodeFilter.SHOW_TEXT,
 			{
@@ -4711,26 +4727,26 @@ var Reader = (function (r) {
 			rect,
 			i,
 			l,
-			r = document.createRange();
+			range2 = r.document.createRange();
 
 		if(range.startContainer.isEqualNode(range.endContainer)){
-			r.setStart(range.startContainer, range.startOffset);
-			r.setEnd(range.endContainer, range.endOffset);
-			rect = r.getClientRects();
+			range2.setStart(range.startContainer, range.startOffset);
+			range2.setEnd(range.endContainer, range.endOffset);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
 		} else {
-			r.setStart(range.startContainer, range.startOffset);
-			r.setEnd(range.startContainer, range.startContainer.nodeValue.length);
-			rect = r.getClientRects();
+			range2.setStart(range.startContainer, range.startOffset);
+			range2.setEnd(range.startContainer, range.startContainer.nodeValue.length);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
 
-			r.setStart(range.endContainer, 0);
-			r.setEnd(range.endContainer, range.endOffset);
-			rect = r.getClientRects();
+			range2.setStart(range.endContainer, 0);
+			range2.setEnd(range.endContainer, range.endOffset);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
@@ -4738,8 +4754,8 @@ var Reader = (function (r) {
 
 
 		while (treeWalker.nextNode()) {
-			r.selectNode(treeWalker.currentNode);
-			rect = r.getClientRects();
+			range2.selectNode(treeWalker.currentNode);
+			rect = range2.getClientRects();
 			for(i = 0, l = rect.length; i < l; i++){
 				rects.push(rect[i]);
 			}
@@ -5063,9 +5079,19 @@ var Reader = (function (r) {
 		// Take the params {container, chapters, width, height, padding, _mobile} or create them.
 		// todo validate container
 		r.$parent = $(param.container).empty();
-		r.$iframe = $('<iframe id="cpr-iframe" name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
-		r.$head = r.$iframe.contents().find('head');
-		r.$wrap = r.$iframe.contents().find('body');
+
+		// default to iframe, unless explicitly set to false.
+		r.iframe = param.iframe !== false;
+		if(r.iframe){
+			r.$iframe = $('<iframe id="cpr-iframe" name="reader" scrolling="no" seamless="seamless" src="javascript:undefined;"></iframe>').appendTo(r.$parent);
+		} else {
+			r.$iframe = $('<div id="cpr-iframe"></div>').appendTo(r.$parent);
+		}
+
+		r.$document = r.$iframe.contents();
+		r.document = r.iframe ? r.$document[0] : window.document;
+		r.$head = r.iframe ? r.$document.find('head') : $('head');
+		r.$wrap = r.iframe ? r.$document.find('body') : $('#cpr-iframe');
 		r.$container = $('<div></div>').appendTo(r.$wrap);
 		r.$reader = $('<div id="cpr-reader"></div>').appendTo(r.$container);
 		r.$header = $('<div id="cpr-header"></div>').insertBefore(r.$container);
@@ -5089,7 +5115,7 @@ var Reader = (function (r) {
 		r.Epub.init(r.$reader[0]);
 
 		// Initialize the touch module:
-		r.Touch.init(r.$iframe.contents());
+		r.Touch.init($(r.document));
 
 		// Resize the container with the width and height (if they exist).
 		_createContainer(param.width, param.height, param.columns, param.padding);
@@ -5120,7 +5146,7 @@ var Reader = (function (r) {
 	};
 
 	function _getTransitionEndProperty() {
-		var element= document.createElement('div');
+		var element= r.document.createElement('div');
 		if (element.style.webkitTransition !== undefined) {
 			return 'webkitTransitionEnd';
 		}
@@ -5136,7 +5162,7 @@ var Reader = (function (r) {
 	}
 
 	function _addStyles() {
-		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background:0 0}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;font-family:sans-serif}#cpr-header{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px;font-family:sans-serif}.cpr-placeholder{visibility:hidden;width:auto;height:100%}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:sans-serif;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000;will-change:transform,opacity}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin:0 0 1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:0 auto .5rem}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}.cpr-highlight div{position:absolute;top:0;left:0;display:inline-block;background:#ff0;opacity:.2}';
+		var styles = 'html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}article,aside,details,figcaption,figure,footer,header,hgroup,main,menu,nav,section,summary{display:block}audio,canvas,progress,video{display:inline-block;vertical-align:baseline}audio:not([controls]){display:none;height:0}[hidden],template{display:none}a{background-color:transparent}a:active,a:hover{outline:0}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:1em 40px}hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}pre{overflow:auto}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}button,input,optgroup,select,textarea{color:inherit;font:inherit;margin:0}button{overflow:visible}button,select{text-transform:none}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],html input[disabled]{cursor:default}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}input{line-height:normal}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{height:auto}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:700}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}#cpr-bookmark-ui{display:none;position:absolute;right:0;top:0;background:#111;width:30px;height:30px;box-shadow:0 0 3px #666}#cpr-bookmark-ui::before{position:absolute;content:"";right:0;top:0;width:0;height:0;border:15px solid #000;border-right-color:transparent;border-top-color:transparent}#cpr-footer{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;font-family:sans-serif}#cpr-header{color:#000;line-height:30px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;font-size:18px;font-family:sans-serif}.cpr-placeholder{visibility:hidden;width:auto;height:100%}*{box-sizing:border-box}html{font-size:18px}body{background:#fff;color:#000;position:relative;overflow:hidden;word-wrap:break-word;font-family:sans-serif;font-weight:400;font-style:normal;text-decoration:none;text-align:left;line-height:1.2;padding:0;margin:0;font-size:1rem}body #cpr-reader{-webkit-backface-visibility:hidden;-webkit-perspective:1000;backface-visibility:hidden;perspective:1000;will-change:transform,opacity}h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.2;margin:0 0 .67em;clear:both}h1{font-size:1.5rem}h2{font-size:1.4rem}h3{font-size:1.3rem}h4{font-size:1.2rem}h5{font-size:1.1rem}h6{font-size:1rem}p{margin:0 0 1rem}div:last-child,p:last-child{margin-bottom:0}blockquote{border-left:4px solid #e1e1e1;padding:0 1rem 0 1.4rem}:link{color:#09f;text-decoration:underline}:link[data-link-type=external]:after{content:"";background:url(data:image/png;base64,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WHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNS40LjAiPgogICA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogICAgICA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIgogICAgICAgICAgICB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0LTA1LTI4VDA5OjU4OjE5PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5BZG9iZSBQaG90b3Nob3AgQ0MgKE1hY2ludG9zaCk8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHhtcDpDcmVhdGVEYXRlPjIwMTMtMDgtMDhUMTA6MTI6MzU8L3htcDpDcmVhdGVEYXRlPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+NjAwPC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjY0MDc8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4K/AFthgAAAJhJREFUOBHNklEOgCAIhjG7VXWdOlOdx47lLHRuxBgT50O9BPj3AX8CDHoccvyVAiRYGpkhHm7j2ikX2iEoXzkE85kW3055QlqjsT9TojmNPyB6IMVaIxHU41nxiLfv8EycqHK1VVBDPZMnqiTD++cgurNhqywtqzm4rR9yff5rcXfitediLR9mtnqPLJ7JE1k8s2g1b+rZA2oNIaRRHfQPAAAAAElFTkSuQmCC) 0 0 no-repeat;background-size:cover;width:.6rem;height:.6rem;display:inline-block;vertical-align:top;margin:0 0 0 .2rem}:link *{color:#09f}img,svg,svg *{max-width:100%;max-height:100%}img.cpr-img-large,svg .cpr-img-large,svg.cpr-img-large{display:inline-block;margin:0 auto .5rem}img.cpr-img-large:last-child,svg .cpr-img-large:last-child,svg.cpr-img-large:last-child{margin-bottom:0}img.cpr-img-large .cpr-subchapter-link,svg .cpr-img-large .cpr-subchapter-link,svg.cpr-img-large .cpr-subchapter-link{display:none}img.cpr-img-medium,svg .cpr-img-medium,svg.cpr-img-medium{margin:0 .5rem .5rem 0}img.cpr-img-small,svg .cpr-img-small,svg.cpr-img-small{display:inline}.cpr-highlight div{position:absolute;top:0;left:0;display:inline-block;background:#ff0;opacity:.2}';
 
 		var $style = $('<style>' + styles + '</style>').appendTo(r.$head);
 
@@ -5171,7 +5197,7 @@ var Reader = (function (r) {
 			r.Bugsense = new Bugsense({
 				apiKey: 'f38df951',
 				appName: 'CPR',
-				appversion: '1.0.6-78'
+				appversion: '1.0.14-80'
 			});
 			// Setup error handler
 			window.onerror = function (message, url, line) {
@@ -5275,7 +5301,7 @@ var Reader = (function (r) {
 
 	// Check if the browser supports css-columns.
 	function areColumnsSupported() {
-		var elemStyle = document.createElement('ch').style,
+		var elemStyle = r.document.createElement('ch').style,
 			domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
 			prop = 'columnCount',
 			uc_prop = prop.charAt(0).toUpperCase() + prop.substr(1),
@@ -5319,7 +5345,7 @@ var Reader = (function (r) {
 		});
 
 		// Capture text selection events and notify client of text value.
-		var $doc = r.$iframe.contents();
+		var $doc = $(r.document);
 		$doc.bind('selectionchange', function(){
 			var selection = $doc[0].getSelection().toString();
 			r.Notify.event($.extend({value: selection}, r.Event.TEXT_SELECTION_EVENT));
@@ -5327,6 +5353,7 @@ var Reader = (function (r) {
 	}
 
 	function initializeBook(book, param) {
+		var defer = $.Deferred();
 		// Use startCFI if initCFI is not already set:
 		var initCFI = param.initCFI || book.startCfi;
 		var chapter = r.CFI.getChapterFromCFI(initCFI),
@@ -5350,7 +5377,21 @@ var Reader = (function (r) {
 				});
 			});
 		}
-		return promise;
+		promise.then(
+			defer.resolve,
+			function (err) {
+				if (err && err.call === 'goToCFI') {
+					Reader.Notify.error(err);
+					// The initCFI or startCfi might be invalid, try loading the book without them:
+					delete param.initCFI;
+					delete book.startCfi;
+					initializeBook(book, param).then(defer.resolve, defer.reject);
+				} else {
+					defer.reject(err);
+				}
+			}
+		);
+		return defer.promise();
 	}
 
 	// Load a chapter with the index from the spine of this chapter
@@ -5371,9 +5412,9 @@ var Reader = (function (r) {
 
 				var cfi = r.CFI.isValidCFI(String(page)) && page;
 				if (cfi) {
-					r.CFI.goToCFI(cfi).then(defer.resolve);
+					r.CFI.goToCFI(cfi).then(defer.resolve, defer.reject);
 				} else {
-					r.Navigation.loadPage(page).then(defer.resolve);
+					r.Navigation.loadPage(page).then(defer.resolve, defer.reject);
 				}
 			}, defer.reject); // Execute the callback inside displayContent when its timer interval finish
 		}
@@ -5418,6 +5459,7 @@ var Reader = (function (r, Epub) {
 		// [Read more](https://github.com/readium/EPUBCFI/blob/864527fbb2dd1aaafa034278393d44bba27230df/spec/javascripts/cfi_instruction_spec.js#L137)
 		prototype.BLACKLIST = ['cpr-marker', 'cpr-highlight', 'cpr-subchapter-link'];
 		prototype.BODY_CFI = '!/4';
+		prototype.BODY_ID_RGX = /!\/4\[.*?\]/;
 
 		// Initialisation function, called when the reader is initialised.
 		prototype.init = function(reader){
@@ -5440,6 +5482,8 @@ var Reader = (function (r, Epub) {
 
 		// <a name="addContext"></a> This function will add the context into a CFI to generate a complete and valid CFI to be used with the current chapter.
 		prototype.addContext = function(cfi){
+			// if the body has an id assertion, we need to strip it out CR-493
+			cfi = cfi.replace(this.BODY_ID_RGX, this.BODY_CFI);
 			var contextSplit = cfi.split(this.BODY_CFI);
 			return contextSplit[0] + this.BODY_CFI + this.context + contextSplit[1];
 		};
@@ -5527,14 +5571,14 @@ var Reader = (function (r, Epub) {
 		prototype.injectMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.injectElement(cfi, r.$iframe.contents()[0], marker, this.BLACKLIST);
+			EPUBcfi.injectElement(cfi, r.document, marker, this.BLACKLIST);
 		};
 
 		// Injects a marker in the specified range
 		prototype.injectRangeMarker = function(cfi, marker){
 			cfi = this.addContext(cfi);
 			cfi = this.normalizeChapterPartCFI(cfi, true);
-			EPUBcfi.injectRangeElements(cfi, r.$iframe.contents()[0], marker, marker, this.BLACKLIST);
+			EPUBcfi.injectRangeElements(cfi, r.document, marker, marker, this.BLACKLIST);
 		};
 
 		prototype.reset = function(){
@@ -5605,7 +5649,7 @@ var Reader = (function (r) {
 		STATUS: {
 			'code': 7,
 			'message': 'Reader has updated its status.',
-			'version': '1.0.6-78'
+			'version': '1.0.14-80'
 		},
 		START_OF_BOOK : {
 			code: 8,
@@ -5693,18 +5737,19 @@ var Reader = (function (r) {
 		},
 		getStatus: function (call) {
 			var data = {
-				'call': call || '',
-				'bookmarksInPage': Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
-				'bookmarks': Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
-				'highlightsInPage': Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
-				'highlights': Reader.Highlights.getHighlights(), // array of highlights from the book
-				'cfi': Reader.Navigation.getCurrentCFI(), // the current CFI
-				'progress': Reader.Navigation.getProgress(), // the progress of the book
-				'chapter': Reader.Navigation.getChapter(), // the current chapter
-				'chapters': Reader.Navigation.getNumberOfChapters(), // total number of chapters
-				'page': Reader.Navigation.getPage(), // the current page
-				'pages': Reader.Navigation.getNumberOfPages(), // the total number of pages in the current chapter
-				'preferences': {
+				call: call || '',
+				bookmarksInPage: Reader.Bookmarks.getVisibleBookmarks(), // true if there is a bookmark on the current page
+				bookmarks: Reader.Bookmarks.getBookmarks(), // array of bookmarks from the book
+				highlightsInPage: Reader.Highlights.getVisibleHighlights(), // true if there is a highlight on the current page
+				highlights: Reader.Highlights.getHighlights(), // array of highlights from the book
+				cfi: Reader.Navigation.getCurrentCFI(), // the current CFI
+				progress: Reader.Navigation.getProgress(), // the progress of the book
+				remainingSecondsForChapter: Reader.Navigation.getRemainingSecondsForChapter(),
+				chapter: Reader.Navigation.getChapter(), // the current chapter
+				chapters: Reader.Navigation.getNumberOfChapters(), // total number of chapters
+				page: Reader.Navigation.getPage(), // the current page
+				pages: Reader.Navigation.getNumberOfPages(), // the total number of pages in the current chapter
+				preferences: {
 					lineHeight: r.preferences.lineHeight.value,
 					fontSize: r.preferences.fontSize.value,
 					textAlign: r.preferences.textAlign.value,
@@ -5712,7 +5757,7 @@ var Reader = (function (r) {
 					margin: r.preferences.margin.value,
 					theme: r.preferences.theme.value
 				},
-				'layout': {
+				layout: {
 					width: r.Layout.Container.width,
 					height: r.Layout.Container.height,
 					columns: r.Layout.Reader.columns,
@@ -6420,7 +6465,7 @@ var Reader = (function (r) {
 	// Return the page number in the actual chapter where it is an element.
 	r.moveToAnchor = function (id) {
 		// Find the obj
-		var obj = $(r.$iframe.contents()[0].getElementById(String(id)));
+		var obj = $(r.document.getElementById(String(id)));
 		if (obj.length === 0) {
 			return 0; // If the object does not exist in the chapter we send the user to the page 0 of the chapter
 		} else {
@@ -6435,7 +6480,7 @@ var Reader = (function (r) {
 	// Returns the page number related to an element.
 	// [27.11.13] Refactored how we calculate the page for an element. Since the offset is calculated relative to the reader container now, we don't need to calculate the relative page number, only the absolute one.
 	r.returnPageElement = function(obj) {
-		obj = (obj instanceof $) ? obj : $(obj, r.$iframe.contents());
+		obj = (obj instanceof $) ? obj : $(obj, $(r.document));
 		if (!obj.length) {
 			return -1;
 		}
@@ -6463,11 +6508,17 @@ var Reader = (function (r) {
 			r.Bookmarks.display();
 			r.Highlights.display();
 			r.Navigation.updateProgress();
+		}, function (err) {
+			r.Notify.error(err);
 		});
 	};
 
 	// The current book progress.
 	var _progress = 0;
+	// The user reading speed in words per minute (WPM) as integer:
+	var _readingSpeed = 250;
+	// The remaining seconds to read the current chapter:
+	var _remainingSecondsForChapter = 0;
 
 	// ## Navigation API
 	// The Navigation object exposes methods to allow the user to navigate within the book.
@@ -6524,6 +6575,7 @@ var Reader = (function (r) {
 			return Page.load(p, fixed);
 		},
 		setChapter: function(c){
+
 			chapter = c;
 			// Update the chapter doc name.
 			try {
@@ -6626,18 +6678,30 @@ var Reader = (function (r) {
 			_cfi = null;
 			_progress = 0;
 		},
+		getRemainingSecondsForChapter: function () {
+			return _remainingSecondsForChapter;
+		},
+		updateRemainingSecondsForChapter: function (chapterWordCount, chapterReadFactor) {
+			var wordsLeft = chapterWordCount * (1 - chapterReadFactor);
+			var wordsPerSecond = _readingSpeed / 60;
+			_remainingSecondsForChapter = Math.ceil(wordsLeft / wordsPerSecond);
+		},
 		getProgress: function(){
 			return _progress;
 		},
 		updateProgress: function () {
 			var totalWordCount = r.Book.getTotalWordCount(),
 					spineItem = r.Book.spine.length && r.Book.spine[chapter],
+					chapterWordCount = (spineItem && r.Book.getWordCount(spineItem)) || 0,
+					chapterReadFactor = r.Navigation.getChapterReadFactor(),
 					// Get the current word count from the chapter progress
 					// (which adds one word to the number of words of previous chapters):
 					currentWordCount = spineItem ? Math.round(spineItem.progress / 100 * totalWordCount - 1) : 0;
 
 			// Estimate read word count from current chapter:
-			currentWordCount += spineItem ? r.Book.getWordCount(spineItem) * r.Navigation.getChapterReadFactor() : 0;
+			currentWordCount += chapterWordCount * chapterReadFactor;
+
+			r.Navigation.updateRemainingSecondsForChapter(chapterWordCount, chapterReadFactor);
 
 			// Calculate progress.
 			var progress = currentWordCount / totalWordCount * 100;
@@ -6650,7 +6714,7 @@ var Reader = (function (r) {
 
 			if (r.mobile) {
 				// Update footer and display progress.
-				var progressContainer = $('#cpr-progress', r.$iframe.contents());
+				var progressContainer = $('#cpr-progress', $(r.document));
 				if (!progressContainer.length) {
 					progressContainer = $('<div id="cpr-progress"></div>').appendTo(r.$footer);
 				}
@@ -6658,9 +6722,11 @@ var Reader = (function (r) {
 			}
 		},
 		goToProgress: function (progress) {
+			var error;
 			if ($.type(progress) !== 'number' || progress > 100 || progress < 0) {
-				r.Notify.error($.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'}));
-				return $.Deferred().reject().promise();
+				error = $.extend({}, r.Event.ERR_INVALID_ARGUMENT, {details: 'Invalid progress', value: progress, call: 'goToProgress'});
+				r.Notify.error(error);
+				return $.Deferred().reject(error).promise();
 			}
 			var targetWordCount = Math.ceil(progress / 100 * r.Book.getTotalWordCount()),
 					wordCount = 0,
@@ -7012,7 +7078,9 @@ var Reader = (function (r) {
 							imgLoad = true;
 						} else if (data.type === 'img.load') {
 							pagesByChapter = _getColumnsNumber();
-							r.CFI.goToCFI(_cfi.CFI, true);
+							r.CFI.goToCFI(_cfi.CFI, true).fail(function (err) {
+								r.Notify.error(err);
+							});
 						}
 					})
 					.then(function () {
@@ -7107,6 +7175,50 @@ var Reader = (function (r) {
 
 'use strict';
 
+/*
+ * DOMParser HTML extension
+ * 2012-09-04
+ *
+ * By Eli Grey, http://eligrey.com
+ * Public domain.
+ * NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+ */
+
+/*! @source https://gist.github.com/1129031 */
+/*global document, DOMParser*/
+
+(function(DOMParser) {
+
+	var DOMParser_proto = DOMParser.prototype;
+	var real_parseFromString = DOMParser_proto.parseFromString;
+
+	// Firefox/Opera/IE throw errors on unsupported types
+	try {
+		// WebKit returns null on unsupported types
+		if ((new DOMParser()).parseFromString('', 'text/html')) {
+			// text/html parsing is natively supported
+			return;
+		}
+	} catch (ex) {}
+
+	DOMParser_proto.parseFromString = function(markup, type) {
+		if (/^\s*text\/html\s*(?:;|$)/i.test(type)) {
+			var
+				doc = document.implementation.createHTMLDocument('')
+				;
+			if (markup.toLowerCase().indexOf('<!doctype') > -1) {
+				doc.documentElement.innerHTML = markup;
+			}
+			else {
+				doc.body.innerHTML = markup;
+			}
+			return doc;
+		} else {
+			return real_parseFromString.apply(this, arguments);
+		}
+	};
+}(DOMParser));
+
 var Reader = (function (r) {
 
 	// Parses the content according its mimetype. Returns the parsed content
@@ -7121,15 +7233,14 @@ var Reader = (function (r) {
 		}
 
 		switch (mimetype) {
-		case 'application/xhtml+xml':
-			content = parseXHTML(content, options);
-			break;
-		default:
-			break;
+			case 'text/html':
+			case 'application/xhtml+xml':
+				content = parseXHTML(content, options);
+				break;
 		}
 
-		var head = content.split(/<head[^>]*>/)[1].split('</head>')[0],
-			body = content.split(/<body[^>]*>/)[1].split('</body>')[0];
+		var head = (content.split(/<head[^>]*>/)[1] || '').split('</head>')[0],
+				body = (content.split(/<body[^>]*>/)[1] || '').split('</body>')[0];
 
 		// Extract the contents of the body only thus ignoring any styles declared in head
 		return {
@@ -7190,7 +7301,7 @@ var Reader = (function (r) {
 			children.slice(maxElements * (part + 1)).remove();
 			if (part) {
 				// Add a link to the previous part:
-				$(document.createElement(nodeName))
+				$(r.document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-prev')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part - 1) + lastPageSuffix))
@@ -7203,7 +7314,7 @@ var Reader = (function (r) {
 			}
 			if (part < parts - 1) {
 				// Add a link to the next part:
-				$(document.createElement(nodeName))
+				$(r.document.createElement(nodeName))
 					.prop('id', 'cpr-subchapter-next')
 					.addClass('cpr-subchapter-link')
 					.append($('<a></a>').prop('href', url + '#' + prefix + (part + 1)))
@@ -7226,7 +7337,7 @@ var Reader = (function (r) {
 			content = content.split('<!-- livereload snippet -->')[0].trim() + '</body></html>';
 		}
 
-		var object = parser.parseFromString(content, 'application/xhtml+xml');
+		var object = parser.parseFromString(content, 'text/html');
 		if(object.getElementsByTagName('parsererror').length > 0){
 			// TODO Refactor
 			// Parsing failures should be handled differently than just sending an error to the client
@@ -7328,8 +7439,8 @@ var Reader = (function (r) {
 	}
 
 	function _parseCSS(style) {
-		var doc = document.implementation.createHTMLDocument(''),
-			styleElement = document.createElement('style');
+		var doc = r.document.implementation.createHTMLDocument(''),
+				styleElement = doc.createElement('style');
 
 		styleElement.textContent = style;
 
@@ -7406,12 +7517,13 @@ var Reader = (function (r) {
 							if (rule.style[key]) {
 								// convert px font-size to rem, todo: convert other sizes?
 								if (key === 'fontSize') {
-									cssText += ';' + whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
+									cssText += whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
 								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key === 'textIndent') {
-									cssText += ';' + whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
+									cssText += whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
 								} else {
-									cssText += ';' + whitelist[key] + ':' + rule.style[key];
+									cssText += whitelist[key] + ':' + rule.style[key];
 								}
+								cssText += ';';
 							}
 						}
 						if (cssText && rule.selectorText && rule.selectorText.indexOf('html') === -1 && rule.selectorText.indexOf('body') === -1) {
@@ -7468,7 +7580,6 @@ var Reader = (function (r) {
 			touchDelta,
 			isVerticalScroll,
 			leftPosition,
-      waitingTap = false,
       navInterface,
       touchTimeout;
 
@@ -7478,7 +7589,8 @@ var Reader = (function (r) {
 	}
 
   function sendUnhandledTouchEvent(touchStartData) {
-    waitingTap = false;
+    clearTimeout(touchTimeout);
+    touchTimeout = null;
     r.Notify.event($.extend({}, r.Event.UNHANDLED_TOUCH_EVENT, touchStartData));
   }
 
@@ -7538,23 +7650,28 @@ var Reader = (function (r) {
 				if (touchDelta && !isVerticalScroll) {
 					resetPosition();
 				}
-				if (isShortDuration && !$(e.target).closest('a').length && !waitingTap) {
-          if ($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) {
-            waitingTap = true;
-            touchStartDataCopy = touchStartData;
-            touchTimeout = setTimeout(function () {
-              sendUnhandledTouchEvent(touchStartDataCopy);
-            }, r.preferences.doubleTapDelay.value);
-          } else {
-            sendUnhandledTouchEvent(touchStartData);
-          }
-				} else if (($(e.target).is('img') || $(e.target).is('image') || $(e.target).is('svg')) && waitingTap) {
-          clearTimeout(touchTimeout);
-          waitingTap = false;
-          r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
-            src: $(e.target).attr('data-original-src')
-          }));
-        }
+				// Handle touch events which are not intended as swipes:
+				if (isShortDuration) {
+					// Handle targets which can handle double taps (for now only images):
+					if (!$(e.target).closest('a').length && $(e.target).is('img,image,svg')) {
+						if (touchTimeout) {
+							// This is a double tap
+							clearTimeout(touchTimeout);
+							touchTimeout = null;
+							r.Notify.event($.extend({}, Reader.Event.IMAGE_SELECTION_EVENT, {
+								src: $(e.target).attr('data-original-src')
+							}));
+						} else {
+							// This is a first tap, start a timer to check for a double tap:
+							touchStartDataCopy = touchStartData;
+							touchTimeout = setTimeout(function () {
+								sendUnhandledTouchEvent(touchStartDataCopy);
+							}, r.preferences.doubleTapDelay.value);
+						}
+					} else {
+						sendUnhandledTouchEvent(touchStartData);
+					}
+				}
 			}
 			this.reset();
 		},
@@ -7604,7 +7721,7 @@ var READER = (function() {
 	function loadingWrap(obj, method) {
 		return function() {
 			if (_isLoading) {
-				return $.Deferred().reject().promise();
+				return $.Deferred().reject(Reader.Event.LOADING_STARTED).promise();
 			}
 			return obj[method].apply(obj, arguments).always(function complete() {
 				if (_isLoading) {
