@@ -20,7 +20,7 @@ var Reader = (function (r) {
 	// 3. In the same hierarchy e.g. `image.png"`
 	//
 	// contentPathPrefix represents a special case whereby there are path components present in the OPF file path e.g. `/OEPBS/content.opf` which is in turn should be inferred with any resource paths if they don't already exist in the resource path
-	var _parseURL = function(resourcePath){
+	var _parseURL = function(resourcePath, isImage){
 		var absoluteUrl = '',
 				docAbsPath = r.DOCROOT,
 				href = r.Book.spine[r.Navigation.getChapter()].href,
@@ -85,7 +85,7 @@ var Reader = (function (r) {
 		} else if(absoluteUrl.indexOf('/') === 0){
 			absoluteUrl = location.protocol + '//' + location.host + absoluteUrl;
 		}
-		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
+		return isImage ? absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;') : absoluteUrl;
 	};
 
 	// add data attributes to anchors
@@ -121,7 +121,7 @@ var Reader = (function (r) {
 		// Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.
 		for (var i = 0, image = images[i]; image; image = images[++i]) {
 			if (image.hasAttribute('src')) {
-				var imgSrc = _parseURL(image.getAttribute('src'));
+				var imgSrc = _parseURL(image.getAttribute('src'), true);
 				// Prevent premature loading of img elements:
 				image.setAttribute('data-src', imgSrc);
         // Save original URL for the image:
@@ -158,7 +158,7 @@ var Reader = (function (r) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
             // Save original URL for the image:
             img.setAttribute('data-original-src', _normalizeLink(url));
-						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
+						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url, true));
 					}
 				}
 			}
@@ -171,7 +171,7 @@ var Reader = (function (r) {
 		var videos = content.getElementsByTagName('video');
 		for (var y = 0; y < videos.length; y++) {
 			var vidSrc = videos[y].getAttribute('src');
-			vidSrc = _parseURL(vidSrc);
+			vidSrc = _parseURL(vidSrc, true);
 			videos[y].setAttribute('src', vidSrc);
 		}
 		return content;
@@ -208,7 +208,7 @@ var Reader = (function (r) {
 		var links = content.getElementsByTagName('link');
 		for (var y = 0; y < links.length; y++) {
 			var href = links[y].getAttribute('href');
-			href = _parseURL(href);
+			href = _parseURL(href, false);
 			links[y].setAttribute('href', href);
 		}
 		return content;
