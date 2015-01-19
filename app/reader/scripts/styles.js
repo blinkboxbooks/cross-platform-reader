@@ -84,7 +84,11 @@ var Reader = (function (r) {
 				url: link.href
 			}));
 		});
-		return $.when.apply($, links).then(function () {
+
+		var stylesDeferred = new $.Deferred();
+		var stylesLoaded = $.when.apply($, links);
+
+		stylesLoaded.then(function () {
 			var i, l, j, k;
 
 			// remove previous styles
@@ -148,7 +152,15 @@ var Reader = (function (r) {
 					}
 				}
 			}
+			stylesDeferred.resolve();
+		}, function(e){
+			r.Notify.error('Failed to load stylesheets', e);
+			r.resetPublisherStyles();
+			stylesDeferred.resolve();
 		});
+
+		return stylesDeferred;
+
 	};
 
 	r.hideHeaderAndFooter = function(){
