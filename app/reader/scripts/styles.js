@@ -85,7 +85,7 @@ var Reader = (function (r) {
 			}));
 		});
 
-		var stylesDeferred = new $.Deferred();
+		var stylesDeferred = $.Deferred();
 		var stylesLoaded = $.when.apply($, links);
 
 		stylesLoaded.then(function () {
