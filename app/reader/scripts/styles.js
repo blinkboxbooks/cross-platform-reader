@@ -66,6 +66,38 @@ var Reader = (function (r) {
 		return styleElement.sheet;
 	}
 
+  var cssWhitelist = {
+    textAlign: 'text-align',
+    fontStyle: 'font-style',
+    fontWeight: 'font-weight',
+    fontSize: 'font-size',
+    textDecoration: 'text-decoration',
+    textIndent: 'text-indent',
+    textTransform: 'text-transform',
+    marginLeft: 'margin-left',
+    marginTop: 'margin-top',
+    marginRight: 'margin-right',
+    marginBottom: 'margin-bottom',
+    paddingLeft: 'padding-left',
+    paddingTop: 'padding-top',
+    paddingRight: 'padding-right',
+    paddingBottom: 'padding-bottom',
+    display: 'display',
+    borderLeftWidth: 'border-left-width',
+    borderRightWidth: 'border-right-width',
+    borderTopWidth: 'border-top-width',
+    borderBottomWidth: 'border-bottom-width',
+    borderLeftStyle: 'border-left-style',
+    borderRightStyle: 'border-right-style',
+    borderTopStyle: 'border-top-style',
+    borderBottomStyle: 'border-bottom-style',
+    borderLeftColor: 'border-left-color',
+    borderRightColor: 'border-right-color',
+    borderTopColor: 'border-top-color',
+    borderBottomColor: 'border-bottom-color',
+    float: 'float'
+  };
+
 	r.resetPublisherStyles = function () {
 		if (r.$stylesheet) {
 			// Reset the existing publisher styles:
@@ -77,87 +109,55 @@ var Reader = (function (r) {
 		return r.$stylesheet;
 	};
 
+  r.applyPublisherStylesheet = function applyPublisherStylesheet(styleSheet){
+    var j,k;
+    var rules = _parseCSS(styleSheet).cssRules;
+    var sheet = r.$stylesheet[0].sheet;
+    for (j = 0, k = rules.length; j < k; j++) {
+      var rule = rules[j];
+      if (rule.style) {
+        var cssText = '';
+        for (var key in cssWhitelist) {
+          if (rule.style[key]) {
+            // convert px font-size to rem, todo: convert other sizes?
+            if (key === 'fontSize') {
+              cssText += cssWhitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
+            } else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key === 'textIndent') {
+              cssText += cssWhitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
+            } else {
+              cssText += cssWhitelist[key] + ':' + rule.style[key];
+            }
+            cssText += ';';
+          }
+        }
+        if (cssText && rule.selectorText && rule.selectorText.indexOf('html') === -1 && rule.selectorText.indexOf('body') === -1) {
+          sheet.insertRule(rule.selectorText + '{' + cssText + '}', sheet.cssRules.length);
+        }
+      }
+    }
+  };
+
 	r.addPublisherStyles = function () {
-		var links = [];
+    var stylesDeferred = $.Deferred();
+    var cssLinkPromiseArray = [];
+
+    // clear prev. publisher styles
+    r.resetPublisherStyles();
+
 		r.Navigation.getChapterHead().filter('link[href$=".css"]').each(function (index, link) {
-			links.push($.ajax({
-				url: link.href
-			}));
+      var promise = $.ajax({
+        url: link.href
+      }).then(function(stylesheet){
+        r.applyPublisherStylesheet(stylesheet);
+      }, function(e){
+        r.Notify.error($.extend({}, r.Event.ERR_CSS_FILE_LOAD_FAILED, {details: link.href + ': ' + e.status + ' - ' + e.responseText, call: 'addPublisherStyles'}));
+      });
+			cssLinkPromiseArray.push(promise);
 		});
 
-		var stylesDeferred = $.Deferred();
-		var stylesLoaded = $.when.apply($, links);
-
-		stylesLoaded.then(function () {
-			var i, l, j, k;
-
-			// remove previous styles
-			r.resetPublisherStyles();
-
-			// append whitelisted properties
-			var sheet = r.$stylesheet[0].sheet,
-				whitelist = {
-					textAlign: 'text-align',
-					fontStyle: 'font-style',
-					fontWeight: 'font-weight',
-					fontSize: 'font-size',
-					textDecoration: 'text-decoration',
-					textIndent: 'text-indent',
-					textTransform: 'text-transform',
-					marginLeft: 'margin-left',
-					marginTop: 'margin-top',
-					marginRight: 'margin-right',
-					marginBottom: 'margin-bottom',
-					paddingLeft: 'padding-left',
-					paddingTop: 'padding-top',
-					paddingRight: 'padding-right',
-					paddingBottom: 'padding-bottom',
-					display: 'display',
-					borderLeftWidth: 'border-left-width',
-					borderRightWidth: 'border-right-width',
-					borderTopWidth: 'border-top-width',
-					borderBottomWidth: 'border-bottom-width',
-					borderLeftStyle: 'border-left-style',
-					borderRightStyle: 'border-right-style',
-					borderTopStyle: 'border-top-style',
-					borderBottomStyle: 'border-bottom-style',
-					borderLeftColor: 'border-left-color',
-					borderRightColor: 'border-right-color',
-					borderTopColor: 'border-top-color',
-					borderBottomColor: 'border-bottom-color',
-					float: 'float'
-				};
-			for (i = 0, l = links.length; i < l; i++) {
-				var rules = _parseCSS(arguments[i]).cssRules;
-				for (j = 0, k = rules.length; j < k; j++) {
-					var rule = rules[j];
-					if (rule.style) {
-						var cssText = '';
-						for (var key in whitelist) {
-							if (rule.style[key]) {
-								// convert px font-size to rem, todo: convert other sizes?
-								if (key === 'fontSize') {
-									cssText += whitelist[key] + ':' + _parseFontSize(rule.style[key]) + 'rem';
-								} else if (key.indexOf('margin') !== -1 || key.indexOf('padding') !== -1 || key === 'textIndent') {
-									cssText += whitelist[key] + ':' + _parseSize(rule.style[key]) + 'px';
-								} else {
-									cssText += whitelist[key] + ':' + rule.style[key];
-								}
-								cssText += ';';
-							}
-						}
-						if (cssText && rule.selectorText && rule.selectorText.indexOf('html') === -1 && rule.selectorText.indexOf('body') === -1) {
-							sheet.insertRule(rule.selectorText + '{' + cssText + '}', sheet.cssRules.length);
-						}
-					}
-				}
-			}
-			stylesDeferred.resolve();
-		}, function(e){
-			r.Notify.error('Failed to load stylesheets', e);
-			r.resetPublisherStyles();
-			stylesDeferred.resolve();
-		});
+    // We return a resolved promise, EVEN IF some styles failed to load.
+    // This will ensure the reader continues normally.
+		$.when.apply($, cssLinkPromiseArray).always(stylesDeferred.resolve);
 
 		return stylesDeferred;
 
