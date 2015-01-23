@@ -144,6 +144,10 @@ var Reader = (function (r) {
 			code: 27,
 			message: 'A highlight was added.'
 		},
+    ERR_CSS_FILE_LOAD_FAILED:{
+      code: 28,
+      message: 'A CSS file was referenced by the ePub but failed to load.'
+    },
 		getStatus: function (call) {
 			var data = {
 				call: call || '',

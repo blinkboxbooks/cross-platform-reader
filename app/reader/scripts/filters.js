@@ -74,10 +74,6 @@ var Reader = (function (r) {
 			absoluteUrl = docAbsPath.charAt(docAbsPath.length-1) === '/' ? docAbsPath+resourcePath : docAbsPath+'/'+resourcePath;
 		}
 
-		// Calculate 95% of the width and height of the column.
-		var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
-		var height = Math.floor(r.Layout.Reader.height);
-
 		// if url starts with protocol agnostic url, add protocol to avoid Chrome bug
 		// if the url is not absolute, add the window location
 		if(absoluteUrl.indexOf('//') === 0){
@@ -85,8 +81,24 @@ var Reader = (function (r) {
 		} else if(absoluteUrl.indexOf('/') === 0){
 			absoluteUrl = location.protocol + '//' + location.host + absoluteUrl;
 		}
-		return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
+
+		return absoluteUrl;
 	};
+
+  /**
+   * Given a an absolute URL, places img:w, img:h, and img:scale parameters in the URL params; section.
+   *
+   * @param {string} absoluteUrl An absolute fully qualified url, e.g. as returned from _parseUrl
+   * @returns string An absolute fully qualified url with image dimensions in the params section
+   * @private
+   */
+  var _includeDimensionsParamsInURL = function(absoluteUrl){
+    // Calculate 95% of the width and height of the column.
+    var width = Math.floor(r.Layout.Reader.width / r.Layout.Reader.columns - r.Layout.Reader.padding / 2);
+    var height = Math.floor(r.Layout.Reader.height);
+
+    return absoluteUrl.replace('params;', 'params;img:w='+width+';img:h='+height+';img:m=scale;');
+  };
 
 	// add data attributes to anchors
 	var _anchorData = function($content){
@@ -121,7 +133,7 @@ var Reader = (function (r) {
 		// Check if the img tag is a SVG or not as Webkit and IE10 change the tag name.
 		for (var i = 0, image = images[i]; image; image = images[++i]) {
 			if (image.hasAttribute('src')) {
-				var imgSrc = _parseURL(image.getAttribute('src'));
+				var imgSrc = _includeDimensionsParamsInURL(_parseURL(image.getAttribute('src')));
 				// Prevent premature loading of img elements:
 				image.setAttribute('data-src', imgSrc);
         // Save original URL for the image:
@@ -158,7 +170,7 @@ var Reader = (function (r) {
 						var url = img.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
             // Save original URL for the image:
             img.setAttribute('data-original-src', _normalizeLink(url));
-						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _parseURL(url));
+						img.setAttributeNS('http://www.w3.org/1999/xlink', 'href',  _includeDimensionsParamsInURL(_parseURL(url)));
 					}
 				}
 			}
@@ -171,7 +183,7 @@ var Reader = (function (r) {
 		var videos = content.getElementsByTagName('video');
 		for (var y = 0; y < videos.length; y++) {
 			var vidSrc = videos[y].getAttribute('src');
-			vidSrc = _parseURL(vidSrc);
+			vidSrc = _includeDimensionsParamsInURL(_parseURL(vidSrc));
 			videos[y].setAttribute('src', vidSrc);
 		}
 		return content;
